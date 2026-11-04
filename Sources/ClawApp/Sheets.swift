@@ -11,7 +11,7 @@ struct ItemDetailSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 12) {
-                Monogram(text: ItemPresentation.monogram(item.name), size: 40)
+                Monogram(text: ItemPresentation.monogram(item.name), bucket: item.bucket, size: 40)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.name).font(.title3.weight(.semibold)).lineLimit(1)
                     Text("\(ItemPresentation.conceptSingular(item.concept)) · \(ItemPresentation.scopeTitle(item.scope))")
@@ -76,18 +76,21 @@ struct ItemDetailSheet: View {
             }
         }
         .frame(width: 600, height: 640)
+        .tint(Theme.text)
     }
 
     private var actions: some View {
         HStack(spacing: 10) {
             if item.capabilities.edit {
                 Button("Edit Source…") { model.openInEditor(ItemPresentation.file(item)) }
+                    .tint(Theme.accent)
             }
             if item.capabilities.toggle {
                 Button(toggleLabel) { model.toggle(item) }
             }
             if item.capabilities.remove {
                 Button(removeLabel, role: .destructive) { model.toggleRemoval(item) }
+                    .tint(Theme.danger)
             }
             Button("Reveal in Finder") { model.reveal(ItemPresentation.file(item)) }
             Spacer()
@@ -128,7 +131,8 @@ struct ReviewSheet: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Review \(model.queue.count) changes").font(.title2.weight(.semibold))
+                    Text("Review \(ItemPresentation.counted(model.queue.count, "change"))")
+                        .font(.title2.weight(.semibold))
                     Text("Nothing is written until you click Apply.").foregroundStyle(Theme.muted)
                 }
                 Spacer()
@@ -183,18 +187,21 @@ struct ReviewSheet: View {
             Divider()
             HStack {
                 Button("Discard All", role: .destructive) { model.queue.clear() }
+                    .tint(Theme.danger)
                     .disabled(model.queue.isEmpty)
                 Spacer()
                 Text("Applying arrives with the safe write pipeline (M2).")
                     .font(.caption).foregroundStyle(Theme.muted)
                 Button("Cancel") { dismiss() }
-                Button("Apply \(model.queue.count) changes") {}
+                Button("Apply \(ItemPresentation.counted(model.queue.count, "change"))") {}
                     .buttonStyle(.glassProminent)
+                    .tint(Theme.accent)
                     .disabled(true)
             }
             .padding(16)
         }
         .frame(width: 680, height: 640)
+        .tint(Theme.text)
     }
 }
 
@@ -266,6 +273,7 @@ struct AddPluginSheet: View {
             }
             .pickerStyle(.segmented)
             .labelsHidden()
+            .tint(Theme.segment)
 
             sourceInput
 
@@ -310,6 +318,7 @@ struct AddPluginSheet: View {
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
+                .tint(Theme.segment)
                 .frame(width: 240)
                 Text("writes \(targetFile)").font(.callout.monospaced()).foregroundStyle(Theme.muted)
             }
@@ -333,11 +342,13 @@ struct AddPluginSheet: View {
                 Button("Cancel") { dismiss() }
                 Button("Add plugin") {}
                     .buttonStyle(.glassProminent)
+                    .tint(Theme.accent)
                     .disabled(true)
             }
         }
         .padding(24)
         .frame(width: 720)
+        .tint(Theme.text)
         .fileImporter(isPresented: $choosingFolder, allowedContentTypes: [.folder]) { result in
             if case .success(let url) = result { folder = url.path }
         }

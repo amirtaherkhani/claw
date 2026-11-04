@@ -8,11 +8,11 @@ struct RootView: View {
 
     var body: some View {
         NavigationSplitView {
-            SidebarView(model: model)
+            RailView(model: model)
         } detail: {
             ZStack {
                 Theme.canvas.ignoresSafeArea()
-                page
+                page.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
             .navigationTitle(title)
             .navigationSubtitle(subtitle)
@@ -71,30 +71,96 @@ struct FolderChoice: Identifiable {
     var id: String { path }
 }
 
-struct SidebarView: View {
-    @Bindable var model: AppModel
+/// One rail button. The same table drives the rail and the Go menu, so keyboard users reach every page.
+struct RailEntry: Identifiable {
+    let title: String
+    let shortTitle: String
+    let symbol: String
+    let destination: AppModel.Destination
+    var id: AppModel.Destination { destination }
+
+    static let all: [RailEntry] =
+        [
+            RailEntry(
+                title: "Overview", shortTitle: "Overview", symbol: "circle.hexagongrid", destination: .overview),
+            RailEntry(title: "Scan", shortTitle: "Scan", symbol: "dot.radiowaves.left.and.right", destination: .scan),
+            RailEntry(title: "Projects", shortTitle: "Projects", symbol: "folder", destination: .projects),
+        ]
+        + Concept.allCases.map { concept in
+            let title = ItemPresentation.conceptTitle(concept)
+            return RailEntry(
+                title: title, shortTitle: concept == .mcp ? "MCP" : title, symbol: Theme.symbol(concept),
+                destination: .concept(concept))
+        }
+        + [
+            RailEntry(
+                title: "History", shortTitle: "History", symbol: "clock.arrow.circlepath", destination: .history)
+        ]
+}
+
+/// Icon rail from the prototype. It stays inside the split view's sidebar column, so the glass is system chrome;
+/// a ScrollView keeps all eleven buttons reachable at the window's minimum height.
+struct RailView: View {
+    let model: AppModel
 
     var body: some View {
-        List(selection: $model.destination) {
-            Section {
-                Label("Overview", systemImage: "circle.hexagongrid").tag(AppModel.Destination.overview)
-                Label("Scan", systemImage: "dot.radiowaves.left.and.right").tag(AppModel.Destination.scan)
-                Label("Projects", systemImage: "folder")
-                    .badge(model.allProjects.count)
-                    .tag(AppModel.Destination.projects)
-            }
-            Section("Configuration") {
-                ForEach(Concept.allCases, id: \.self) { concept in
-                    Label(ItemPresentation.conceptTitle(concept), systemImage: Theme.symbol(concept))
-                        .badge(model.result == nil ? 0 : model.count(concept))
-                        .tag(AppModel.Destination.concept(concept))
+        ScrollView {
+            VStack(spacing: 2) {
+                ForEach(RailEntry.all) { entry in
+                    RailButton(
+                        entry: entry, selected: (model.destination ?? .overview) == entry.destination,
+                        count: count(entry.destination)
+                    ) {
+                        model.destination = entry.destination
+                    }
                 }
             }
-            Section {
-                Label("History", systemImage: "clock.arrow.circlepath").tag(AppModel.Destination.history)
-            }
         }
-        .navigationSplitViewColumnWidth(min: 190, ideal: 210)
+        .scrollIndicators(.hidden)
+        .toolbar(removing: .sidebarToggle)
+        .navigationSplitViewColumnWidth(Theme.railWidth)
+    }
+
+    /// Counts stay out of the rail, as on the board; they are in the tooltip and read by VoiceOver.
+    private func count(_ destination: AppModel.Destination) -> Int? {
+        switch destination {
+        case .projects: model.allProjects.count
+        case .concept(let concept): model.result == nil ? nil : model.count(concept)
+        default: nil
+        }
+    }
+}
+
+private struct RailButton: View {
+    let entry: RailEntry
+    let selected: Bool
+    let count: Int?
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: entry.symbol)
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(selected ? Theme.accent : Theme.muted)
+                    .frame(width: 46, height: 34)
+                    .background(
+                        selected ? Theme.railSelected : Color.clear,
+                        in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                Text(entry.shortTitle)
+                    .font(.system(size: 10.5, weight: .semibold))
+                    .foregroundStyle(selected ? Theme.accent : Theme.railLabel)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            .frame(width: Theme.railWidth, height: 56)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(count.map { "\(entry.title): \($0)" } ?? entry.title)
+        .accessibilityLabel(entry.title)
+        .accessibilityValue(count.map(String.init) ?? "")
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
 
@@ -130,7 +196,9 @@ struct StatusToolbar: ToolbarContent {
             } label: {
                 Label(
                     model.activeProject.map { URL(fileURLWithPath: $0).lastPathComponent } ?? "No project",
-                    systemImage: "folder")
+                    systemImage: "folder"
+                )
+                .labelStyle(.titleAndIcon)
             }
             .help("Active project. Project and Local scope write into this folder.")
         }

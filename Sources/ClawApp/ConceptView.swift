@@ -45,6 +45,7 @@ struct ConceptView: View {
                     .labelStyle(.iconOnly)
             }
             .controlSize(.large)
+            .tint(Theme.text)
         }
         .padding(28)
     }
@@ -120,7 +121,9 @@ struct ItemListView: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("\(ItemPresentation.bucketTitle(candidate)), \(count) items")
+                .accessibilityLabel(
+                    "\(ItemPresentation.bucketTitle(candidate)), \(ItemPresentation.counted(count, "item"))"
+                )
                 .accessibilityAddTraits(candidate == bucket ? .isSelected : [])
 
                 if candidate == bucket {
@@ -152,9 +155,11 @@ struct ItemListView: View {
             } else {
                 let anyOn = selectedItems.contains { model.queue.effectiveEnabled($0) }
                 Button("Remove \(selectedItems.count)", role: .destructive) { model.remove(selectedItems) }
+                    .tint(Theme.danger)
                 Button(anyOn ? "Disable \(selectedItems.count)" : "Enable \(selectedItems.count)") {
                     model.toggle(selectedItems, enable: !anyOn)
                 }
+                .tint(Theme.text)
             }
         }
     }
@@ -177,7 +182,7 @@ struct ItemListView: View {
         Table(rows, selection: $selection) {
             TableColumn("Name") { (item: Item) in
                 HStack(spacing: 10) {
-                    Monogram(text: ItemPresentation.monogram(item.name))
+                    Monogram(text: ItemPresentation.monogram(item.name), bucket: item.bucket)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(item.name).fontWeight(.medium)
                             .strikethrough(model.queue.isQueuedForRemoval(item))
@@ -188,7 +193,7 @@ struct ItemListView: View {
                 }
                 .help(item.location)
             }
-            .width(min: 220, ideal: 340)
+            .width(min: 200, ideal: 280)
             TableColumn("Modified") { (item: Item) in
                 if let date = model.modifiedDate(item) {
                     Text(date, format: .dateTime.day().month(.abbreviated).year()).foregroundStyle(Theme.muted)
@@ -196,7 +201,7 @@ struct ItemListView: View {
                     Text("—").foregroundStyle(Theme.muted)
                 }
             }
-            .width(min: 80, ideal: 100)
+            .width(min: 110, ideal: 130)
             TableColumn("Scope") { (item: Item) in
                 Text(ItemPresentation.scopeTitle(item.scope)).foregroundStyle(Theme.muted)
             }
@@ -241,6 +246,7 @@ struct ItemListView: View {
         } primaryAction: { ids in
             if let id = ids.first, let item = rows.first(where: { $0.id == id }) { model.detailItem = item }
         }
+        .alternatingRowBackgrounds(.disabled)
         .scrollContentBackground(.hidden)
         .background(Theme.panel, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay { RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.border) }
@@ -256,8 +262,11 @@ struct ItemListView: View {
             )
             .toggleStyle(.checkbox)
             Spacer()
-            Text(selectedItems.isEmpty ? "\(rows.count) items" : "\(selectedItems.count) of \(rows.count) selected")
-                .foregroundStyle(Theme.muted)
+            Text(
+                selectedItems.isEmpty
+                    ? ItemPresentation.counted(rows.count, "item") : "\(selectedItems.count) of \(rows.count) selected"
+            )
+            .foregroundStyle(Theme.muted)
         }
         .font(.callout)
     }

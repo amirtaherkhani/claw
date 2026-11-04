@@ -114,7 +114,7 @@ struct PresentationTests {
         let p = ProjectInspection.inspect("/p", fileSystem: fs)
         #expect(p.isProject)
         #expect(p.rows.first { $0.path == ".mcp.json" }?.found == true)
-        #expect(p.rows.first { $0.path == ".claude/commands/" }?.label == "1 commands")
+        #expect(p.rows.first { $0.path == ".claude/commands/" }?.label == "1 command")
         #expect(!ProjectInspection.inspect("/empty", fileSystem: fs).isProject)
     }
 
@@ -142,13 +142,20 @@ struct PresentationTests {
     @Test("Item text helpers")
     func text() async throws {
         let all = await items()
-        #expect(ItemPresentation.monogram("/git:commit") == "GC")
-        #expect(ItemPresentation.monogram("code-reviewer") == "CR")
+        #expect(ItemPresentation.monogram("/git:commit") == "G")
+        #expect(ItemPresentation.monogram("code-reviewer") == "C")
+        #expect(ItemPresentation.monogram("[Bash] guard") == "B")
+        #expect(ItemPresentation.monogram("--") == "?")
+        #expect(ItemPresentation.counted(1, "item") == "1 item")
+        #expect(ItemPresentation.counted(0, "item") == "0 items")
+        #expect(ItemPresentation.counted(2, "change") == "2 changes")
         #expect(ItemPresentation.abbreviate("/h/.claude/x", home: "/h") == "~/.claude/x")
         #expect(ItemPresentation.abbreviate("/hx/y", home: "/h") == "/hx/y")
         #expect(ItemPresentation.kind(try item(all, .mcp, "github")) == "http")
         let hook = try item(all, .hooks, "PreToolUse [Bash] · guard.sh")
         #expect(ItemPresentation.file(hook) == "/h/.claude/settings.json")
-        #expect(ItemPresentation.meta(hook, home: "/h").contains { $0.key == "Why" })
+        let why = ItemPresentation.meta(hook, home: "/h").first { $0.key == "Why" }
+        #expect(why?.value.contains("~/.claude/settings.json") == true)
+        #expect(why?.value.contains("/h/.claude") == false)
     }
 }

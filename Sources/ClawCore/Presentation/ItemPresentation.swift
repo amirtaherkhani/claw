@@ -57,10 +57,12 @@ public enum ItemPresentation {
 
     /// One or two letters for the row badge.
     public static func monogram(_ name: String) -> String {
-        let cleaned = name.drop { "/~.:@".contains($0) }
-        let parts = cleaned.split { " -_:./".contains($0) }.prefix(2)
-        let letters = parts.compactMap(\.first).map { String($0).uppercased() }.joined()
-        return letters.isEmpty ? "?" : letters
+        name.first { $0.isLetter || $0.isNumber }.map { String($0).uppercased() } ?? "?"
+    }
+
+    /// "1 item", "2 items". English only until the String Catalog arrives.
+    public static func counted(_ count: Int, _ singular: String) -> String {
+        "\(count) \(singular)\(count == 1 ? "" : "s")"
     }
 
     /// The "Kind" column: plugin origin, MCP transport, hook handler type, or the concept.
@@ -166,7 +168,7 @@ public enum ItemPresentation {
         if let project = item.projectPath { pairs.append(("Project", abbreviate(project, home: home))) }
         pairs.append(("State", (item.enabled ? "On" : "Off") + (item.enabledBy.map { " (set by \($0))" } ?? "")))
         for (index, evidence) in item.classification.evidence.enumerated() {
-            pairs.append((index == 0 ? "Why" : "", evidence))
+            pairs.append((index == 0 ? "Why" : "", evidence.replacingOccurrences(of: home + "/", with: "~/")))
         }
         return pairs.enumerated().map { MetaRow(key: $0.element.0, value: $0.element.1, id: $0.offset) }
     }
