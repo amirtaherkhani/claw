@@ -54,6 +54,16 @@ struct ScanView: View {
                     ProgressView(value: progress.step.fraction)
                     Text("\(Int(progress.step.fraction * 100))%").monospacedDigit().foregroundStyle(Theme.muted)
                 }
+                if let path = progress.waitingOn {
+                    // Line limits matter: an unbroken path would otherwise set the page's minimum height.
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("macOS may be waiting for you to answer a permission prompt. Answer it, or press Stop.")
+                            .lineLimit(2)
+                        Text("Still waiting to read \(ItemPresentation.abbreviate(path, home: model.home))")
+                            .lineLimit(1).truncationMode(.middle)
+                    }
+                    .font(.callout).foregroundStyle(Theme.muted)
+                }
             }
 
             HStack {

@@ -117,13 +117,7 @@ final class AppModel {
         _ scanner: ConfigScanner, progress: @escaping @Sendable (ScanProgress) -> Void
     ) async -> (ScanResult, [String: Date]) {
         let result = await scanner.scan(progress: progress)
-        let fs = LocalFileSystem()
-        var dates: [String: Date] = [:]
-        for item in result.items {
-            let file = ItemPresentation.file(item)
-            if dates[file] == nil, let date = fs.modificationDate(file) { dates[file] = date }
-        }
-        return (result, dates)
+        return (result, await scanner.modificationDates(for: result.items))
     }
 
     /// Drops queued changes whose item no longer exists after a rescan.

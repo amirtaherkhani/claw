@@ -11,7 +11,9 @@ struct PageHeader<Trailing: View>: View {
         HStack(alignment: .top, spacing: 24) {
             VStack(alignment: .leading, spacing: 6) {
                 Text(title).font(.system(size: 26, weight: .semibold))
-                Text(subtitle).foregroundStyle(Theme.muted).fixedSize(horizontal: false, vertical: true)
+                // No vertical fixedSize here: at the near-zero width used to measure a window's minimum size,
+                // it reports one character per line and forces the window to grow on pages without a ScrollView.
+                Text(subtitle).foregroundStyle(Theme.muted).lineLimit(3)
             }
             Spacer(minLength: 16)
             trailing

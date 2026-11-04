@@ -63,6 +63,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | :- | :- | :- | :- |
 | M0, M1, M3 screens | Foundation, read-only scanner and CLI, SwiftUI screens, docs and design | #1 | 2026-11-04 |
 | Loop | `roadmap-loop` skill and CLAUDE.md rule | this PR | 2026-11-04 |
+| F9 | Stop returns during a blocked read; reads leave the concurrency pool; `ScanView` says when macOS may be waiting for a prompt | this PR | 2026-11-04 |
 
 ## Known gaps and decisions to revisit
 
@@ -72,6 +73,10 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 - The scan runs only on demand; there is no file watching yet.
 - Name risk: "Claw" vs the OpenClaw project (ADR-0002). Check before a public release.
 - `known_marketplaces.json` nesting and `~/.claude.json` paths are assumptions until S1 and S3.
+- Stop keeps finished steps only. Stopping during the settings step, where F9 happened, gives an empty partial result that replaces the previous scan on screen.
+- Stop can lose queued changes: `AppModel.startScan` prunes the queue against the items of a partial result, so a change whose item was not reached is dropped.
+- A thread abandoned by Stop stays blocked until the dialog is answered, and scanning again blocks a new thread on the same file. One thread per press, ended by answering the dialog.
+- Disk calls outside a scan still run on the main actor: `ProjectInspection.inspect` in view bodies and `AppModel.loadProjects`. Listing a protected folder there could hang the window (F9).
 
 ## Running the loop
 
