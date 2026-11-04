@@ -41,4 +41,4 @@ Start with [docs/OVERVIEW.md](docs/OVERVIEW.md). Requirements: [PRD](docs/PRD.md
 
 ## License
 
-Not chosen yet.
+GPL-3.0. See [LICENSE](LICENSE).
