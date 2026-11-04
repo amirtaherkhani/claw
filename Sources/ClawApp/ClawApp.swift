@@ -5,22 +5,27 @@ import SwiftUI
 @main
 struct ClawApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    @State private var model = ScanModel()
+    @State private var model = AppModel()
 
     var body: some Scene {
         WindowGroup("Claw") {
-            ContentView(model: model)
-                .frame(minWidth: 900, minHeight: 560)
-                .tint(.clawAccent)
+            RootView(model: model)
+                .frame(minWidth: 1100, minHeight: 680)
+                .tint(Theme.accent)
+                .preferredColorScheme(.dark)
         }
         .commands {
             CommandGroup(after: .newItem) {
                 Button("Scan This Mac") { model.startScan() }
                     .keyboardShortcut("r", modifiers: .command)
                     .disabled(model.isScanning)
-                Button("Stop Scan") { model.stop() }
+                Button("Stop Scan") { model.stopScan() }
                     .keyboardShortcut(".", modifiers: .command)
                     .disabled(!model.isScanning)
+                Divider()
+                Button("Review Changes…") { model.showReview = true }
+                    .keyboardShortcut("r", modifiers: [.command, .shift])
+                    .disabled(model.queue.isEmpty)
             }
         }
     }
@@ -32,9 +37,4 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApplication.shared.setActivationPolicy(.regular)
         NSApplication.shared.activate()
     }
-}
-
-extension Color {
-    /// Brand accent from the prototype (`--acc: #D4F53C`). Used as the app tint only, never as a glass tint.
-    static let clawAccent = Color(red: 0xD4 / 255, green: 0xF5 / 255, blue: 0x3C / 255)
 }

@@ -11,6 +11,12 @@ public protocol ReadonlyFileSystem: Sendable {
     func fileExists(_ path: String) -> Bool
     /// The path with symlinks resolved; the input path when it cannot be resolved.
     func resolvingSymlinks(_ path: String) -> String
+    /// Last modification time, or `nil` when unknown.
+    func modificationDate(_ path: String) -> Date?
+}
+
+extension ReadonlyFileSystem {
+    public func modificationDate(_ path: String) -> Date? { nil }
 }
 
 public struct LocalFileSystem: ReadonlyFileSystem {
@@ -38,6 +44,10 @@ public struct LocalFileSystem: ReadonlyFileSystem {
 
     public func resolvingSymlinks(_ path: String) -> String {
         URL(fileURLWithPath: path).resolvingSymlinksInPath().path
+    }
+
+    public func modificationDate(_ path: String) -> Date? {
+        (try? FileManager.default.attributesOfItem(atPath: path))?[.modificationDate] as? Date
     }
 }
 
