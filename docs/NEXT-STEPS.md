@@ -55,6 +55,15 @@ Design: `docs/TECHNICAL-DESIGN.md` section 9. Tasks: `docs/ROADMAP.md` M2.1 to M
 
 Exit: apply then restore returns byte-identical files; fault injection at every step leaves old or new, never half; no hard delete anywhere (`NFR-SAFE-*`).
 
+## Task log
+
+The `roadmap-loop` skill reads this to pick the next task and appends one row per merged PR.
+
+| Task | Summary | PR | Date |
+| :- | :- | :- | :- |
+| M0, M1, M3 screens | Foundation, read-only scanner and CLI, SwiftUI screens, docs and design | #1 | 2026-11-04 |
+| Loop | `roadmap-loop` skill and CLAUDE.md rule | this PR | 2026-11-04 |
+
 ## Known gaps and decisions to revisit
 
 - Overview "changes applied · 7 days" and the backup card show placeholders until M2.
@@ -63,6 +72,10 @@ Exit: apply then restore returns byte-identical files; fault injection at every 
 - The scan runs only on demand; there is no file watching yet.
 - Name risk: "Claw" vs the OpenClaw project (ADR-0002). Check before a public release.
 - `known_marketplaces.json` nesting and `~/.claude.json` paths are assumptions until S1 and S3.
+
+## Running the loop
+
+In Claude Code: `/roadmap-loop` (until the end of the milestone), `/roadmap-loop M2.1` (one task) or `/roadmap-loop 3` (three tasks). See `.claude/skills/roadmap-loop/SKILL.md` for the merge gate and stop conditions.
 
 ## Kickoff prompt for Claude Code (M2)
 
