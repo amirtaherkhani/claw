@@ -109,7 +109,7 @@ func scan(_ options: ScanOptions) async -> ScanResult {
         cli = ClaudeCLI(executable: path)
     }
     let showProgress = !options.json && isatty(STDERR_FILENO) == 1
-    let scanner = Scanner(
+    let scanner = ConfigScanner(
         environment: environment, target: options.folder.map(ScanTarget.folder) ?? .mac, fileSystem: fs, cli: cli)
     let result = await scanner.scan { progress in
         guard showProgress else { return }

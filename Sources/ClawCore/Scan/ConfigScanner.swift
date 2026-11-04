@@ -27,10 +27,15 @@ public struct ScanProgress: Sendable, Equatable {
 
     public let step: Step
     public let itemCount: Int
+
+    public init(step: Step, itemCount: Int) {
+        self.step = step
+        self.itemCount = itemCount
+    }
 }
 
 /// Read-only scan of all seven concepts. Never writes and never executes scanned content.
-public struct Scanner: Sendable {
+public struct ConfigScanner: Sendable {
     public let environment: ClaudeEnvironment
     public let target: ScanTarget
     let fs: any ReadonlyFileSystem

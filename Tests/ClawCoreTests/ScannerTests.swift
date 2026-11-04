@@ -3,7 +3,7 @@ import Testing
 
 @testable import ClawCore
 
-@Suite("Scanner")
+@Suite("ConfigScanner")
 struct ScannerTests {
     /// Fake HOME with one item of each plugin ownership and each skill location.
     static let files: [String: String] = [
@@ -40,7 +40,7 @@ struct ScannerTests {
                     "--version": ok("2.1.300 (Claude Code)\n"),
                     "plugin list --json": ok(Self.pluginList),
                 ])) : nil
-        return await Scanner(environment: env, fileSystem: MemoryFileSystem(Self.files), cli: cli).scan()
+        return await ConfigScanner(environment: env, fileSystem: MemoryFileSystem(Self.files), cli: cli).scan()
     }
 
     func item(_ result: ScanResult, _ concept: Concept, _ name: String) throws -> Item {

@@ -56,7 +56,7 @@ struct ConceptTests {
                 "plugin list --json": ok(#"[{"id":"kit@m","scope":"user","enabled":true,"installPath":"/c/kit"}]"#),
             ]))
         let fs = MemoryFileSystem(Self.files.merging(extra) { $1 })
-        return await Scanner(environment: env, fileSystem: fs, cli: cli).scan()
+        return await ConfigScanner(environment: env, fileSystem: fs, cli: cli).scan()
     }
 
     func item(_ result: ScanResult, _ concept: Concept, _ name: String) throws -> Item {

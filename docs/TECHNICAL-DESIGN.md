@@ -28,7 +28,7 @@ flowchart LR
     CLI["claw CLI"]
   end
   subgraph Core["ClawCore (Swift, Foundation only, no UI)"]
-    SCAN["Scanner<br/>7 readers + project discovery"]
+    SCAN["ConfigScanner<br/>7 readers + project discovery"]
     CLASS["Classifier<br/>ownership + buckets"]
     PLAN["Planner (M2)<br/>operations to changes + diff"]
     APPLY["Apply pipeline (M2)<br/>backup, atomic write, verify"]
@@ -550,7 +550,7 @@ export interface PlannedChange {
 | `Reader<C>` (seven of them) | `read(ctx): AsyncIterable<RawItem>`; emits `ProgressEvent` per directory or file batch |
 | `Classifier` | Section 5 |
 | `StateResolver` | Section 6, plus per-concept enable state from the keys in 3.3 |
-| `Scanner` | Runs readers with a shared `AbortSignal`; merges, classifies, returns `ScanResult` (`partial: true` when aborted) |
+| `ConfigScanner` | Runs readers with a shared `AbortSignal`; merges, classifies, returns `ScanResult` (`partial: true` when aborted) |
 
 ### 8.2 Targets
 

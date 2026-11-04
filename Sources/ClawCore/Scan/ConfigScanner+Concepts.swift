@@ -1,7 +1,7 @@
 import Foundation
 
 /// Commands, subagents, rules, MCP servers and hooks (M1.6 to M1.8).
-extension Scanner {
+extension ConfigScanner {
     struct ConceptScan {
         var items: [Item] = []
         var problems: [Problem] = []

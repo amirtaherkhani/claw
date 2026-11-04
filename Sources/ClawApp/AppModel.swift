@@ -94,7 +94,7 @@ final class AppModel {
         let cli = ClaudeCLI.locate(
             environment: ProcessInfo.processInfo.environment, home: environment.home, fileSystem: fileSystem
         ).map { ClaudeCLI(executable: $0) }
-        let scanner = Scanner(environment: env, target: target, fileSystem: fileSystem, cli: cli)
+        let scanner = ConfigScanner(environment: env, target: target, fileSystem: fileSystem, cli: cli)
 
         progress = ScanProgress(step: .settings, itemCount: 0)
         scanTask = Task {
@@ -114,7 +114,7 @@ final class AppModel {
     func stopScan() { scanTask?.cancel() }
 
     nonisolated private static func run(
-        _ scanner: Scanner, progress: @escaping @Sendable (ScanProgress) -> Void
+        _ scanner: ConfigScanner, progress: @escaping @Sendable (ScanProgress) -> Void
     ) async -> (ScanResult, [String: Date]) {
         let result = await scanner.scan(progress: progress)
         let fs = LocalFileSystem()

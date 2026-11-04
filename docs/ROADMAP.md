@@ -92,7 +92,7 @@ These follow your standing rules.
 | M1.8 | Hook reader: settings files, plugin `hooks/hooks.json`, frontmatter hooks; guard-hook flag (`PreToolUse`, `PermissionRequest`) | Fixture golden files |
 | M1.9 | Classifier P1 to P8 and the table in TD 5.2; `bucketOf`; `capabilities` per ownership (PRD 4.4) | Unit tests per rule; "unknown means Read-only" test |
 | M1.10 | Effective state (TD 6) and cross-check against CLI `enabled`; mismatch becomes a problem | Test with a higher-scope override |
-| M1.11 | Scanner: targets (This Mac, folder), project discovery from `~/.claude.json` and the registry, task cancellation, progress callback, `partial` flag | Stop returns quickly in a test |
+| M1.11 | ConfigScanner: targets (This Mac, folder), project discovery from `~/.claude.json` and the registry, task cancellation, progress callback, `partial` flag | Stop returns quickly in a test |
 | M1.12 | Project registry store (`projects.json`), realpath de-duplication | Tests |
 | M1.13 | `claw scan --json [--folder <path>]` and `claw list [--concept <id>] [--bucket <id>]` | Output validates against the `ScanResult` schema |
 | M1.14 | Fixtures: fake HOME with one item of each ownership per concept, symlinked dotfile, hostile id, managed layer; golden `ScanResult` per fixture | Goldens committed |

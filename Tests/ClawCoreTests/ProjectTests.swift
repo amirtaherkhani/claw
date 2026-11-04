@@ -49,7 +49,7 @@ struct ProjectTests {
     func progress() async {
         let steps = StepLog()
         let env = ClaudeEnvironment(home: "/h", managedDir: "/managed")
-        _ = await Scanner(environment: env, fileSystem: MemoryFileSystem([:]), cli: nil).scan { steps.append($0.step) }
+        _ = await ConfigScanner(environment: env, fileSystem: MemoryFileSystem([:]), cli: nil).scan { steps.append($0.step) }
         #expect(steps.values == ScanProgress.Step.allCases.filter { $0 != .done } + [.done])
         #expect(ScanProgress.Step.done.fraction == 1)
     }
@@ -58,7 +58,7 @@ struct ProjectTests {
     func cancel() async {
         let env = ClaudeEnvironment(home: "/h", managedDir: "/managed")
         let cli = ClaudeCLI(executable: "/bin/sleep", runner: SleepingRunner(), timeoutSeconds: 30)
-        let scanner = Scanner(environment: env, fileSystem: MemoryFileSystem([:]), cli: cli)
+        let scanner = ConfigScanner(environment: env, fileSystem: MemoryFileSystem([:]), cli: cli)
         let started = Date()
         let task = Task { await scanner.scan() }
         try? await Task.sleep(nanoseconds: 200_000_000)
