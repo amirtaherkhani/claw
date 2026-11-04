@@ -4,6 +4,31 @@ public enum ClefVersion {
     public static let string = "0.1.0"
 }
 
+public struct ScanProgress: Sendable, Equatable {
+    public enum Step: String, Sendable, CaseIterable {
+        case settings, claudeCLI, plugins, skills, otherConcepts, done
+
+        public var label: String {
+            switch self {
+            case .settings: "Reading settings and marketplaces"
+            case .claudeCLI: "Asking claude for installed plugins"
+            case .plugins: "Classifying plugins"
+            case .skills: "Reading skills"
+            case .otherConcepts: "Reading commands, rules, subagents, MCP servers and hooks"
+            case .done: "Done"
+            }
+        }
+
+        /// 0...1 for a progress bar.
+        public var fraction: Double {
+            Double(Self.allCases.firstIndex(of: self) ?? 0) / Double(Self.allCases.count - 1)
+        }
+    }
+
+    public let step: Step
+    public let itemCount: Int
+}
+
 /// Read-only scan of all seven concepts. Never writes and never executes scanned content.
 public struct Scanner: Sendable {
     public let environment: ClaudeEnvironment
@@ -21,19 +46,38 @@ public struct Scanner: Sendable {
         self.cli = cli
     }
 
-    public func scan() async -> ScanResult {
+    /// Runs the scan. Reports progress after each step. When the surrounding task is cancelled (Stop),
+    /// it returns what it has so far with `partial == true`.
+    public func scan(progress: (@Sendable (ScanProgress) -> Void)? = nil) async -> ScanResult {
         let started = Date()
         var problems: [Problem] = []
         var partial = false
+        var items: [Item] = []
+        var version: String?
 
+        func finish() -> ScanResult {
+            items.sort { ($0.concept.rawValue, $0.name, $0.id) < ($1.concept.rawValue, $1.name, $1.id) }
+            progress?(ScanProgress(step: .done, itemCount: items.count))
+            return ScanResult(
+                target: target, startedAt: started, finishedAt: Date(), partial: partial,
+                claudeCodeVersion: version, items: items, problems: problems)
+        }
+        func stopped() -> Bool {
+            guard Task.isCancelled else { return false }
+            partial = true
+            problems.append(Problem(.note, "Scan stopped; the results are incomplete"))
+            return true
+        }
+
+        progress?(ScanProgress(step: .settings, itemCount: 0))
         let settings = SettingsLoader(fileSystem: fs).loadAll(environment: environment)
         problems += settings.problems
-
         let marketReader = MarketplaceReader(fileSystem: fs)
         let (markets, marketProblems) = marketReader.readKnown(file: environment.knownMarketplacesFile)
         problems += marketProblems
+        if stopped() { return finish() }
 
-        var version: String?
+        progress?(ScanProgress(step: .claudeCLI, itemCount: 0))
         var installed: [PluginRecord]?
         if let cli {
             do {
@@ -43,26 +87,32 @@ public struct Scanner: Sendable {
                 problems += list.problems
             } catch {
                 partial = true
-                problems.append(
-                    Problem(.warning, "Could not run `claude plugin list --json` (\(error)); plugins come from settings only"))
+                if !Task.isCancelled {
+                    problems.append(
+                        Problem(.warning, "Could not run `claude plugin list --json` (\(error)); plugins come from settings only")
+                    )
+                }
             }
         } else {
             partial = true
             problems.append(Problem(.note, "claude CLI not used; plugins come from settings only"))
         }
+        if stopped() { return finish() }
 
-        var items: [Item] = []
+        progress?(ScanProgress(step: .plugins, itemCount: items.count))
         let plugins = pluginItems(installed: installed, layers: settings.layers, markets: markets, reader: marketReader)
         items += plugins.map(\.item)
+        if stopped() { return finish() }
+
+        progress?(ScanProgress(step: .skills, itemCount: items.count))
         items += skillItems(layers: settings.layers, plugins: plugins)
+        if stopped() { return finish() }
+
+        progress?(ScanProgress(step: .otherConcepts, itemCount: items.count))
         let concepts = conceptItems(layers: settings.layers, plugins: plugins)
         items += concepts.items
         problems += concepts.problems
-
-        items.sort { ($0.concept.rawValue, $0.name, $0.id) < ($1.concept.rawValue, $1.name, $1.id) }
-        return ScanResult(
-            target: target, startedAt: started, finishedAt: Date(), partial: partial,
-            claudeCodeVersion: version, items: items, problems: problems)
+        return finish()
     }
 
     // MARK: Plugins

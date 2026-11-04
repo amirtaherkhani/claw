@@ -15,9 +15,12 @@ struct ClefApp: App {
         }
         .commands {
             CommandGroup(after: .newItem) {
-                Button("Scan This Mac") { Task { await model.scan() } }
+                Button("Scan This Mac") { model.startScan() }
                     .keyboardShortcut("r", modifiers: .command)
                     .disabled(model.isScanning)
+                Button("Stop Scan") { model.stop() }
+                    .keyboardShortcut(".", modifiers: .command)
+                    .disabled(!model.isScanning)
             }
         }
     }

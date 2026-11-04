@@ -42,45 +42,69 @@ public struct ProcessRunner: CommandRunner {
     public func run(executable: String, arguments: [String], timeoutSeconds: Int) async throws -> CommandResult {
         let box = ProcessBox(executable: executable, arguments: arguments)
         try await box.start()
-        // Race the exit against the deadline. On Linux, `waitUntilExit` also waits for the pipes, which a
-        // grandchild may keep open, so the timeout path must not depend on it. Bound: deadline + 3 s.
-        let code: Int32? = await withCheckedContinuation { continuation in
-            let once = ResumeOnce(continuation)
-            let waiter = Task {
-                once.resume(await box.waitForExit())
+        // Race the exit against the deadline and against cancellation (Stop). On Linux, `waitUntilExit` also
+        // waits for the pipes, which a grandchild may keep open, so neither path depends on it. Bound: + 3 s.
+        let once = ResumeOnce<Int32?>()
+        let code: Int32? = await withTaskCancellationHandler {
+            await withCheckedContinuation { continuation in
+                once.set(continuation)
+                Task { once.resume(await box.waitForExit()) }
+                Task {
+                    try? await Task.sleep(nanoseconds: UInt64(timeoutSeconds) * 1_000_000_000)
+                    guard !once.isDone else { return }
+                    box.terminateForTimeout()
+                    try? await Task.sleep(nanoseconds: 3_000_000_000)
+                    once.resume(nil)
+                }
             }
+        } onCancel: {
+            box.terminateForTimeout()
             Task {
-                try? await Task.sleep(nanoseconds: UInt64(timeoutSeconds) * 1_000_000_000)
-                guard !once.isDone else { return }
-                box.terminateForTimeout()
                 try? await Task.sleep(nanoseconds: 3_000_000_000)
                 once.resume(nil)
-                _ = waiter
             }
         }
+        if Task.isCancelled { throw CancellationError() }
         if box.didTimeOut || code == nil { throw CommandError.timedOut(seconds: timeoutSeconds) }
         let (stdout, stderr) = await box.collectOutput()
         return CommandResult(exitCode: code ?? -1, stdout: stdout, stderr: stderr)
     }
 }
 
-/// Resumes a continuation exactly once; later calls are ignored.
+/// Resumes a continuation exactly once; later calls are ignored. A value that arrives before the
+/// continuation is set is kept and delivered on `set`.
 private final class ResumeOnce<T: Sendable>: @unchecked Sendable {
     private let lock = NSLock()
     private var continuation: CheckedContinuation<T, Never>?
+    private var pending: T?
+    private var done = false
 
-    init(_ continuation: CheckedContinuation<T, Never>) {
-        self.continuation = continuation
+    var isDone: Bool { lock.withLock { done } }
+
+    func set(_ continuation: CheckedContinuation<T, Never>) {
+        let value: T? = lock.withLock {
+            if let pending {
+                self.pending = nil
+                return pending
+            }
+            self.continuation = continuation
+            return nil
+        }
+        if let value { continuation.resume(returning: value) }
     }
 
-    var isDone: Bool { lock.withLock { continuation == nil } }
-
     func resume(_ value: T) {
-        let pending: CheckedContinuation<T, Never>? = lock.withLock {
-            defer { continuation = nil }
-            return continuation
+        let target: CheckedContinuation<T, Never>? = lock.withLock {
+            guard !done else { return nil }
+            done = true
+            if let continuation {
+                self.continuation = nil
+                return continuation
+            }
+            pending = value
+            return nil
         }
-        pending?.resume(returning: value)
+        target?.resume(returning: value)
     }
 }
 

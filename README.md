@@ -17,7 +17,10 @@ swift test                  # Swift Testing suites
 swift run clef scan         # text summary of this Mac
 swift run clef scan --json  # full result; secrets are never included
 swift run clef scan --folder ~/Documents/GitHub/some-project
-swift run ClefApp           # SwiftUI window (macOS only)
+swift run clef scan --all-projects             # plus registered projects and those in ~/.claude.json
+swift run clef list --concept hooks --bucket yours
+swift run clef projects add ~/Documents/GitHub/some-project   # Clef's own list, not Claude's config
+swift run ClefApp           # SwiftUI window (macOS only); Cmd-R scan, Cmd-. stop
 ```
 
 Format check: `swift format lint --strict --recursive Sources Tests Package.swift`

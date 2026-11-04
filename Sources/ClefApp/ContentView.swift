@@ -28,14 +28,14 @@ struct ContentView: View {
         }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button {
-                    Task { await model.scan() }
-                } label: {
-                    Label(model.isScanning ? "Scanning…" : "Scan", systemImage: "arrow.clockwise")
+                if model.isScanning {
+                    Button("Stop", systemImage: "stop.fill", role: .cancel) { model.stop() }
+                        .help("Stop and keep what was found so far")
+                } else {
+                    Button("Scan", systemImage: "arrow.clockwise") { model.startScan() }
+                        .buttonStyle(.glassProminent)
+                        .help("Scan this Mac and known projects (read-only)")
                 }
-                .buttonStyle(.glassProminent)
-                .disabled(model.isScanning)
-                .help("Scan this Mac (read-only)")
             }
             ToolbarItem {
                 Button("Inspector", systemImage: "sidebar.trailing") { showInspector.toggle() }
@@ -45,13 +45,21 @@ struct ContentView: View {
 
     @ViewBuilder
     private var detail: some View {
-        if model.result == nil {
+        if let progress = model.progress, model.result == nil {
+            ProgressView(value: progress.step.fraction) {
+                Text(progress.step.label)
+            } currentValueLabel: {
+                Text("\(progress.itemCount) items so far")
+            }
+            .frame(maxWidth: 360)
+            .padding()
+        } else if model.result == nil {
             ContentUnavailableView {
                 Label("No scan yet", systemImage: "magnifyingglass")
             } description: {
                 Text("Clef reads your Claude Code configuration. Scanning never changes a file.")
             } actions: {
-                Button("Scan This Mac") { Task { await model.scan() } }
+                Button("Scan This Mac") { model.startScan() }
                     .disabled(model.isScanning)
             }
         } else if visibleItems.isEmpty {
@@ -70,9 +78,11 @@ struct ContentView: View {
     }
 
     private var subtitle: String {
+        if let progress = model.progress { return progress.step.label + "…" }
         guard let result = model.result else { return "Not scanned" }
         let version = result.claudeCodeVersion.map { "Claude Code \($0)" } ?? "claude CLI not found"
-        return "\(visibleItems.count) items · \(version)\(result.partial ? " · partial" : "")"
+        let projects = model.projects.isEmpty ? "" : " · \(model.projects.count) projects"
+        return "\(visibleItems.count) items\(projects) · \(version)\(result.partial ? " · partial" : "")"
     }
 }
 
