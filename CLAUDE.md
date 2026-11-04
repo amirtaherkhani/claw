@@ -22,3 +22,9 @@ Native macOS app (Swift 6, SwiftUI) that manages Claude Code plugins, skills, co
 - SwiftUI: system components first; glass only on controls and navigation; check with the `liquid-glass` skill linter.
 - Mark anything unverified with [U] and link the spike in `docs/spikes.md`.
 - Work on a branch; the default branch is changed only through pull requests.
+
+## Development loop
+
+- To continue the roadmap, use the `roadmap-loop` skill (`.claude/skills/roadmap-loop/SKILL.md`): one task per branch and PR, test first, local checks, CI green, then `gh pr merge --squash --delete-branch`, then the next task.
+- Merging is allowed only through that skill's merge gate. Its stop conditions (real config, unverified controls, dependencies, public model changes, visual review, release work, repeated CI failures, end of milestone) always mean: stop and ask.
+- Record every finished task in the Task log of `docs/NEXT-STEPS.md`.
