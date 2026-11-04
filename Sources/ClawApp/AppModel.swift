@@ -102,12 +102,15 @@ final class AppModel {
             let (result, modified) = await Self.run(scanner) { update in
                 Task { @MainActor in self.progress = update }
             }
-            self.result = result
-            self.modified = modified
+            let outcome = ScanOutcome(result: result, stopped: Task.isCancelled, previous: self.result, queue: self.queue)
+            if outcome.replacesResult {
+                self.result = result
+                self.modified = modified
+            }
             self.progress = nil
             self.scanTask = nil
-            self.queue = Self.prune(self.queue, items: result.items)
-            if result.partial { self.show("Scan finished with partial results") }
+            self.queue = outcome.queue
+            if let message = outcome.message { self.show(message) }
         }
     }
 
@@ -118,14 +121,6 @@ final class AppModel {
     ) async -> (ScanResult, [String: Date]) {
         let result = await scanner.scan(progress: progress)
         return (result, await scanner.modificationDates(for: result.items))
-    }
-
-    /// Drops queued changes whose item no longer exists after a rescan.
-    private static func prune(_ queue: ChangeQueue, items: [Item]) -> ChangeQueue {
-        let ids = Set(items.map(\.id))
-        var copy = queue
-        for change in queue.changes where !ids.contains(change.itemId) { copy.discard(change) }
-        return copy
     }
 
     // MARK: Changes
