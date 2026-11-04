@@ -2,7 +2,7 @@
 
 A native macOS app to see, enable, disable, add and remove everything that extends Claude Code: plugins, skills, commands, rules, subagents, MCP servers and hooks. It shows who owns each item (**Yours**, **Read-only**, **Needs attention**) and offers Edit only on items you own.
 
-> Status: **M1 in progress, read-only.** Claw scans all seven concepts (plugins, skills, commands, rules, subagents, MCP servers, hooks) and explains who owns each item. Nothing in this version writes to your configuration.
+> Status: **M1 done, M3 UI written (read-only).** Claw scans all seven concepts and explains who owns each item. The SwiftUI app has every prototype screen; changes can be queued and previewed, but Apply, Restore and Install stay disabled until the safe write pipeline (M2, M5). The SwiftUI code has not been compiled on macOS yet.
 
 ## Requirements
 
