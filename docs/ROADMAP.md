@@ -281,7 +281,7 @@ Do these on the Mac mini, not in the cloud session.
 3. Record versions: `claude --version`, `swift --version`, `xcodebuild -version`, `sw_vers`.
 4. Look at the real CLI surface before relying on the docs: `claude plugin --help`, `claude plugin install --help`, `claude plugin marketplace add --help`, `claude mcp --help`.
 5. For spikes, use a throwaway config directory so your real config is untouched, for example `export CLAUDE_CONFIG_DIR="$(mktemp -d)"` in that shell only. Whether this also relocates `~/.claude.json` is exactly what **S8** checks, so confirm with `claude mcp add` in a temp project and look at which files changed before trusting it.
-6. Clone the repo (or the `clef.bundle` file) into `/Users/mac/Documents/GitHub/claw` and run `swift build && swift test && swift run ClawApp`.
+6. Clone the repo (or the `claw.bundle` file) into `/Users/mac/Documents/GitHub/claw` and run `swift build && swift test && swift run ClawApp`.
 
 ## Appendix B: `CLAUDE.md` for the app repo
 

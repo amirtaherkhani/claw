@@ -333,7 +333,7 @@ export interface PluginRecord {
 
 ```ts
 // file: packages/core/src/classify-plugin.ts
-import type { Classification, MarketplaceRecord, PluginRecord } from '@cfgmgr/contracts';
+import type { Classification, MarketplaceRecord, PluginRecord } from '@claw/contracts';
 
 export interface PluginClassifyContext {
   readonly markets: ReadonlyMap<string, MarketplaceRecord>;
