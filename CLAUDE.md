@@ -27,4 +27,5 @@ Native macOS app (Swift 6, SwiftUI) that manages Claude Code plugins, skills, co
 
 - To continue the roadmap, use the `roadmap-loop` skill (`.claude/skills/roadmap-loop/SKILL.md`): one task per branch and PR, test first, local checks, CI green, then `gh pr merge --squash --delete-branch`, then the next task.
 - Merging is allowed only through that skill's merge gate. Its stop conditions (real config, unverified controls, dependencies, public model changes, visual review, release work, repeated CI failures, end of milestone) always mean: stop and ask.
+- At the end of every roadmap section, close it (step 10 of the skill): merge all finished branches through the merge gate, then remove merged branches on the remote, locally and in worktrees. A PR that hits a stop condition stays open and is reported. Delete only branches proven merged.
 - Record every finished task in the Task log of `docs/NEXT-STEPS.md`.
