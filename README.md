@@ -37,7 +37,7 @@ Format check: `swift format lint --strict --recursive Sources Tests Package.swif
 
 ## Docs
 
-Start with [docs/OVERVIEW.md](docs/OVERVIEW.md). Requirements: [PRD](docs/PRD.md). Design: [TECHNICAL-DESIGN](docs/TECHNICAL-DESIGN.md). Plan: [ROADMAP](docs/ROADMAP.md). Decisions: [docs/adr](docs/adr).
+Start with [docs/OVERVIEW.md](docs/OVERVIEW.md). Requirements: [PRD](docs/PRD.md). Design: [TECHNICAL-DESIGN](docs/TECHNICAL-DESIGN.md). Plan: [ROADMAP](docs/ROADMAP.md). Decisions: [docs/adr](docs/adr). Design: [docs/design](docs/design/README.md). Where things stand and what is next: [NEXT-STEPS](docs/NEXT-STEPS.md).
 
 ## License
 

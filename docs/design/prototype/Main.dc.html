@@ -1,0 +1,1324 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Config Manager</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
+body{margin:0}
+button,a,input{font-family:inherit}
+input::placeholder{color:#7E7E84}
+input:focus-visible{outline:none}
+button:focus-visible,a:focus-visible{outline:2px solid #D4F53C;outline-offset:2px}
+button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
+.rw:hover{background:#151517}
+@keyframes tw{0%,100%{opacity:var(--o)}50%{opacity:calc(var(--o) * 0.4)}}
+.pt{animation:tw 4s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.pt{animation:none}}
+*{scrollbar-color:#2A2A2E transparent}
+</style>
+</helmet>
+<div style="--acc:#D4F53C;--acc-a12:rgba(212,245,60,0.12);--acc-a35:rgba(212,245,60,0.35);width:1360px;height:820px;box-sizing:border-box;position:relative;background:#0B0B0C;border:1px solid #1C1C1F;border-radius:20px;overflow:hidden;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif;color:#F2F2F3;font-size:13px;color-scheme:dark">
+
+  <div style="position:absolute;left:14px;top:14px;display:flex;gap:8px;z-index:30">
+    <span style="width:12px;height:12px;border-radius:50%;background:#FF5F57"></span>
+    <span style="width:12px;height:12px;border-radius:50%;background:#FEBC2E"></span>
+    <span style="width:12px;height:12px;border-radius:50%;background:#28C840"></span>
+  </div>
+
+  <div style="position:absolute;left:0;top:0;bottom:0;width:76px;display:flex;flex-direction:column;align-items:center;padding-top:46px;gap:2px;z-index:6">
+    <button onClick="{{ rail.overview.go }}" aria-label="Overview" style="width:76px;height:56px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:0">
+      <span style="width:46px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;{{ rail.overview.tile }}"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="{{ rail.overview.icon }}"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"></path></svg></span>
+      <span style="font-size:10.5px;font-weight:600;{{ rail.overview.label }}">Overview</span>
+    </button>
+    <button onClick="{{ rail.scan.go }}" aria-label="Scan" style="width:76px;height:56px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:0">
+      <span style="width:46px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;{{ rail.scan.tile }}"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="{{ rail.scan.icon }}"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M4 12h16"></path></svg></span>
+      <span style="font-size:10.5px;font-weight:600;{{ rail.scan.label }}">Scan</span>
+    </button>
+    <button onClick="{{ rail.projects.go }}" aria-label="Projects" style="width:76px;height:56px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:0">
+      <span style="width:46px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;{{ rail.projects.tile }}"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="{{ rail.projects.icon }}"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7zM12 11v5M9.5 13.5h5"></path></svg></span>
+      <span style="font-size:10.5px;font-weight:600;{{ rail.projects.label }}">Projects</span>
+    </button>
+    <button onClick="{{ rail.plugins.go }}" aria-label="Plugins" style="width:76px;height:56px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:0">
+      <span style="width:46px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;{{ rail.plugins.tile }}"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="{{ rail.plugins.icon }}"><path d="M9 2v4M15 2v4M7 6h10v4a5 5 0 0 1-10 0V6zM12 15v5"></path></svg></span>
+      <span style="font-size:10.5px;font-weight:600;{{ rail.plugins.label }}">Plugins</span>
+    </button>
+    <button onClick="{{ rail.skills.go }}" aria-label="Skills" style="width:76px;height:56px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:0">
+      <span style="width:46px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;{{ rail.skills.tile }}"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="{{ rail.skills.icon }}"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2V5zM8 7h6"></path></svg></span>
+      <span style="font-size:10.5px;font-weight:600;{{ rail.skills.label }}">Skills</span>
+    </button>
+    <button onClick="{{ rail.commands.go }}" aria-label="Commands" style="width:76px;height:56px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:0">
+      <span style="width:46px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;{{ rail.commands.tile }}"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="{{ rail.commands.icon }}"><path d="M4 6l6 6-6 6M12 18h8"></path></svg></span>
+      <span style="font-size:10.5px;font-weight:600;{{ rail.commands.label }}">Commands</span>
+    </button>
+    <button onClick="{{ rail.rules.go }}" aria-label="Rules" style="width:76px;height:56px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:0">
+      <span style="width:46px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;{{ rail.rules.tile }}"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="{{ rail.rules.icon }}"><path d="M5 6h14M5 12h14M5 18h9"></path></svg></span>
+      <span style="font-size:10.5px;font-weight:600;{{ rail.rules.label }}">Rules</span>
+    </button>
+    <button onClick="{{ rail.agents.go }}" aria-label="Subagents" style="width:76px;height:56px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:0">
+      <span style="width:46px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;{{ rail.agents.tile }}"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="{{ rail.agents.icon }}"><path d="M12 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM5 20a7 7 0 0 1 14 0"></path></svg></span>
+      <span style="font-size:10.5px;font-weight:600;{{ rail.agents.label }}">Subagents</span>
+    </button>
+    <button onClick="{{ rail.mcp.go }}" aria-label="MCP servers" style="width:76px;height:56px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:0">
+      <span style="width:46px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;{{ rail.mcp.tile }}"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="{{ rail.mcp.icon }}"><path d="M4 5h16v5H4zM4 14h16v5H4zM8 7.5h.01M8 16.5h.01"></path></svg></span>
+      <span style="font-size:10.5px;font-weight:600;{{ rail.mcp.label }}">MCP</span>
+    </button>
+    <button onClick="{{ rail.hooks.go }}" aria-label="Hooks" style="width:76px;height:56px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:0">
+      <span style="width:46px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;{{ rail.hooks.tile }}"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="{{ rail.hooks.icon }}"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"></path></svg></span>
+      <span style="font-size:10.5px;font-weight:600;{{ rail.hooks.label }}">Hooks</span>
+    </button>
+    <button onClick="{{ rail.history.go }}" aria-label="History" style="width:76px;height:56px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:0">
+      <span style="width:46px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;{{ rail.history.tile }}"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="{{ rail.history.icon }}"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span>
+      <span style="font-size:10.5px;font-weight:600;{{ rail.history.label }}">History</span>
+    </button>
+    <div style="flex:1"></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding-bottom:16px">
+      <span style="width:30px;height:30px;border-radius:9px;background:var(--acc);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" stroke-width="2.3" stroke-linecap="round" aria-hidden="true"><path d="M4 8h9M17 8h3M4 16h3M11 16h9"></path><circle cx="15" cy="8" r="2"></circle><circle cx="9" cy="16" r="2"></circle></svg></span>
+      <span style="font-size:10.5px;font-weight:600;color:#9A9AA0">Config</span>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:76px;top:0;right:0;bottom:0">
+
+    <div style="position:absolute;top:10px;left:14px;right:14px;height:50px;box-sizing:border-box;border-radius:16px;background:#141416;border:1px solid #232327;display:flex;align-items:center;gap:18px;padding:0 16px;z-index:10">
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px">
+        <div style="font-size:12.5px;color:#9A9AA0;white-space:nowrap"><span style="font-weight:700;color:#FFFFFF">{{ barEnabled }}</span> of {{ barTotal }} items enabled<span style="color:#6E6E74"> · {{ barPending }}</span></div>
+        <div style="height:6px;border-radius:3px;background:#2A2A2E;overflow:hidden"><div style="height:6px;border-radius:3px;background:#FFFFFF;{{ barFill }}"></div></div>
+      </div>
+      <div style="display:flex;gap:2px;padding:2px;border-radius:999px;background:#1C1C1F">
+        <button onClick="{{ scopeBtn.user.go }}" style="height:24px;padding:0 12px;border:0;border-radius:999px;font-size:12px;cursor:pointer;{{ scopeBtn.user.style }}">User</button>
+        <button onClick="{{ scopeBtn.project.go }}" style="height:24px;padding:0 12px;border:0;border-radius:999px;font-size:12px;cursor:pointer;{{ scopeBtn.project.style }}">Project</button>
+        <button onClick="{{ scopeBtn.local.go }}" style="height:24px;padding:0 12px;border:0;border-radius:999px;font-size:12px;cursor:pointer;{{ scopeBtn.local.style }}">Local</button>
+      </div>
+      <span style="font-size:11.5px;color:#7E7E84;white-space:nowrap">Last backup 9 hr. ago</span>
+      <sc-if value="{{ hasPending }}" hint-placeholder-val="{{ true }}">
+        <a href="Review.dc.html" style="font-size:12.5px;font-weight:700;color:var(--acc);text-decoration:none;white-space:nowrap">{{ pendingLabel }}</a>
+      </sc-if>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 17h12l-1.5-2.5V10a4.5 4.5 0 0 0-9 0v4.5L6 17zM10 20h4"></path></svg>
+      <button onClick="{{ goProjects }}" aria-label="Active project, open project folders" title="Active project. Click to manage project folders." style="display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px 0 8px;border:0;border-radius:999px;background:#1C1C1F;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#C8C8CD;white-space:nowrap;cursor:pointer"><span style="width:8px;height:8px;border-radius:50%;background:var(--acc)"></span>{{ activeProj }}</button>
+    </div>
+
+    <sc-if value="{{ hasHeader }}" hint-placeholder-val="{{ true }}">
+      <div style="position:absolute;left:48px;top:78px;z-index:2">
+        <div style="font-size:30px;font-weight:400;letter-spacing:-0.01em;color:#FFFFFF;line-height:1.1">{{ pageTitle }}</div>
+        <div style="margin-top:8px;font-size:13px;color:#8E8E93">{{ pageSub }} <a href="Review.dc.html" style="color:#8E8E93;text-decoration:none">{{ pageSubLink }}</a></div>
+      </div>
+      <div style="position:absolute;right:48px;top:84px;text-align:right;z-index:2">
+        <div style="font-size:12px;color:#8E8E93">Writes to <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;color:#D8D8DC">{{ scopeFile }}</span></div>
+        <div style="margin-top:6px;font-size:11.5px;color:#8E8E93;display:flex;align-items:center;gap:6px;justify-content:flex-end"><span style="width:6px;height:6px;border-radius:50%;background:var(--acc)"></span>Backup before every apply</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
+      <div style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden">
+        <sc-for list="{{ stars }}" as="s" hint-placeholder-count="4">
+          <span style="{{ s.s }}"></span>
+        </sc-for>
+        <div style="{{ ringLine }}"></div>
+        <sc-for list="{{ ring }}" as="p" hint-placeholder-count="4">
+          <span class="pt" style="{{ p.s }}"></span>
+        </sc-for>
+        <div style="position:absolute;left:210px;top:282px;width:520px;text-align:center">
+          <div style="line-height:1"><span style="font-size:116px;font-weight:300;letter-spacing:-0.03em;color:#FFFFFF">{{ barEnabled }}</span><span style="font-size:30px;font-weight:400;color:#8E8E93;margin-left:12px">of {{ barTotal }}</span></div>
+          <div style="margin-top:22px;font-size:14px;letter-spacing:0.22em;color:#C8C8CD">ENABLED</div>
+          <div style="margin-top:14px;font-size:13px;color:#77777C">{{ barTotal }} items across 7 types</div>
+        </div>
+        <div style="position:absolute;left:880px;top:312px;width:340px">
+          <div style="font-size:36px;font-weight:400;color:#FFFFFF;line-height:1.1">{{ headline }}</div>
+          <div style="margin-top:12px;font-size:12px;color:#77777C">Last read 3 min. ago · {{ scope }} scope</div>
+          <sc-if value="{{ hasPending }}" hint-placeholder-val="{{ true }}">
+            <a href="Review.dc.html" style="margin-top:26px;display:inline-flex;align-items:center;gap:10px;height:44px;padding:0 26px;border:1.5px solid #E8E8EA;border-radius:999px;color:#FFFFFF;font-size:14.5px;font-weight:500;text-decoration:none">{{ pendingLabel }} <span aria-hidden="true">→</span></a>
+          </sc-if>
+          <div style="{{ ovScanWrap }}">
+            <button onClick="{{ rescan }}" style="display:inline-flex;align-items:center;gap:10px;height:44px;padding:0 26px;border-radius:999px;background:transparent;font-size:14.5px;font-weight:500;cursor:pointer;{{ ovScanBtn }}">Scan all <span aria-hidden="true">→</span></button>
+          </div>
+        </div>
+        <div style="position:absolute;left:84px;top:690px">
+          <div style="font-size:26px;color:#FFFFFF">{{ editableCount }}</div>
+          <div style="margin-top:4px;font-size:13px;color:#8E8E93">items you own and can edit</div>
+        </div>
+        <div style="position:absolute;left:520px;top:690px">
+          <div style="font-size:26px;color:#FFFFFF">8</div>
+          <div style="margin-top:4px;font-size:13px;color:#8E8E93">changes applied <span style="color:#6E6E74">· 7 days</span></div>
+          <div style="margin-top:10px;display:flex;gap:5px">
+            <sc-for list="{{ weekBars }}" as="w" hint-placeholder-count="7">
+              <span style="{{ w.s }}"></span>
+            </sc-for>
+          </div>
+        </div>
+        <div style="position:absolute;left:940px;top:696px;width:300px;font-size:12px">
+          <div style="display:flex;align-items:center;gap:8px;color:#7E7E84;letter-spacing:0.12em;font-size:11px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>BACKUP</div>
+          <div style="margin-top:8px;display:flex;gap:14px"><span style="width:44px;color:#6E6E74">Next</span><span style="color:#C8C8CD">Before every apply</span></div>
+          <div style="margin-top:5px;display:flex;gap:14px"><span style="width:44px;color:#6E6E74">Recent</span><span style="color:#C8C8CD">11:44 PM <span style="color:#6E6E74">·</span> Applied <span style="color:#6E6E74">·</span> 2 changes</span></div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isFlow }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:48px;top:150px;width:1188px;height:560px">
+        <sc-for list="{{ particles }}" as="p" hint-placeholder-count="4">
+          <span class="pt" style="{{ p.s }}"></span>
+        </sc-for>
+        <sc-for list="{{ lnodes }}" as="n" hint-placeholder-count="3">
+          <div>
+            <div style="{{ n.wrap }}"><span style="font-size:13px;font-weight:600;color:#E8E8EA">{{ n.name }}</span><span style="font-size:11.5px;color:#8E8E93;margin-top:2px">{{ n.sub }}</span></div>
+            <span style="{{ n.bar }}"></span>
+          </div>
+        </sc-for>
+        <sc-for list="{{ rnodes }}" as="r" hint-placeholder-count="3">
+          <button onClick="{{ r.go }}" aria-label="{{ r.aria }}" style="{{ r.wrap }}">
+            <span style="{{ r.bar }}"></span>
+            <span style="display:flex;flex-direction:column;gap:3px;align-items:flex-start;padding-left:20px">
+              <span style="font-size:14px;font-weight:600;color:#FFFFFF;display:flex;align-items:center;gap:6px">{{ r.name }}<span style="color:#8E8E93;font-weight:400">›</span></span>
+              <span style="font-size:12px;color:#8E8E93">{{ r.sub }}</span>
+            </span>
+          </button>
+        </sc-for>
+        <sc-if value="{{ hasHint }}" hint-placeholder-val="{{ true }}">
+          <div style="{{ hintStyle }}">Click to see what you can edit</div>
+        </sc-if>
+      </div>
+      <div style="position:absolute;left:0;right:0;bottom:26px;display:flex;justify-content:center;gap:10px">
+        <button onClick="{{ rescan }}" style="height:42px;min-width:104px;padding:0 28px;border:1.5px solid #E8E8EA;border-radius:999px;background:transparent;color:#FFFFFF;font-size:14.5px;font-weight:500;cursor:pointer">Scan all</button>
+        <button onClick="{{ openHist }}" aria-label="History" style="width:42px;height:42px;padding:0;border:1.5px solid #E8E8EA;border-radius:50%;background:transparent;color:#FFFFFF;cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isProjects }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:48px;top:78px;z-index:2">
+        <div style="font-size:30px;font-weight:400;letter-spacing:-0.01em;color:#FFFFFF;line-height:1.1">Manage project folders</div>
+        <div style="margin-top:8px;font-size:13px;color:#8E8E93">{{ projSub }}</div>
+      </div>
+      <div style="position:absolute;right:48px;top:84px;text-align:right;z-index:2">
+        <div style="font-size:13px;color:#D8D8DC">{{ projR1 }}</div>
+        <div style="margin-top:6px;font-size:11.5px;color:#8E8E93">Writes only inside folders you add</div>
+      </div>
+      <div style="position:absolute;left:48px;right:48px;top:150px;bottom:24px;display:flex;flex-direction:column;gap:14px">
+        <sc-if value="{{ hasProjects }}" hint-placeholder-val="{{ true }}">
+          <div style="flex:none;display:flex;flex-direction:column;gap:10px">
+            <sc-for list="{{ prows }}" as="p" hint-placeholder-count="2">
+              <div style="display:flex;align-items:center;gap:16px;padding:14px 18px;border-radius:16px;background:#111113;border:1px solid #1E1E21">
+                <span style="width:40px;height:40px;flex:none;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(255,214,10,0.16);color:#FFD60A"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"></path></svg></span>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <span style="font-size:15px;font-weight:700;color:#FFFFFF">{{ p.name }}</span>
+                    <sc-if value="{{ p.isActive }}" hint-placeholder-val="{{ true }}">
+                      <span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;background:rgba(212,245,60,0.14);color:var(--acc)">Active</span>
+                    </sc-if>
+                  </div>
+                  <div style="margin-top:3px;font-size:12px;color:#8E8E93;font-family:ui-monospace,'SF Mono',Menlo,monospace">{{ p.path }}</div>
+                </div>
+                <div style="flex:none;min-width:130px;text-align:right;font-size:12px;color:#8E8E93">{{ p.stat }}</div>
+                <sc-if value="{{ p.canActivate }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ p.makeActive }}" style="flex:none;height:32px;padding:0 6px;border:0;background:transparent;color:var(--acc);font-size:12.5px;font-weight:600;cursor:pointer">Make active</button>
+                </sc-if>
+                <button onClick="{{ p.open }}" style="flex:none;height:32px;padding:0 18px;border:1.5px solid #3A3A3F;border-radius:999px;background:transparent;color:#E8E8EA;font-size:12.5px;font-weight:500;cursor:pointer">Open</button>
+                <button onClick="{{ p.scan }}" style="flex:none;height:32px;padding:0 18px;border:1.5px solid #3A3A3F;border-radius:999px;background:transparent;color:#E8E8EA;font-size:12.5px;font-weight:500;cursor:pointer">Scan</button>
+                <button onClick="{{ p.remove }}" aria-label="{{ p.aria }}" style="flex:none;height:32px;padding:0 4px;border:0;background:transparent;color:#FF8F85;font-size:12.5px;font-weight:500;cursor:pointer">Stop managing</button>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <button onClick="{{ openAddProj }}" aria-label="Add a project folder" style="flex:1;min-height:200px;padding:0;border:1.5px dashed #2E2E32;border-radius:24px;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;cursor:pointer;color:inherit">
+          <span style="width:80px;height:80px;border-radius:50%;background:#18181A;display:flex;align-items:center;justify-content:center;color:#9A9AA0"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7zM12 11v5M9.5 13.5h5"></path></svg></span>
+          <span style="margin-top:6px;font-size:20px;font-weight:700;color:#FFFFFF">Drop a project folder here</span>
+          <span style="font-size:13px;font-weight:600;color:var(--acc)">or Browse…</span>
+          <span style="max-width:440px;text-align:center;font-size:12px;line-height:1.5;color:#7E7E84">A project folder is any folder with .claude/, .mcp.json or CLAUDE.md. The app only reads it until you change something.</span>
+        </button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isScan }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:48px;top:78px;z-index:2">
+        <div style="font-size:30px;font-weight:400;letter-spacing:-0.01em;color:#FFFFFF;line-height:1.1">Scan all configuration</div>
+        <div style="margin-top:8px;font-size:13px;color:#8E8E93">{{ scanSub }}</div>
+      </div>
+      <div style="position:absolute;right:48px;top:84px;text-align:right;z-index:2">
+        <div style="font-size:13px;color:#D8D8DC">{{ scanR1 }}</div>
+        <div style="margin-top:6px;font-size:11.5px;color:#8E8E93;display:flex;align-items:center;gap:6px;justify-content:flex-end">
+          <sc-if value="{{ scanLive }}" hint-placeholder-val="{{ false }}">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--acc)"></span>
+          </sc-if>
+          <span>{{ scanR2 }}</span>
+        </div>
+        <sc-if value="{{ hasFound }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:8px"><button onClick="{{ openAddProj }}" style="border:0;background:transparent;padding:0;color:var(--acc);font-size:12px;font-weight:600;cursor:pointer">{{ foundLabel }} ›</button></div>
+        </sc-if>
+      </div>
+      <div style="position:absolute;left:48px;top:146px;display:flex;align-items:center;gap:8px;z-index:3">
+        <sc-for list="{{ tchips }}" as="c" hint-placeholder-count="3">
+          <button onClick="{{ c.go }}" style="height:28px;padding:0 14px;border:0;border-radius:999px;font-size:12px;font-weight:500;cursor:pointer;{{ c.style }}">{{ c.label }}</button>
+        </sc-for>
+      </div>
+      <div style="position:absolute;left:48px;top:184px;width:1188px;height:540px">
+        <sc-for list="{{ sDots }}" as="p" hint-placeholder-count="4">
+          <span style="{{ p.s }}"></span>
+        </sc-for>
+        <sc-for list="{{ sTw }}" as="p" hint-placeholder-count="4">
+          <span class="pt" style="{{ p.s }}"></span>
+        </sc-for>
+        <sc-for list="{{ sL }}" as="n" hint-placeholder-count="3">
+          <div>
+            <div style="{{ n.wrap }}"><span style="font-size:13px;font-weight:600;{{ n.nameStyle }}">{{ n.name }}</span><span style="font-size:11.5px;color:#8E8E93;margin-top:2px">{{ n.sub }}</span></div>
+            <span style="{{ n.bar }}"></span>
+          </div>
+        </sc-for>
+        <sc-for list="{{ sR }}" as="r" hint-placeholder-count="3">
+          <button onClick="{{ r.go }}" aria-label="{{ r.aria }}" style="{{ r.wrap }}">
+            <span style="{{ r.bar }}"></span>
+            <span style="display:flex;flex-direction:column;gap:3px;align-items:flex-start;padding-left:20px">
+              <span style="font-size:14px;font-weight:600;color:#FFFFFF;display:flex;align-items:center;gap:6px">{{ r.name }}<span style="color:#8E8E93;font-weight:400">›</span></span>
+              <span style="font-size:12px;color:#8E8E93">{{ r.sub }}</span>
+            </span>
+          </button>
+        </sc-for>
+        <sc-if value="{{ sHint }}" hint-placeholder-val="{{ true }}">
+          <div style="{{ sHintStyle }}">Click to see what you can edit <span aria-hidden="true">←</span></div>
+        </sc-if>
+      </div>
+      <sc-if value="{{ scanRunning }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;left:0;right:0;bottom:92px;display:flex;align-items:center;justify-content:center;gap:12px">
+          <div style="width:360px;height:4px;border-radius:2px;background:#2A2A2E;overflow:hidden"><div style="height:4px;border-radius:2px;background:#FFFFFF;{{ scanFill }}"></div></div>
+          <span style="width:36px;font-size:12px;color:#8E8E93">{{ scanPct }}</span>
+        </div>
+      </sc-if>
+      <div style="position:absolute;left:0;right:0;bottom:26px;display:flex;justify-content:center;gap:10px">
+        <button onClick="{{ scanBtn }}" style="height:42px;min-width:104px;padding:0 28px;border:1.5px solid #E8E8EA;border-radius:999px;background:transparent;color:#FFFFFF;font-size:14.5px;font-weight:500;cursor:pointer">{{ scanBtnLabel }}</button>
+        <button onClick="{{ openHist }}" aria-label="History" style="width:42px;height:42px;padding:0;border:1.5px solid #E8E8EA;border-radius:50%;background:transparent;color:#FFFFFF;cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isList }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:48px;right:48px;top:150px;bottom:24px;display:flex;gap:32px">
+
+        <div style="width:262px;flex:none;display:flex;flex-direction:column;gap:6px">
+          <button onClick="{{ backFlow }}" style="align-self:flex-start;border:0;background:transparent;color:#C8C8CD;font-size:13px;font-weight:500;cursor:pointer;padding:6px 0 14px;display:flex;align-items:center;gap:6px"><span aria-hidden="true">‹</span>{{ backLabel }}</button>
+          <sc-for list="{{ buckets }}" as="b" hint-placeholder-count="3">
+            <div style="{{ b.card }}">
+              <button onClick="{{ b.go }}" aria-label="{{ b.aria }}" style="display:flex;align-items:center;gap:14px;width:100%;border:0;background:transparent;padding:0;text-align:left;cursor:pointer;color:inherit;min-height:46px">
+                <span style="{{ b.bar }}"></span>
+                <span style="flex:1;min-width:0">
+                  <span style="display:block;font-size:15px;font-weight:700;{{ b.nameStyle }}">{{ b.name }}</span>
+                  <span style="display:block;font-size:12px;color:#7E7E84;margin-top:2px">{{ b.sub }}</span>
+                </span>
+                <span style="color:#6E6E74;font-size:16px">{{ b.chev }}</span>
+              </button>
+              <sc-if value="{{ b.selected }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:14px;padding-top:12px;border-top:1px solid #232327">
+                  <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#9A9AA0">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+                    <span style="flex:1">Backup first</span>
+                    <span role="img" aria-label="Always on" style="position:relative;width:36px;height:20px;border-radius:10px;background:#3A3A3E;opacity:0.9"><span style="position:absolute;top:2px;left:18px;width:16px;height:16px;border-radius:50%;background:#F2F2F3"></span></span>
+                  </div>
+                  <div style="margin-top:8px;font-size:11.5px;color:#7E7E84;line-height:1.45">Every change is backed up first. Files are moved to the backup folder, never hard-deleted.</div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;gap:10px;min-height:44px">
+            <span style="width:8px;height:8px;border-radius:50%;{{ curDot }}"></span>
+            <span style="font-size:17px;font-weight:700;color:#FFFFFF">{{ curName }}</span>
+            <span style="font-size:13px;color:#8E8E93">{{ curCount }}</span>
+            <span style="flex:1"></span>
+            <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ bulkRemove }}" style="height:40px;padding:0 22px;border:1.5px solid #6B3A33;border-radius:999px;background:transparent;color:#FF8F85;font-size:14px;font-weight:500;cursor:pointer">{{ removeLabel }}</button>
+              <button onClick="{{ bulkToggle }}" style="height:40px;padding:0 26px;border:1.5px solid #E8E8EA;border-radius:999px;background:transparent;color:#FFFFFF;font-size:14px;font-weight:500;cursor:pointer">{{ bulkLabel }}</button>
+            </sc-if>
+            <sc-if value="{{ noSel }}" hint-placeholder-val="{{ true }}">
+              <span style="display:inline-flex;align-items:center;height:40px;padding:0 24px;border:1.5px solid #2C2C30;border-radius:999px;color:#6E6E74;font-size:14px;font-weight:500">Select items</span>
+            </sc-if>
+          </div>
+          <div style="margin-top:2px;font-size:12px;color:#8E8E93;line-height:1.5;max-width:640px">{{ curNote }}</div>
+
+          <div style="margin-top:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <sc-for list="{{ chips }}" as="c" hint-placeholder-count="4">
+              <button onClick="{{ c.go }}" style="height:28px;padding:0 14px;border:0;border-radius:999px;font-size:12px;font-weight:500;cursor:pointer;{{ c.style }}">{{ c.label }}</button>
+            </sc-for>
+            <span style="flex:1"></span>
+            <span style="font-size:12px;color:#7E7E84">Scope <span style="color:#C8C8CD">{{ scope }} ▾</span></span>
+          </div>
+
+          <div style="margin-top:16px;display:flex;align-items:center;height:30px;padding:0 12px;font-size:11.5px;color:#8E8E93;border-bottom:1px solid #1E1E21">
+            <span style="width:34px;flex:none"></span>
+            <span style="flex:1">Name</span>
+            <span style="width:130px;flex:none">Modified</span>
+            <span style="width:70px;flex:none">Scope</span>
+            <span style="width:140px;flex:none">Kind</span>
+            <span style="width:56px;flex:none">On</span>
+            <span style="width:22px;flex:none"></span>
+          </div>
+          <div style="flex:1;min-height:0;overflow:auto;padding-top:4px">
+            <sc-for list="{{ lrows }}" as="r" hint-placeholder-count="5">
+              <div class="rw" style="display:flex;align-items:center;min-height:42px;padding:0 12px;border-radius:10px">
+                <button role="checkbox" aria-checked="{{ r.checked }}" aria-label="{{ r.chkLabel }}" onClick="{{ r.toggleChk }}" style="{{ r.chkStyle }}">{{ r.chkMark }}</button>
+                <button onClick="{{ r.open }}" title="{{ r.tip }}" style="flex:1;min-width:0;height:42px;display:flex;align-items:center;gap:10px;border:0;background:transparent;text-align:left;padding:0;cursor:pointer;color:inherit">
+                  <span style="{{ r.tile }}">{{ r.mono }}</span>
+                  <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><span style="font-size:13px;font-weight:500;{{ r.nameStyle }}">{{ r.name }}</span><span style="font-size:12px;color:#7E7E84;font-family:ui-monospace,'SF Mono',Menlo,monospace"> — {{ r.sub }}</span></span>
+                </button>
+                <span style="width:130px;flex:none;font-size:12px;color:#8E8E93">{{ r.mod }}</span>
+                <span style="width:70px;flex:none;font-size:12px;color:#8E8E93">{{ r.scope }}</span>
+                <span style="width:140px;flex:none;font-size:12px;color:#8E8E93">{{ r.kind }}</span>
+                <span style="width:56px;flex:none;display:flex;align-items:center">
+                  <sc-if value="{{ r.hasSwitch }}" hint-placeholder-val="{{ true }}">
+                    <button role="switch" aria-checked="{{ r.on }}" aria-label="{{ r.switchLabel }}" onClick="{{ r.toggle }}" style="position:relative;width:36px;height:20px;padding:0;border:0;border-radius:10px;cursor:pointer;{{ r.switchStyle }}"><span style="position:absolute;top:2px;width:16px;height:16px;border-radius:50%;{{ r.knobPos }}"></span></button>
+                  </sc-if>
+                </span>
+                <button onClick="{{ r.open }}" aria-label="{{ r.openLabel }}" style="width:22px;flex:none;border:0;background:transparent;color:#6E6E74;font-size:16px;cursor:pointer;padding:0">›</button>
+              </div>
+            </sc-for>
+          </div>
+          <div style="flex:none;display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-top:1px solid #1E1E21">
+            <button role="checkbox" aria-checked="{{ allChecked }}" aria-label="Select all" onClick="{{ toggleAll }}" style="{{ allStyle }}">{{ allMark }}</button>
+            <span style="font-size:13px;font-weight:700;color:#FFFFFF">Select all</span>
+            <span style="font-size:12px;color:#8E8E93">{{ selSummary }}</span>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:0;right:0;bottom:84px;display:flex;justify-content:center;z-index:25;pointer-events:none">
+        <div style="padding:10px 18px;border-radius:999px;background:#1C1C1F;border:1px solid #2C2C30;color:#F2F2F3;font-size:12.5px;box-shadow:0 12px 30px rgba(0,0,0,0.5)">{{ toast }}</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showAddP }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:0;top:0;right:0;bottom:0;z-index:22">
+        <button onClick="{{ closeAddP }}" aria-label="Close" style="position:absolute;left:0;top:0;right:0;bottom:0;border:0;background:rgba(0,0,0,0.5);cursor:default"></button>
+        <div style="position:absolute;top:96px;left:50%;margin-left:-350px;width:700px;max-height:640px;box-sizing:border-box;border-radius:20px;background:#121214;border:1px solid #28282C;box-shadow:0 30px 80px rgba(0,0,0,0.6);display:flex;flex-direction:column;overflow:hidden">
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:22px 24px 0">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:24px;font-weight:400;color:#FFFFFF;letter-spacing:-0.01em">Add project folder</div>
+              <div style="margin-top:6px;font-size:13px;color:#8E8E93">The app reads the folder first. Nothing is added until you confirm.</div>
+            </div>
+            <button onClick="{{ closeAddP }}" style="height:20px;padding:0 8px;border:0;border-radius:6px;background:#26262A;color:#8E8E93;font-size:10.5px;cursor:pointer">esc</button>
+          </div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:20px 24px 24px">
+            <div style="display:flex;align-items:center;gap:12px;height:44px;padding:0 8px 0 16px;border:1px solid #2A2A2E;border-radius:999px;background:#0E0E10">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFD60A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"></path></svg>
+              <span style="flex:1;min-width:0;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12.5px;color:#F2F2F3">{{ apPath }}</span>
+              <button onClick="{{ chooseStub }}" style="height:30px;padding:0 16px;border:1.5px solid #3A3A3F;border-radius:999px;background:transparent;color:#E8E8EA;font-size:12.5px;font-weight:500;cursor:pointer">Choose…</button>
+            </div>
+
+            <div style="display:flex;align-items:center;margin:22px 0 8px">
+              <span style="flex:1;font-size:11px;font-weight:600;color:#7E7E84;letter-spacing:0.1em;text-transform:uppercase">Found in this folder</span>
+              <span style="font-size:12px;color:var(--acc)">{{ apFound }}</span>
+            </div>
+            <div style="border:1px solid #232327;border-radius:16px;overflow:hidden;background:#0E0E10">
+              <sc-for list="{{ arows }}" as="a" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid #1E1E21">
+                  <span style="width:16px;flex:none;text-align:center;font-size:13px;font-weight:700;{{ a.markStyle }}">{{ a.mark }}</span>
+                  <span style="flex:1;min-width:0;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12.5px;color:#D8D8DC">{{ a.path }}</span>
+                  <span style="flex:none;font-size:12px;{{ a.labelStyle }}">{{ a.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="margin-top:16px;display:flex;gap:10px;padding:12px 14px;border-radius:14px;border:1px solid rgba(255,214,10,0.40);background:#0E0E10">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD60A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg>
+              <div style="font-size:12.5px;line-height:1.5;color:#F2F2F3">Items found here are Personal: they live in a folder you own, so each one gets an Edit button.</div>
+            </div>
+            <div style="margin-top:12px;font-size:12px;line-height:1.55;color:#8E8E93">After a backup to <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;color:#F2F2F3">~/.claude.bak/</span>, the app writes only to <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;color:#F2F2F3">.claude/settings.json</span>, <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;color:#F2F2F3">.claude/settings.local.json</span> and <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;color:#F2F2F3">.mcp.json</span> in this folder. Changes to <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;color:#F2F2F3">.claude/settings.json</span> reach everyone who shares the repository.</div>
+
+            <div style="margin-top:22px;display:flex;align-items:center;justify-content:flex-end;gap:10px">
+              <button onClick="{{ closeAddP }}" style="height:40px;padding:0 26px;border:1.5px solid #E8E8EA;border-radius:999px;background:transparent;color:#FFFFFF;font-size:14px;font-weight:500;cursor:pointer">Cancel</button>
+              <sc-if value="{{ apCanAdd }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ confirmAddP }}" style="height:40px;padding:0 28px;border:1.5px solid var(--acc);border-radius:999px;background:var(--acc);color:#0B0B0C;font-size:14px;font-weight:700;cursor:pointer">Add folder</button>
+              </sc-if>
+              <sc-if value="{{ apManaged }}" hint-placeholder-val="{{ false }}">
+                <span style="display:inline-flex;align-items:center;height:40px;padding:0 24px;border:1.5px solid #2C2C30;border-radius:999px;color:#6E6E74;font-size:14px;font-weight:500">Already managed</span>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showHist }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:0;top:0;right:0;bottom:0;z-index:20">
+        <button onClick="{{ closeAll }}" aria-label="Close history" style="position:absolute;left:0;top:0;right:0;bottom:0;border:0;background:rgba(0,0,0,0.5);cursor:default"></button>
+        <div style="position:absolute;top:96px;left:50%;margin-left:-350px;width:700px;height:560px;box-sizing:border-box;border-radius:20px;background:#121214;border:1px solid #28282C;box-shadow:0 30px 80px rgba(0,0,0,0.6);display:flex;flex-direction:column;overflow:hidden">
+          <div style="display:flex;align-items:center;gap:12px;padding:16px 18px 0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9A9AA0" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M20 20l-4-4"></path></svg>
+            <input type="text" placeholder="Search all change records…" aria-label="Search all change records" style="flex:1;min-width:0;border:0;background:transparent;color:#F2F2F3;font-size:17px;padding:0">
+            <button onClick="{{ closeAll }}" style="height:20px;padding:0 8px;border:0;border-radius:6px;background:#26262A;color:#8E8E93;font-size:10.5px;cursor:pointer">esc</button>
+          </div>
+          <div style="display:flex;gap:8px;padding:14px 18px 0">
+            <sc-for list="{{ hchips }}" as="c" hint-placeholder-count="4">
+              <button onClick="{{ c.go }}" style="height:26px;padding:0 14px;border:0;border-radius:999px;font-size:12px;cursor:pointer;{{ c.style }}">{{ c.label }}</button>
+            </sc-for>
+          </div>
+          <div style="padding:12px 18px 10px;font-size:12.5px;color:#9A9AA0;border-bottom:1px solid #1E1E21">{{ histCount }}</div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:6px 10px">
+            <sc-for list="{{ hrows }}" as="h" hint-placeholder-count="4">
+              <div class="rw" style="display:flex;align-items:center;gap:14px;padding:10px 10px;border-radius:12px">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><circle cx="12" cy="12" r="8"></circle><path d="M9 12.5l2 2 4-4.5"></path></svg>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:14px;font-weight:700;color:#FFFFFF">{{ h.title }}</div>
+                  <div style="margin-top:3px;font-size:12px;color:#8E8E93">{{ h.sub }}</div>
+                </div>
+                <button onClick="{{ h.restore }}" aria-label="{{ h.aria }}" style="border:0;background:transparent;color:#8E8E93;cursor:pointer;padding:6px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3"></path></svg></button>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:0;top:0;right:0;bottom:0;z-index:20">
+        <button onClick="{{ closeAll }}" aria-label="Close details" style="position:absolute;left:0;top:0;right:0;bottom:0;border:0;background:rgba(0,0,0,0.5);cursor:default"></button>
+        <div style="position:absolute;top:80px;left:50%;margin-left:-350px;width:700px;max-height:640px;box-sizing:border-box;border-radius:20px;background:#121214;border:1px solid #28282C;box-shadow:0 30px 80px rgba(0,0,0,0.6);display:flex;flex-direction:column;overflow:hidden">
+          <div style="display:flex;align-items:center;gap:16px;padding:22px 24px 0">
+            <div style="width:48px;height:48px;flex:none;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:700;{{ d.badgeStyle }}">{{ d.mono }}</div>
+            <div style="min-width:0;flex:1">
+              <div style="font-size:22px;font-weight:500;color:#FFFFFF;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ d.title }}</div>
+              <div style="margin-top:2px;font-size:12px;color:#8E8E93;font-family:ui-monospace,'SF Mono',Menlo,monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ d.sub }}</div>
+            </div>
+            <span style="flex:none;font-size:12px;font-weight:600;padding:3px 11px;border-radius:999px;{{ d.badgeStyle }}">{{ d.badge }}</span>
+            <button onClick="{{ closeAll }}" style="height:20px;padding:0 8px;border:0;border-radius:6px;background:#26262A;color:#8E8E93;font-size:10.5px;cursor:pointer">esc</button>
+          </div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:18px 24px 24px">
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <sc-if value="{{ d.canEdit }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ d.edit }}" style="height:38px;padding:0 22px;border:1.5px solid var(--acc);border-radius:999px;background:transparent;color:var(--acc);font-size:13.5px;font-weight:600;cursor:pointer">Edit source…</button>
+              </sc-if>
+              <sc-if value="{{ d.hasSwitch }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ d.toggle }}" style="height:38px;padding:0 22px;border:1.5px solid #E8E8EA;border-radius:999px;background:transparent;color:#FFFFFF;font-size:13.5px;font-weight:500;cursor:pointer">{{ d.toggleLabel }}</button>
+              </sc-if>
+              <sc-if value="{{ d.hasRemove }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ d.remove }}" style="height:38px;padding:0 22px;border:1.5px solid #6B3A33;border-radius:999px;background:transparent;color:#FF8F85;font-size:13.5px;font-weight:500;cursor:pointer">{{ d.removeLabel }}</button>
+              </sc-if>
+            </div>
+
+            <div style="margin-top:18px;display:flex;gap:10px;padding:12px 14px;border-radius:14px;border:1px solid transparent;{{ d.noteStyle }}">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none;margin-top:1px;{{ d.noteIcon }}"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg>
+              <div style="font-size:12.5px;line-height:1.5">{{ d.note }}</div>
+            </div>
+
+            <div style="font-size:11px;font-weight:600;color:#7E7E84;margin:22px 0 8px;letter-spacing:0.1em;text-transform:uppercase">About</div>
+            <div style="font-size:13px;line-height:1.5;color:#D8D8DC">{{ d.about }}</div>
+
+            <div style="font-size:11px;font-weight:600;color:#7E7E84;margin:22px 0 8px;letter-spacing:0.1em;text-transform:uppercase">Details</div>
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <sc-for list="{{ d.meta }}" as="m" hint-placeholder-count="3">
+                <div style="display:flex;gap:12px;font-size:12.5px">
+                  <span style="width:112px;flex:none;color:#8E8E93">{{ m.k }}</span>
+                  <span style="min-width:0;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;word-break:break-all">{{ m.v }}</span>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="font-size:11px;font-weight:600;color:#7E7E84;margin:22px 0 8px;letter-spacing:0.1em;text-transform:uppercase">Controlled by</div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid #232327;border-radius:14px;background:#0E0E10">
+              <span style="flex:1;min-width:0;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;word-break:break-all">{{ d.ctrlKey }}</span>
+              <span style="flex:none;font-size:11.5px;color:var(--acc)">{{ d.ctrlState }}</span>
+            </div>
+            <sc-if value="{{ d.unverified }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:11.5px;color:#8E8E93;margin-top:6px">† Key name comes from third-party tools. Verify it against the official settings schema before relying on it.</div>
+            </sc-if>
+
+            <div style="font-size:11px;font-weight:600;color:#7E7E84;margin:22px 0 8px;letter-spacing:0.1em;text-transform:uppercase">On apply</div>
+            <div style="background:#0E0E10;border:1px solid #232327;border-radius:14px;padding:10px 12px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;line-height:1.6">
+              <div style="color:#8E8E93">{{ d.file }}</div>
+              <sc-for list="{{ d.diff }}" as="ln" hint-placeholder-count="2">
+                <div style="white-space:pre-wrap;padding:0 4px;border-radius:3px;{{ ln.style }}">{{ ln.text }}</div>
+              </sc-for>
+            </div>
+            <div style="font-size:12px;color:#8E8E93;margin-top:8px;line-height:1.5">{{ d.how }}</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":820}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const S = Object.assign({
+      view: 'overview',
+      concept: 'plugins',
+      bucket: 'yours',
+      kind: 'all',
+      scope: 'User',
+      hist: false,
+      hf: 'all',
+      open: '',
+      chk: {},
+      toast: '',
+      over: { 'plugins:2': false, 'hooks:2': false },
+      rem: {},
+      scan: 'done',
+      prog: 100,
+      last: '3 min. ago',
+      target: 'mac',
+      projects: ['my-nest-api'],
+      active: 'my-nest-api',
+      back: 'scan',
+      addP: false
+    }, this.state || {});
+
+    const PI = '~/.claude/plugins/cache/';
+    const J = (n, o, sc, sid, d, k, meta, en, x) => Object.assign({ n: n, o: o, sc: sc, sid: sid, d: d, k: k, meta: meta, en: en }, x || {});
+    const D = {
+      plugins: [
+        J('ecc', 'market', 'User', 'ecc@ecc', 'Engineering toolkit: review and build-fix skills, subagents and hooks in one bundle.', 'enabledPlugins["ecc@ecc"]', [['Marketplace', 'ecc (github)'], ['Install path', PI + 'ecc/ecc/‹version›/'], ['Provides', 'skills · subagents · hooks · MCP']], true, { src: 'github' }),
+        J('figma', 'market', 'User', 'figma@claude-plugins-official', 'Read Figma designs into code and write designs back, with Code Connect.', 'enabledPlugins["figma@claude-plugins-official"]', [['Marketplace', 'claude-plugins-official (github)'], ['Install path', PI + 'claude-plugins-official/figma/‹version›/'], ['Provides', 'skills · MCP']], true, { src: 'github' }),
+        J('searchfit-seo', 'market', 'User', 'searchfit-seo@searchfit', 'SEO audit, schema and content-brief skills plus an auditor subagent.', 'enabledPlugins["searchfit-seo@searchfit"]', [['Marketplace', 'searchfit (github)'], ['Install path', PI + 'searchfit/searchfit-seo/‹version›/'], ['Provides', 'skills · subagents']], true, { src: 'github' }),
+        J('nest-toolkit', 'personal', 'User', 'nest-toolkit@local-dev', 'Your NestJS review skill, DTO validation checks and a reviewer subagent.', 'enabledPlugins["nest-toolkit@local-dev"]', [['Marketplace', 'local-dev (directory)'], ['Edit target', '~/Developer/local-dev/plugins/nest-toolkit'], ['Cache', 'not copied; loads in place'], ['Provides', 'skills · subagents']], true),
+        J('tia-scl-review', 'personal', 'User', 'tia-scl-review@local-dev', 'SCL code-review skill for Siemens TIA Portal projects.', 'enabledPlugins["tia-scl-review@local-dev"]', [['Marketplace', 'local-dev (directory)'], ['Edit target', '~/Developer/local-dev/plugins/tia-scl-review'], ['Cache', 'not copied; loads in place'], ['Provides', 'skills']], true),
+        J('slack', 'synced', 'User', 'slack@claude.ai', 'Slack search and messaging, synced from your claude.ai account.', 'enabledPlugins["slack@claude.ai"]†', [['Source', 'claude.ai account sync'], ['Local files', 'none']], true),
+        J('old-lint-helper', 'orphan', 'User', 'old-lint-helper@gone-market', 'An install record whose marketplace is no longer registered.', 'none (record only)', [['Marketplace', 'gone-market (missing)'], ['Recorded in', '~/.claude/plugins/installed_plugins.json']], false)
+      ],
+      skills: [
+        J('plan-review', 'personal', 'User', '~/.claude/skills/plan-review/', 'Review an implementation plan for risks and missing tests before coding starts.', 'skillOverrides["plan-review"]†', [['Path', '~/.claude/skills/plan-review/SKILL.md']], true),
+        J('scl-style-check', 'personal', 'Project', '.claude/skills/scl-style-check/', 'Check SCL blocks for naming and comment conventions.', 'skillOverrides["scl-style-check"]†', [['Path', '.claude/skills/scl-style-check/SKILL.md']], true, { proj: 'my-nest-api' }),
+        J('tdd-workflow', 'plugin', 'User', 'from plugin ecc', 'Write the failing test first, then the smallest fix.', 'skillOverrides["ecc:tdd-workflow"]†', [['Provided by', 'plugin ecc'], ['Path', PI + 'ecc/ecc/‹version›/skills/tdd-workflow/']], true, { from: 'ecc' }),
+        J('seo-audit', 'plugin', 'User', 'from plugin searchfit-seo', 'Audit a page or codebase for technical SEO problems.', 'skillOverrides["searchfit-seo:seo-audit"]†', [['Provided by', 'plugin searchfit-seo'], ['Path', PI + 'searchfit/searchfit-seo/‹version›/skills/seo-audit/']], false, { from: 'searchfit-seo' }),
+        J('scl-naming', 'personal', 'Project', '.claude/skills/scl-naming/', 'Check SCL symbol names against the project naming convention.', 'skillOverrides["scl-naming"]†', [['Path', '.claude/skills/scl-naming/SKILL.md']], true, { proj: 'tia-scl-tools' })
+      ],
+      commands: [
+        J('/standup', 'personal', 'User', '~/.claude/commands/standup.md', 'Summarise yesterday, today and blockers from git history.', 'skillOverrides["standup"]†', [['Path', '~/.claude/commands/standup.md']], true),
+        J('/deploy-check', 'personal', 'Project', '.claude/commands/deploy-check.md', 'Run the pre-deploy checklist for this repository.', 'skillOverrides["deploy-check"]†', [['Path', '.claude/commands/deploy-check.md']], true, { proj: 'my-nest-api' }),
+        J('/pr', 'plugin', 'User', 'from plugin ecc', 'Create a pull request from the current branch.', 'skillOverrides["ecc:pr"]†', [['Provided by', 'plugin ecc'], ['Path', PI + 'ecc/ecc/‹version›/commands/pr.md']], true, { from: 'ecc' }),
+        J('/tia-export', 'personal', 'Project', '.claude/commands/tia-export.md', 'Export project blocks to text files for code review.', 'skillOverrides["tia-export"]†', [['Path', '.claude/commands/tia-export.md']], true, { proj: 'tia-scl-tools' })
+      ],
+      rules: [
+        J('CLAUDE.md (user)', 'personal', 'User', '~/.claude/CLAUDE.md', 'Standing instructions loaded in every session.', 'claudeMdExcludes†', [['Path', '~/.claude/CLAUDE.md']], true),
+        J('nestjs.md', 'personal', 'Project', '.claude/rules/nestjs.md', 'NestJS conventions: DTO validation pipes, module boundaries, logging.', 'claudeMdExcludes["nestjs.md"]†', [['Path', '.claude/rules/nestjs.md']], true, { proj: 'my-nest-api' }),
+        J('security.md', 'personal', 'Project', '.claude/rules/security.md', 'OWASP checks for input, auth and secrets.', 'claudeMdExcludes["security.md"]†', [['Path', '.claude/rules/security.md']], true, { proj: 'my-nest-api' }),
+        J('scl-safety.md', 'personal', 'Project', '.claude/rules/scl-safety.md', 'Safety-related code needs review by a qualified person before use.', 'claudeMdExcludes["scl-safety.md"]†', [['Path', '.claude/rules/scl-safety.md']], true, { proj: 'tia-scl-tools' })
+      ],
+      agents: [
+        J('nest-reviewer', 'personal', 'User', '~/.claude/agents/nest-reviewer.md', 'Reviews NestJS changes for module boundaries and validation.', 'permissions.deny "Agent(nest-reviewer)"†', [['Path', '~/.claude/agents/nest-reviewer.md']], true),
+        J('code-reviewer', 'plugin', 'User', 'from plugin ecc', 'Reviews recent changes for quality, security and maintainability.', 'permissions.deny "Agent(code-reviewer)"†', [['Provided by', 'plugin ecc'], ['Path', PI + 'ecc/ecc/‹version›/agents/code-reviewer.md']], true, { from: 'ecc' })
+      ],
+      mcp: [
+        J('github', 'personal', 'User', '~/.claude.json', 'GitHub issues, pull requests and repository search.', 'disabledMcpServers["github"]†', [['Defined in', '~/.claude.json']], true),
+        J('postgres-dev', 'personal', 'Project', '.mcp.json', 'Read-only SQL access to the development database.', 'disabledMcpjsonServers["postgres-dev"]', [['Defined in', '.mcp.json']], true, { proj: 'my-nest-api' }),
+        J('figma', 'plugin', 'User', 'from plugin figma', 'Figma design context and screenshots.', 'disabledMcpServers["figma"]†', [['Provided by', 'plugin figma']], true, { from: 'figma' })
+      ],
+      hooks: [
+        J('block-no-verify', 'personal', 'User', 'PreToolUse · Bash', 'Blocks git commands that skip verification hooks.', 'App stash (no native per-hook key)', [['Event', 'PreToolUse'], ['Matcher', 'Bash'], ['Defined in', '~/.claude/settings.json']], true),
+        J('format-ts', 'personal', 'Project', 'PostToolUse · Edit|Write', 'Runs the formatter after TypeScript edits.', 'App stash (no native per-hook key)', [['Event', 'PostToolUse'], ['Matcher', 'Edit|Write'], ['Defined in', '.claude/settings.json']], true, { proj: 'my-nest-api' }),
+        J('notify-done', 'personal', 'User', 'Stop', 'Sends a notification when Claude finishes.', 'App stash (no native per-hook key)', [['Event', 'Stop'], ['Defined in', '~/.claude/settings.json']], true),
+        J('block-secrets', 'personal', 'Project', 'PreToolUse · Write', 'Blocks file writes that contain credential-looking strings.', 'App stash (no native per-hook key)', [['Event', 'PreToolUse'], ['Matcher', 'Write'], ['Defined in', '.claude/settings.json']], true, { proj: 'tia-scl-tools' })
+      ]
+    };
+
+    const C = [
+      { id: 'plugins', label: 'Plugins' }, { id: 'skills', label: 'Skills' }, { id: 'commands', label: 'Commands' },
+      { id: 'rules', label: 'Rules' }, { id: 'agents', label: 'Subagents' }, { id: 'mcp', label: 'MCP servers' }, { id: 'hooks', label: 'Hooks' }
+    ];
+    const CIDS = C.map((c) => c.id);
+    const CL = {};
+    C.forEach((c) => { CL[c.id] = c.label; });
+    const CS = { plugins: 'Plugin', skills: 'Skill', commands: 'Command', rules: 'Rule', agents: 'Subagent', mcp: 'MCP server', hooks: 'Hook' };
+    // What a scan reads for each type (sample labels for the prototype).
+    const CFILE = {
+      plugins: '~/.claude/plugins/installed_plugins.json',
+      skills: '~/.claude/skills/ and .claude/skills/',
+      commands: '~/.claude/commands/ and .claude/commands/',
+      rules: '~/.claude/CLAUDE.md and .claude/rules/',
+      agents: '~/.claude/agents/ and .claude/agents/',
+      mcp: '~/.claude.json and .mcp.json',
+      hooks: '~/.claude/settings.json and .claude/settings.json'
+    };
+    // What a folder scan reads inside one project folder.
+    const CFILEP = {
+      plugins: '.claude/settings.json (enabledPlugins)',
+      skills: '.claude/skills/',
+      commands: '.claude/commands/',
+      rules: 'CLAUDE.md and .claude/rules/',
+      agents: '.claude/agents/',
+      mcp: '.mcp.json',
+      hooks: '.claude/settings.json'
+    };
+    // Sample project folders. A project's items only count once its folder is managed.
+    const PROJ = {
+      'my-nest-api': { name: 'my-nest-api', path: '~/Documents/GitHub/my-nest-api' },
+      'tia-scl-tools': { name: 'tia-scl-tools', path: '~/Documents/GitHub/tia-scl-tools' }
+    };
+
+    // Flat solid colors only. Yellow = yours (editable), blue = read-only, orange = needs attention. Lime = brand accent.
+    const BK = [
+      { id: 'yours', name: 'Yours', color: '#FFD60A', tile: 'background:rgba(255,214,10,0.16);color:#FFD60A;', note: 'Files you own. You can edit, disable or remove them.' },
+      { id: 'readonly', name: 'Read-only', color: '#6EA3FF', tile: 'background:rgba(110,163,255,0.16);color:#8DB8FF;', note: 'Installed from marketplaces, a synced account or another plugin. You can disable or uninstall them, not edit them.' },
+      { id: 'attention', name: 'Needs attention', color: '#FF7A59', tile: 'background:rgba(255,122,89,0.16);color:#FF9477;', note: 'Broken installs that cannot update. Uninstall the record or re-add the marketplace.' }
+    ];
+    const BS = {
+      personal: 'background:#FFD60A;color:#17130A;',
+      project: 'background:transparent;color:#FFD60A;box-shadow:inset 0 0 0 1px rgba(255,214,10,0.55);',
+      market: 'background:#26262A;color:#E4E3DC;',
+      synced: 'background:transparent;color:#D4D3CB;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.28);',
+      orphan: 'background:rgba(255,122,89,0.18);color:#FF9477;',
+      plugin: 'background:#1E1E21;color:#B4B3AB;'
+    };
+    const BT = { personal: 'Personal', project: 'Project', market: 'Marketplace', synced: 'Synced', orphan: 'Orphaned', plugin: 'From plugin' };
+    const GORDER = ['personal', 'project', 'market', 'synced', 'plugin', 'orphan'];
+    const TONE = {
+      ok: { box: 'background:#0E0E10;border-color:rgba(255,214,10,0.40);color:#F2F2F3;', icon: 'color:#FFD60A;' },
+      info: { box: 'background:#0E0E10;border-color:#232327;color:#D8D8DC;', icon: 'color:#8E8E93;' },
+      warn: { box: 'background:#0E0E10;border-color:rgba(255,122,89,0.55);color:#F2F2F3;', icon: 'color:#FF7A59;' }
+    };
+    const SCOPEFILE = { User: '~/.claude/settings.json', Project: '.claude/settings.json', Local: '.claude/settings.local.json' };
+    const HOW = {
+      plugins: 'Enable and disable write enabledPlugins. Uninstall runs the claude CLI (check the exact subcommand with claude plugin --help). Run /reload-plugins or restart to apply.',
+      skills: 'Enable and disable write skillOverrides†. Files are never hard-deleted; removal moves them to the backup folder.',
+      commands: 'Enable and disable write skillOverrides†. Files are never hard-deleted; removal moves them to the backup folder.',
+      rules: 'Enable and disable write claudeMdExcludes†. Files are never hard-deleted; removal moves them to the backup folder.',
+      agents: 'Disable adds a permissions.deny entry†. Removal moves the file to the backup folder.',
+      mcp: 'Disable writes the server name to the disabled list. Removal edits .mcp.json or ~/.claude.json after a backup.',
+      hooks: 'No native switch exists. Disable removes the entry from the settings file and keeps a copy in the app; Enable puts it back.'
+    };
+    const DATES = ['Today at 10:56 PM', 'Jun 23, 2025', 'Jul 19', 'Today at 3:15 PM', 'Oct 8', 'Sep 13, 2022', 'Today at 9:47 AM', 'Aug 5'];
+    const RUNS = [
+      { t: 'plugins', title: 'Disabled searchfit-seo', sub: '8 hr. ago · ~/.claude/settings.json' },
+      { t: 'hooks', title: 'Removed hook notify-done', sub: '9 hr. ago · copy kept in the app stash' },
+      { t: 'plugins', title: 'Added local-dev marketplace', sub: '9 hr. ago · 2 plugins · Personal' },
+      { t: 'backups', title: 'Backup created', sub: '9 hr. ago · ~/.claude.bak/2026-11-03T…/ · 3 files' }
+    ];
+
+    const mulberry = (a) => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+    const keyOf = (c, i) => c + ':' + i;
+    const isOn = (key, it) => (key in S.over) ? S.over[key] : it.en;
+    const bkOf = (it) => (it.o === 'personal' && it.sc === 'Project') ? 'project' : it.o;
+    const bucketOf = (it) => it.o === 'personal' ? 'yours' : (it.o === 'orphan' ? 'attention' : 'readonly');
+    const removable = (c, it) => c === 'plugins' || it.o === 'personal';
+    const bColor = (id) => BK.filter((b) => b.id === id)[0].color;
+
+    // Totals across all concepts
+    const visibleItem = (it) => !it.proj || S.projects.indexOf(it.proj) >= 0;
+    const allItems = [].concat.apply([], CIDS.map((cid) => D[cid].map((it, i) => ({ it: it, i: i, c: cid, key: keyOf(cid, i), bk: bkOf(it), bucket: bucketOf(it) })))).filter((x) => visibleItem(x.it));
+    const scanItems = S.target === 'mac' ? allItems : allItems.filter((x) => x.it.proj === S.target);
+    let total = 0, enabled = 0, editable = 0;
+    allItems.forEach((x) => {
+      total++;
+      if (isOn(x.key, x.it) && !S.rem[x.key]) { enabled++; }
+      if (x.it.o === 'personal') { editable++; }
+    });
+    let pending = Object.keys(S.over).length;
+    Object.keys(S.rem).forEach((k) => { if (S.rem[k]) { pending++; } });
+    const pendingLabel = pending === 1 ? 'Review 1 change' : 'Review ' + pending + ' changes';
+
+    const concept = S.concept;
+    const label = concept === 'all' ? 'All items' : CL[concept];
+    const items = concept === 'all' ? scanItems : allItems.filter((x) => x.c === concept);
+    const scopeFile = SCOPEFILE[S.scope];
+
+    const isOverview = S.view === 'overview';
+    const isFlow = S.view === 'flow';
+    const isList = S.view === 'list';
+    const isScan = S.view === 'scan';
+    const isProjects = S.view === 'projects';
+
+    // Rail
+    const activeRail = S.hist ? 'history' : (isOverview ? 'overview' : ((isProjects || (isList && concept === 'all' && S.back === 'projects')) ? 'projects' : ((isScan || concept === 'all') ? 'scan' : concept)));
+    const rail = {};
+    ['overview', 'scan', 'projects'].concat(CIDS).concat(['history']).forEach((id) => {
+      const on = id === activeRail;
+      let go;
+      if (id === 'overview') { go = () => this.setState({ view: 'overview', hist: false, open: '', toast: '' }); }
+      else if (id === 'scan') { go = () => this.setState({ view: 'scan', hist: false, open: '', toast: '' }); }
+      else if (id === 'projects') { go = () => this.setState({ view: 'projects', hist: false, open: '', addP: false, toast: '' }); }
+      else if (id === 'history') { go = () => this.setState({ hist: true, open: '', toast: '' }); }
+      else { go = () => this.setState({ view: 'flow', concept: id, kind: 'all', hist: false, open: '', toast: '' }); }
+      rail[id] = {
+        go: go,
+        tile: on ? 'background:#1C1C1F;' : 'background:transparent;',
+        icon: on ? 'color:#D4F53C;' : 'color:#8E8E93;',
+        label: on ? 'color:#D4F53C;' : 'color:#9A9AA0;'
+      };
+    });
+
+    const segStyle = (name) => name === S.scope ? 'background:#34343A;color:#FFFFFF;font-weight:600;' : 'background:transparent;color:#9A9AA0;';
+    const scopeBtn = {
+      user: { go: () => this.setState({ scope: 'User' }), style: segStyle('User') },
+      project: { go: () => this.setState({ scope: 'Project' }), style: segStyle('Project') },
+      local: { go: () => this.setState({ scope: 'Local' }), style: segStyle('Local') }
+    };
+
+    // ---------- Overview ----------
+    let stars = [], ring = [], ringLine = '', weekBars = [];
+    if (isOverview) {
+      const r1 = mulberry(7);
+      for (let i = 0; i < 70; i++) {
+        const sz = 1 + r1() * 1.4;
+        stars.push({ s: 'position:absolute;left:' + (r1() * 1284).toFixed(0) + 'px;top:' + (70 + r1() * 740).toFixed(0) + 'px;width:' + sz.toFixed(1) + 'px;height:' + sz.toFixed(1) + 'px;border-radius:50%;background:#FFFFFF;opacity:' + (0.08 + r1() * 0.22).toFixed(2) + ';' });
+      }
+      const cx = 470, cy = 392, rx = 330, ry = 188, tilt = -8 * Math.PI / 180;
+      const frac = total ? enabled / total : 0;
+      const start = -0.9;
+      const r2 = mulberry(21);
+      for (let i = 0; i < 440; i++) {
+        const th = r2() * Math.PI * 2;
+        const jit = 1 + (r2() + r2() + r2() - 1.5) * 0.045;
+        const dx = rx * jit * Math.cos(th), dy = ry * jit * Math.sin(th);
+        const x = cx + dx * Math.cos(tilt) - dy * Math.sin(tilt);
+        const y = cy + dx * Math.sin(tilt) + dy * Math.cos(tilt);
+        const rel = (th - start + Math.PI * 4) % (Math.PI * 2);
+        const lit = rel < frac * Math.PI * 2;
+        const sz = lit ? 1.2 + r2() * 2.4 : 1 + r2() * 1.2;
+        const o = lit ? 0.45 + r2() * 0.55 : 0.12 + r2() * 0.16;
+        ring.push({ s: 'position:absolute;left:' + x.toFixed(1) + 'px;top:' + y.toFixed(1) + 'px;width:' + sz.toFixed(1) + 'px;height:' + sz.toFixed(1) + 'px;border-radius:50%;background:var(--acc);--o:' + o.toFixed(2) + ';opacity:' + o.toFixed(2) + ';animation-delay:-' + (r2() * 4).toFixed(2) + 's;' });
+      }
+      ringLine = 'position:absolute;left:' + (cx - rx) + 'px;top:' + (cy - ry) + 'px;width:' + (rx * 2) + 'px;height:' + (ry * 2) + 'px;box-sizing:border-box;border:1px solid var(--acc-a12);border-radius:50%;transform:rotate(-8deg);';
+      [0, 1, 0, 3, 0, 2, 2].forEach((v, i) => {
+        weekBars.push({ s: 'width:16px;height:3px;border-radius:2px;background:' + (i === 6 ? 'var(--acc)' : (v > 0 ? '#5B6B22' : '#2A2A2E')) + ';' });
+      });
+    }
+
+    // ---------- Flow ----------
+    const FH = 560, LX = 300, RX = 880;
+    const hOf = (n) => 40 + n * 30;
+    const groups = GORDER.map((g) => ({ g: g, items: items.filter((x) => x.bk === g) })).filter((x) => x.items.length > 0);
+    const GL = (g) => ({ personal: concept === 'plugins' ? 'Local folders' : 'Your files', project: 'Project files', market: 'GitHub marketplaces', synced: 'claude.ai sync', plugin: 'From plugins', orphan: 'Missing marketplace' })[g];
+    const noun = (n) => n + (n === 1 ? ' item' : ' items');
+    let lnodes = [], rnodes = [], particles = [], hasHint = false, hintStyle = '';
+    if (isFlow) {
+      const gapL = 26;
+      const totL = groups.reduce((a, x) => a + hOf(x.items.length), 0) + gapL * (groups.length - 1);
+      let yl = Math.round((FH - totL) / 2) - 10;
+      groups.forEach((x) => { x.h = hOf(x.items.length); x.y = yl; yl += x.h + gapL; });
+      const rb = BK.map((b) => ({ b: b, gs: groups.filter((x) => x.items[0].bucket === b.id) })).filter((r) => r.gs.length > 0);
+      const gapR = 46;
+      rb.forEach((r) => { r.cnt = r.gs.reduce((a, x) => a + x.items.length, 0); r.h = hOf(r.cnt); });
+      const totR = rb.reduce((a, r) => a + r.h, 0) + gapR * (rb.length - 1);
+      let yr = Math.round((FH - totR) / 2) - 10;
+      rb.forEach((r) => {
+        r.y = yr; yr += r.h + gapR;
+        let off = 0;
+        r.gs.forEach((x) => { x.ry0 = r.y + off; x.rh = r.h * x.items.length / r.cnt; off += x.rh; });
+      });
+      lnodes = groups.map((x) => ({
+        name: GL(x.g),
+        sub: noun(x.items.length),
+        wrap: 'position:absolute;left:0;width:' + (LX - 18) + 'px;top:' + x.y + 'px;height:' + x.h + 'px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;text-align:right;',
+        bar: 'position:absolute;left:' + LX + 'px;top:' + x.y + 'px;width:4px;height:' + x.h + 'px;border-radius:2px;background:#46464B;'
+      }));
+      rnodes = rb.map((r) => {
+        const on = items.filter((x) => x.bucket === r.b.id && isOn(x.key, x.it) && !S.rem[x.key]).length;
+        return {
+          name: r.b.name,
+          aria: r.b.name + ', ' + noun(r.cnt),
+          sub: noun(r.cnt) + ' · ' + on + ' on',
+          wrap: 'position:absolute;left:' + RX + 'px;top:' + r.y + 'px;width:310px;height:' + r.h + 'px;display:flex;align-items:center;border:0;background:transparent;padding:0;cursor:pointer;text-align:left;color:inherit;',
+          bar: 'position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:2px;background:' + r.b.color + ';',
+          go: () => this.setState({ view: 'list', bucket: r.b.id, kind: 'all', toast: '' })
+        };
+      });
+      if (rb.length > 0) {
+        const hb = rb.filter((r) => r.b.id === 'yours')[0] || rb[0];
+        hasHint = true;
+        hintStyle = 'position:absolute;left:' + (RX + 20) + 'px;top:' + Math.max(0, Math.round(hb.y + hb.h / 2 - 66)) + 'px;width:190px;font-size:13px;font-weight:600;line-height:1.3;color:#FFD60A;';
+      }
+      let seed = 0;
+      for (let c = 0; c < concept.length; c++) { seed += concept.charCodeAt(c); }
+      const r3 = mulberry(seed * 13 + 5);
+      groups.forEach((x) => {
+        const bcol = bColor(x.items[0].bucket);
+        const np = 20 + x.items.length * 34;
+        for (let i = 0; i < np; i++) {
+          const t = r3();
+          const ys = x.y + r3() * x.h;
+          const ye = x.ry0 + r3() * x.rh;
+          const sm = t * t * (3 - 2 * t);
+          const px = LX + 12 + t * (RX - LX - 24);
+          const py = ys + (ye - ys) * sm + (r3() - 0.5) * 4;
+          const sz = 1.2 + r3() * 2.2;
+          const o = 0.3 + r3() * 0.7;
+          const col = r3() < 0.72 ? bcol : '#E8E8EA';
+          particles.push({ s: 'position:absolute;left:' + px.toFixed(1) + 'px;top:' + py.toFixed(1) + 'px;width:' + sz.toFixed(1) + 'px;height:' + sz.toFixed(1) + 'px;border-radius:50%;background:' + col + ';--o:' + o.toFixed(2) + ';opacity:' + o.toFixed(2) + ';animation-delay:-' + (r3() * 4).toFixed(2) + 's;' });
+        }
+      });
+    }
+
+    // ---------- Scan (all concepts) ----------
+    // A real scan would only read files. Here a 4-second timer reveals the sample results type by type.
+    const live = S.scan === 'running';
+    const partial = S.scan !== 'done';
+    const runScan = (tgt) => {
+      if (typeof window === 'undefined') { return; }
+      if (window.__cfgScan) { clearInterval(window.__cfgScan); }
+      this.setState({ view: 'scan', target: tgt, scan: 'running', prog: 0, hist: false, open: '', toast: '' });
+      let p = 0;
+      window.__cfgScan = setInterval(() => {
+        p += 3;
+        if (p >= 100) {
+          clearInterval(window.__cfgScan);
+          window.__cfgScan = null;
+          this.setState({ scan: 'done', prog: 100, last: 'Just now' });
+        } else {
+          this.setState({ prog: p });
+        }
+      }, 110);
+    };
+    const startScan = () => runScan(S.target);
+    const stopScan = () => {
+      if (typeof window !== 'undefined' && window.__cfgScan) { clearInterval(window.__cfgScan); window.__cfgScan = null; }
+      this.setState({ scan: 'stopped', toast: 'Scan stopped. The results shown are partial.' });
+    };
+    const nAll = scanItems.length;
+    const nDiv = Math.max(1, nAll);
+    const segv = partial ? S.prog / 100 * CIDS.length : CIDS.length;
+    const curIdx = Math.min(CIDS.length - 1, Math.floor(segv));
+    const subv = partial ? segv - Math.floor(segv) : 1;
+    const shown = (idx) => !partial || idx < curIdx || (idx === curIdx && subv > 0.5);
+    const shownCount = scanItems.filter((x) => shown(CIDS.indexOf(x.c))).length;
+    const pct = Math.round(S.prog);
+    let scanR1 = nAll + ' items found';
+    let scanR2 = 'Last scan ' + S.last;
+    if (live) { scanR1 = shownCount + ' of ' + nAll + ' items found'; scanR2 = 'Reading ' + (S.target === 'mac' ? CFILE : CFILEP)[CIDS[curIdx]]; }
+    else if (partial) { scanR1 = shownCount + ' of ' + nAll + ' items found'; scanR2 = 'Stopped at ' + pct + '% · partial results'; }
+
+    let sL = [], sR = [], sDots = [], sTw = [], sHint = false, sHintStyle = '';
+    if (isScan) {
+      const FH2 = 540, LX2 = 250, RX2 = 900, minH = 24, gapL = 20, gapR = 56;
+      const cs = CIDS.map((cid) => ({ cid: cid, its: scanItems.filter((x) => x.c === cid) }));
+      const bs = ['attention', 'readonly', 'yours'].map((id) => ({ def: BK.filter((b) => b.id === id)[0], its: scanItems.filter((x) => x.bucket === id) })).filter((b) => b.its.length > 0);
+      const uL = (FH2 - 40 - gapL * (cs.length - 1) - minH * cs.length) / nDiv;
+      const uR = (FH2 - 40 - gapR * (Math.max(1, bs.length) - 1) - minH * Math.max(1, bs.length)) / nDiv;
+      cs.forEach((c) => { c.h = minH + c.its.length * uL; });
+      bs.forEach((b) => { b.h = minH + b.its.length * uR; });
+      let yl = (FH2 - (cs.reduce((a, c) => a + c.h, 0) + gapL * (cs.length - 1))) / 2 - 4;
+      cs.forEach((c) => { c.y = yl; yl += c.h + gapL; });
+      let yb = (FH2 - (bs.reduce((a, b) => a + b.h, 0) + gapR * (bs.length - 1))) / 2 - 4;
+      bs.forEach((b) => { b.y = yb; yb += b.h + gapR; });
+
+      // One flow per (type, group) pair. Each stacks inside its left and right node in proportion to its item count.
+      const flows = [];
+      cs.forEach((c, ci) => {
+        let lo = 0;
+        bs.forEach((b, bi) => {
+          const n = c.its.filter((x) => x.bucket === b.def.id).length;
+          if (n > 0) {
+            const lh = c.h * n / c.its.length;
+            flows.push({ ci: ci, bi: bi, n: n, ly: c.y + lo, lh: lh });
+            lo += lh;
+          }
+        });
+      });
+      bs.forEach((b, bi) => {
+        let ro = 0;
+        flows.filter((f) => f.bi === bi).forEach((f) => {
+          f.rh = b.h * f.n / b.its.length;
+          f.ry = b.y + ro;
+          ro += f.rh;
+        });
+      });
+
+      flows.forEach((f, fi) => {
+        const bcol = bs[f.bi].def.color;
+        const r = mulberry(900 + fi * 17);
+        const np = 10 + f.n * 18;
+        for (let i = 0; i < np; i++) {
+          const t = r();
+          const sm = t * t * (3 - 2 * t);
+          const ys = f.ly + r() * f.lh;
+          const ye = f.ry + r() * f.rh;
+          const colored = r() < Math.max(0, Math.min(1, (t - 0.4) / 0.5));
+          const sz = 1 + r() * 2.2;
+          const o = 0.25 + r() * 0.7;
+          const tw = r() < 0.3;
+          const ph = r() * 4;
+          const jy = r() - 0.5;
+          const vis = !partial || f.ci < curIdx || (f.ci === curIdx && t <= subv);
+          if (!vis) { continue; }
+          const px = LX2 + 10 + t * (RX2 - LX2 - 20);
+          const py = ys + (ye - ys) * sm + jy * 5;
+          const st = 'position:absolute;left:' + px.toFixed(1) + 'px;top:' + py.toFixed(1) + 'px;width:' + sz.toFixed(1) + 'px;height:' + sz.toFixed(1) + 'px;border-radius:50%;background:' + (colored ? bcol : '#D8D8DC') + ';opacity:' + o.toFixed(2) + ';';
+          if (tw) { sTw.push({ s: st + '--o:' + o.toFixed(2) + ';animation-delay:-' + ph.toFixed(2) + 's;' }); }
+          else { sDots.push({ s: st }); }
+        }
+      });
+
+      sL = cs.map((c, ci) => {
+        const active = live && ci === curIdx;
+        const sh = shown(ci);
+        return {
+          name: CL[c.cid],
+          sub: active ? 'Scanning…' : (sh ? (c.its.length > 0 ? noun(c.its.length) : 'Nothing found') : 'Waiting'),
+          nameStyle: active ? 'color:var(--acc);' : (sh ? 'color:#E8E8EA;' : 'color:#6E6E74;'),
+          wrap: 'position:absolute;left:0;width:' + (LX2 - 18) + 'px;top:' + c.y.toFixed(1) + 'px;height:' + c.h.toFixed(1) + 'px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;text-align:right;',
+          bar: 'position:absolute;left:' + LX2 + 'px;top:' + c.y.toFixed(1) + 'px;width:4px;height:' + c.h.toFixed(1) + 'px;border-radius:2px;background:' + (active ? 'var(--acc)' : (sh ? '#55555A' : '#2A2A2E')) + ';'
+        };
+      });
+
+      sR = bs.map((b) => {
+        const vis = b.its.filter((x) => shown(CIDS.indexOf(x.c)));
+        const onN = vis.filter((x) => isOn(x.key, x.it) && !S.rem[x.key]).length;
+        return {
+          name: b.def.name,
+          aria: b.def.name + ', ' + noun(vis.length),
+          sub: noun(vis.length) + ' · ' + onN + ' on',
+          wrap: 'position:absolute;left:' + RX2 + 'px;top:' + b.y.toFixed(1) + 'px;width:290px;height:' + b.h.toFixed(1) + 'px;display:flex;align-items:center;border:0;background:transparent;padding:0;text-align:left;color:inherit;cursor:' + (live ? 'default' : 'pointer') + ';',
+          bar: 'position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:2px;background:' + (vis.length > 0 ? b.def.color : '#2A2A2E') + ';',
+          go: live ? () => {} : () => this.setState({ view: 'list', concept: 'all', bucket: b.def.id, kind: 'all', chk: {}, back: 'scan', toast: '' })
+        };
+      });
+
+      const yb2 = bs.filter((b) => b.def.id === 'yours')[0];
+      if (yb2 && !partial) {
+        sHint = true;
+        sHintStyle = 'position:absolute;left:' + (RX2 + 20) + 'px;top:' + Math.max(0, Math.round(yb2.y + yb2.h / 2 - 66)) + 'px;width:230px;font-size:13px;font-weight:600;line-height:1.3;color:#FFD60A;';
+      }
+    }
+
+    // ---------- Projects and scan target ----------
+    const nProj = S.projects.length;
+    const openAddProj = () => this.setState({ addP: 'tia-scl-tools', open: '', hist: false });
+    const closeAddP = () => this.setState({ addP: false });
+    const scanSub = S.target === 'mac'
+      ? 'Reads ~/.claude, ~/.claude.json, your claude.ai sync and ' + nProj + ' managed project ' + (nProj === 1 ? 'folder' : 'folders') + '. A scan only reads; it never writes.'
+      : 'Reads only ' + PROJ[S.target].path + '. User-level items are not included. A scan only reads; it never writes.';
+    const tc = (on) => on ? 'background:#2E2E33;color:#FFFFFF;' : 'background:#151517;color:#B4B4BA;box-shadow:inset 0 0 0 1px #26262A;';
+    const tchips = [{ label: 'This Mac', style: tc(S.target === 'mac'), go: () => runScan('mac') }]
+      .concat(S.projects.map((id) => ({ label: PROJ[id].name, style: tc(S.target === id), go: () => runScan(id) })))
+      .concat([{ label: '+ Add folder', style: 'background:transparent;color:#C8C8CD;border:1px dashed #4A4A50;', go: openAddProj }]);
+    const hasFound = S.target === 'mac' && !partial && S.projects.indexOf('tia-scl-tools') < 0;
+    const projItems = allItems.filter((x) => !!x.it.proj);
+    const prows = S.projects.map((id) => {
+      const its = allItems.filter((x) => x.it.proj === id);
+      const on = its.filter((x) => isOn(x.key, x.it) && !S.rem[x.key]).length;
+      return {
+        name: PROJ[id].name,
+        path: PROJ[id].path,
+        isActive: S.active === id,
+        canActivate: S.active !== id,
+        stat: noun(its.length) + ' · ' + on + ' on',
+        makeActive: () => this.setState({ active: id, toast: PROJ[id].name + ' is now the active project.' }),
+        open: () => this.setState({ view: 'list', concept: 'all', target: id, bucket: 'yours', kind: 'all', chk: {}, back: 'projects', hist: false, toast: '' }),
+        scan: () => runScan(id),
+        aria: 'Stop managing ' + PROJ[id].name,
+        remove: () => {
+          const projects = S.projects.filter((p) => p !== id);
+          this.setState({ projects: projects, target: S.target === id ? 'mac' : S.target, active: S.active === id ? (projects[0] || '') : S.active, toast: 'Stopped managing ' + PROJ[id].name + '. Its files stay on disk.' });
+        }
+      };
+    });
+    const apId = S.addP || 'tia-scl-tools';
+    const AROWS = [['.claude/skills/', 'skills', 'skill'], ['.claude/commands/', 'commands', 'command'], ['.claude/rules/', 'rules', 'rule'], ['.claude/agents/', 'agents', 'subagent'], ['.claude/settings.json', 'hooks', 'hook'], ['.mcp.json', 'mcp', 'MCP server']];
+    let apTotal = 0;
+    const arows = AROWS.map((r) => {
+      const n = D[r[1]].filter((it) => it.proj === apId).length;
+      apTotal += n;
+      return {
+        path: r[0],
+        label: n > 0 ? n + ' ' + r[2] + (n === 1 ? '' : 's') : 'not found',
+        mark: n > 0 ? '✓' : '–',
+        markStyle: n > 0 ? 'color:var(--acc);' : 'color:#55555A;',
+        labelStyle: n > 0 ? 'color:#F2F2F3;' : 'color:#6E6E74;'
+      };
+    });
+    const apManaged = S.projects.indexOf(apId) >= 0;
+
+    // ---------- List ----------
+    const bcount = {};
+    BK.forEach((b) => { bcount[b.id] = items.filter((x) => x.bucket === b.id).length; });
+    let curB = S.bucket;
+    if (!bcount[curB]) { const firstB = BK.filter((b) => bcount[b.id] > 0)[0]; curB = firstB ? firstB.id : 'yours'; }
+    const curDef = BK.filter((b) => b.id === curB)[0];
+    const bonCount = (id) => items.filter((x) => x.bucket === id && isOn(x.key, x.it) && !S.rem[x.key]).length;
+    const buckets = BK.filter((b) => bcount[b.id] > 0).map((b) => {
+      const sel = b.id === curB;
+      return {
+        name: b.name,
+        aria: b.name + ', ' + noun(bcount[b.id]),
+        sub: noun(bcount[b.id]) + ' · ' + bonCount(b.id) + ' on',
+        card: sel ? 'background:#161618;border-radius:16px;padding:12px 16px;' : 'padding:12px 16px;',
+        bar: 'flex:none;width:4px;align-self:stretch;min-height:38px;border-radius:2px;background:' + b.color + ';' + (sel ? '' : 'opacity:0.85;'),
+        nameStyle: sel ? 'color:#FFFFFF;' : 'color:#8E8E93;',
+        chev: sel ? '' : '›',
+        selected: sel,
+        go: () => this.setState({ bucket: b.id, kind: 'all', toast: '' })
+      };
+    });
+    const inBucket = items.filter((x) => x.bucket === curB);
+    const kindsPresent = GORDER.filter((g) => inBucket.some((x) => x.bk === g));
+    const chipStyle = (on) => on ? 'background:#2E2E33;color:#FFFFFF;' : 'background:#151517;color:#B4B4BA;box-shadow:inset 0 0 0 1px #26262A;';
+    const chips = [{ label: 'All', style: chipStyle(S.kind === 'all'), go: () => this.setState({ kind: 'all' }) }]
+      .concat(kindsPresent.map((g) => ({ label: BT[g], style: chipStyle(S.kind === g), go: () => this.setState({ kind: g }) })));
+    const lrowsSrc = inBucket.filter((x) => S.kind === 'all' || x.bk === S.kind);
+    const lrows = lrowsSrc.map((x) => {
+      const on = isOn(x.key, x.it);
+      const removed = !!S.rem[x.key];
+      const checked = !!S.chk[x.key];
+      const hasSwitch = x.it.o !== 'orphan' && !removed;
+      return {
+        name: x.it.n,
+        sub: x.it.sid + (x.it.proj && S.projects.length > 1 ? ' · ' + x.it.proj : ''),
+        tip: x.it.n + ' — ' + x.it.d,
+        mono: x.it.n.replace('/', '').charAt(0).toUpperCase(),
+        tile: 'width:24px;height:24px;flex:none;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;' + BK.filter((b) => b.id === x.bucket)[0].tile,
+        mod: DATES[(x.i * 3 + concept.length) % DATES.length],
+        scope: x.it.sc,
+        kind: concept === 'all' ? CS[x.c] + ' · ' + BT[x.bk] : BT[x.bk],
+        nameStyle: removed ? 'text-decoration:line-through;color:#6E6E74;' : (on ? 'color:#FFFFFF;' : 'color:#8E8E93;'),
+        hasSwitch: hasSwitch,
+        on: on,
+        switchLabel: (on ? 'Disable ' : 'Enable ') + x.it.n,
+        switchStyle: on ? 'background:#D4F53C;' : 'background:#333337;',
+        knobPos: on ? 'left:18px;background:#0B0B0C;' : 'left:2px;background:#C7C7CC;',
+        checked: checked,
+        chkLabel: 'Select ' + x.it.n,
+        chkMark: checked ? '✓' : '',
+        chkStyle: 'width:16px;height:16px;flex:none;margin-right:18px;padding:0;border-radius:5px;font-size:11px;font-weight:700;line-height:13px;text-align:center;cursor:pointer;' + (checked ? 'background:#E8E8EA;border:1.5px solid #E8E8EA;color:#111;' : 'background:transparent;border:1.5px solid #4A4A50;color:transparent;'),
+        toggleChk: () => this.setState({ chk: Object.assign({}, S.chk, { [x.key]: !checked }) }),
+        openLabel: 'Open ' + x.it.n,
+        open: () => this.setState({ open: x.key, toast: '' }),
+        toggle: () => {
+          const over = Object.assign({}, S.over, { [x.key]: !on });
+          if (over[x.key] === x.it.en) { delete over[x.key]; }
+          this.setState({ over: over, toast: '' });
+        }
+      };
+    });
+    const selRows = lrowsSrc.filter((x) => !!S.chk[x.key]);
+    const nSel = selRows.length;
+    const allChecked = lrowsSrc.length > 0 && nSel === lrowsSrc.length;
+    const someChecked = nSel > 0 && !allChecked;
+    const targets = selRows.filter((x) => x.it.o !== 'orphan' && !S.rem[x.key]);
+    const allOn = targets.length > 0 && targets.every((x) => isOn(x.key, x.it));
+    const remTargets = selRows.filter((x) => removable(x.c, x.it) && !S.rem[x.key]);
+    const allPlugins = remTargets.length > 0 && remTargets.every((x) => x.c === 'plugins');
+    const clearChk = () => {
+      const chk = Object.assign({}, S.chk);
+      selRows.forEach((x) => { delete chk[x.key]; });
+      return chk;
+    };
+    const bulkToggle = () => {
+      const over = Object.assign({}, S.over);
+      targets.forEach((x) => {
+        over[x.key] = !allOn;
+        if (over[x.key] === x.it.en) { delete over[x.key]; }
+      });
+      this.setState({ over: over, chk: clearChk(), toast: '' });
+    };
+    const bulkRemove = () => {
+      const rem = Object.assign({}, S.rem);
+      remTargets.forEach((x) => { rem[x.key] = true; });
+      this.setState({ rem: rem, chk: clearChk(), toast: '' });
+    };
+    const toggleAll = () => {
+      const chk = Object.assign({}, S.chk);
+      lrowsSrc.forEach((x) => { if (allChecked) { delete chk[x.key]; } else { chk[x.key] = true; } });
+      this.setState({ chk: chk });
+    };
+
+    // ---------- Detail modal ----------
+    const showOpen = S.open !== '' && !S.hist;
+    let d = { badgeStyle: '', mono: '', title: '', sub: '', badge: '', about: '', meta: [], canEdit: false, edit: () => {}, hasSwitch: false, toggleLabel: '', toggle: () => {}, hasRemove: false, removeLabel: '', remove: () => {}, note: '', noteStyle: '', noteIcon: '', ctrlKey: '', ctrlState: '', unverified: false, file: '', diff: [], how: '' };
+    if (S.open !== '') {
+      const parts = S.open.split(':');
+      const oc = parts[0], oi = parseInt(parts[1], 10);
+      const it = D[oc][oi];
+      const key = S.open;
+      const on = isOn(key, it);
+      const removed = !!S.rem[key];
+      const bk = bkOf(it);
+      const isHook = oc === 'hooks';
+      let removeLabel = '';
+      if (oc === 'plugins') { removeLabel = 'Uninstall'; }
+      else if (it.o === 'personal') { removeLabel = oc === 'mcp' ? 'Remove server' : (isHook ? 'Remove entry' : 'Move to backup'); }
+      if (removed) { removeLabel = 'Undo removal'; }
+      let note = '', tone = 'info';
+      if (it.o === 'personal') {
+        tone = 'ok';
+        note = oc === 'plugins' ? 'Editable. This plugin comes from a local directory marketplace you own. Edits go to the source folder, not the cache.' : 'Editable. This is your own file.';
+      } else if (it.o === 'market') {
+        note = 'Read-only. Fetched from ' + it.src + '; edits to the cache copy are lost on the next update. You can still disable or uninstall it.';
+      } else if (it.o === 'synced') {
+        note = 'Read-only. Synced from your claude.ai account, so there is no local source to edit.';
+      } else if (it.o === 'orphan') {
+        tone = 'warn';
+        note = 'The marketplace for this install is no longer registered, so the plugin cannot update. Uninstall the record or re-add the marketplace.';
+      } else if (it.o === 'plugin') {
+        note = 'Read-only. Provided by plugin ' + it.from + '. Disable it here, or edit the plugin itself if that plugin is Personal.';
+      }
+      if (isHook) {
+        tone = 'warn';
+        note = 'Claude Code has no per-hook disable. Disabling removes this entry from the settings file and keeps a copy in the app so you can restore it.';
+      }
+      const changed = (key in S.over);
+      let diffFile = scopeFile;
+      let diff = [{ text: 'No pending change for this item.', style: 'color:#8E8E93;' }];
+      if (removed) {
+        diffFile = oc === 'plugins' ? 'claude CLI · installed_plugins.json' : '~/.claude.bak/';
+        diff = [{ text: '- ' + (oc === 'plugins' ? it.sid : it.n) + '  (backup kept)', style: 'background:rgba(255,69,58,0.16);color:#FF8F85;' }];
+      } else if (changed) {
+        if (isHook) {
+          diff = on
+            ? [{ text: '+ restore "' + it.n + '" from the app stash', style: 'background:rgba(52,199,89,0.16);color:#7BE495;' }]
+            : [{ text: '- remove "' + it.n + '" (copy kept in the app stash)', style: 'background:rgba(255,69,58,0.16);color:#FF8F85;' }];
+        } else {
+          diff = [
+            { text: '  ' + it.k, style: 'color:#C8C8CD;' },
+            { text: '- ' + (it.en ? 'enabled' : 'disabled'), style: 'background:rgba(255,69,58,0.16);color:#FF8F85;' },
+            { text: '+ ' + (on ? 'enabled' : 'disabled'), style: 'background:rgba(52,199,89,0.16);color:#7BE495;' }
+          ];
+        }
+      }
+      let editPath = '';
+      it.meta.forEach((m) => { if (!editPath && (m[0] === 'Edit target' || m[0] === 'Path')) { editPath = m[1]; } });
+      d = {
+        mono: it.n.replace('/', '').charAt(0).toUpperCase(),
+        title: it.n,
+        sub: it.sid,
+        badge: BT[bk],
+        badgeStyle: BS[bk],
+        about: it.d,
+        meta: [{ k: 'Scope', v: it.sc }].concat(it.proj ? [{ k: 'Project folder', v: PROJ[it.proj].path }] : []).concat(it.meta.map((m) => ({ k: m[0], v: m[1] }))),
+        canEdit: it.o === 'personal' && !removed,
+        edit: () => this.setState({ toast: 'Would open ' + editPath + ' in the editor (the editor is not part of this prototype).', open: '' }),
+        hasSwitch: it.o !== 'orphan' && !removed,
+        toggleLabel: (on ? 'Disable' : 'Enable') + (isHook ? ' (app-managed)' : ''),
+        toggle: () => {
+          const over = Object.assign({}, S.over, { [key]: !on });
+          if (over[key] === it.en) { delete over[key]; }
+          this.setState({ over: over, toast: '' });
+        },
+        hasRemove: removeLabel !== '',
+        removeLabel: removeLabel,
+        remove: () => this.setState({ rem: Object.assign({}, S.rem, { [key]: !removed }), toast: '' }),
+        note: note,
+        noteStyle: TONE[tone].box,
+        noteIcon: TONE[tone].icon,
+        ctrlKey: it.k,
+        ctrlState: removed ? 'marked for removal' : (isHook ? (on ? 'in settings file' : 'stashed in app') : (on ? 'active' : 'disabled')),
+        unverified: it.k.indexOf('†') >= 0,
+        file: diffFile,
+        diff: diff,
+        how: HOW[oc]
+      };
+    }
+
+    // ---------- History modal ----------
+    const hdefs = [['all', 'All'], ['plugins', 'Plugins'], ['hooks', 'Hooks'], ['backups', 'Backups']];
+    const hchips = hdefs.map((h) => ({ label: h[1], style: chipStyle(S.hf === h[0]), go: () => this.setState({ hf: h[0] }) }));
+    const hrowsSrc = RUNS.filter((r) => S.hf === 'all' || r.t === S.hf);
+    const hrows = hrowsSrc.map((r) => ({
+      title: r.title,
+      sub: r.sub,
+      aria: 'Restore: ' + r.title,
+      restore: () => this.setState({ toast: 'Would restore from ~/.claude.bak/ (prototype only).' })
+    }));
+
+    const pageSub = pending > 0 ? pending + (pending === 1 ? ' change pending' : ' changes pending') : 'No changes pending';
+    const headline = pending > 0 ? (pending === 1 ? '1 change waiting' : pending + ' changes waiting') : 'Everything in sync';
+
+    return {
+      rail: rail,
+      scopeBtn: scopeBtn,
+      scope: S.scope,
+      scopeFile: scopeFile,
+      barEnabled: String(enabled),
+      barTotal: String(total),
+      barPending: pending > 0 ? pending + ' pending' : 'nothing pending',
+      barFill: 'width:' + (total ? Math.round(enabled / total * 100) : 0) + '%;',
+      hasPending: pending > 0,
+      ovScanWrap: pending > 0 ? 'margin-top:12px;' : 'margin-top:26px;',
+      ovScanBtn: pending > 0 ? 'border:1.5px solid #3A3A3F;color:#C8C8CD;' : 'border:1.5px solid #E8E8EA;color:#FFFFFF;',
+      pendingLabel: pendingLabel,
+      hasHeader: !isOverview && !isScan && !isProjects,
+      pageTitle: (concept === 'all' && S.target !== 'mac') ? PROJ[S.target].name : label,
+      pageSub: pageSub,
+      pageSubLink: pending > 0 ? '›' : '',
+      isOverview: isOverview,
+      isFlow: isFlow,
+      isList: isList,
+      isScan: isScan,
+      isProjects: isProjects,
+      scanSub: scanSub,
+      tchips: tchips,
+      hasFound: hasFound,
+      foundLabel: '1 project folder found that you do not manage yet',
+      openAddProj: openAddProj,
+      projSub: nProj + (nProj === 1 ? ' folder' : ' folders') + ' managed · User scope is always included',
+      projR1: projItems.length + ' items in project folders',
+      hasProjects: nProj > 0,
+      prows: prows,
+      goProjects: () => this.setState({ view: 'projects', hist: false, open: '', addP: false, toast: '' }),
+      activeProj: S.active ? PROJ[S.active].name : 'No project',
+      showAddP: !!S.addP,
+      closeAddP: closeAddP,
+      apPath: PROJ[apId].path,
+      arows: arows,
+      apFound: apTotal + (apTotal === 1 ? ' item found' : ' items found'),
+      apManaged: apManaged,
+      apCanAdd: !apManaged,
+      chooseStub: () => this.setState({ toast: 'The folder picker is not part of this prototype. It previews tia-scl-tools.' }),
+      confirmAddP: () => {
+        if (apManaged) { return; }
+        this.setState({ projects: S.projects.concat([apId]), active: S.active || apId, addP: false, view: 'projects', toast: 'Added ' + PROJ[apId].name + '. ' + apTotal + (apTotal === 1 ? ' item' : ' items') + ' found.' });
+      },
+      scanR1: scanR1,
+      scanR2: scanR2,
+      scanLive: live,
+      scanRunning: live,
+      scanFill: 'width:' + pct + '%;',
+      scanPct: pct + '%',
+      scanBtn: live ? stopScan : startScan,
+      scanBtnLabel: live ? 'Stop' : 'Scan',
+      sDots: sDots,
+      sTw: sTw,
+      sL: sL,
+      sR: sR,
+      sHint: sHint,
+      sHintStyle: sHintStyle,
+      stars: stars,
+      ring: ring,
+      ringLine: ringLine,
+      weekBars: weekBars,
+      headline: headline,
+      editableCount: String(editable),
+      lnodes: lnodes,
+      rnodes: rnodes,
+      particles: particles,
+      hasHint: hasHint,
+      hintStyle: hintStyle,
+      rescan: startScan,
+      openHist: () => this.setState({ hist: true, open: '' }),
+      backLabel: concept === 'all' ? (S.back === 'projects' ? 'Projects' : 'Scan results') : 'All sources',
+      backFlow: () => this.setState(concept === 'all' ? { view: S.back === 'projects' ? 'projects' : 'scan', chk: {} } : { view: 'flow', kind: 'all' }),
+      buckets: buckets,
+      curDot: 'background:' + curDef.color + ';',
+      curName: curDef.name,
+      curCount: noun(inBucket.length) + ' · ' + (concept === 'all' ? 'all types' : label.toLowerCase()),
+      curNote: curDef.note,
+      chips: chips,
+      lrows: lrows,
+      hasSel: nSel > 0,
+      noSel: nSel === 0,
+      bulkLabel: (allOn ? 'Disable ' : 'Enable ') + nSel,
+      removeLabel: (allPlugins ? 'Uninstall ' : 'Remove ') + remTargets.length,
+      bulkToggle: bulkToggle,
+      bulkRemove: bulkRemove,
+      allChecked: allChecked,
+      allMark: allChecked ? '✓' : (someChecked ? '–' : ''),
+      allStyle: 'width:16px;height:16px;flex:none;padding:0;border-radius:5px;font-size:11px;font-weight:700;line-height:13px;text-align:center;cursor:pointer;' + ((allChecked || someChecked) ? 'background:#E8E8EA;border:1.5px solid #E8E8EA;color:#111;' : 'background:transparent;border:1.5px solid #4A4A50;color:transparent;'),
+      toggleAll: toggleAll,
+      selSummary: nSel + ' selected · ' + lrowsSrc.length + ' shown',
+      hasToast: S.toast !== '',
+      toast: S.toast,
+      showHist: S.hist,
+      hchips: hchips,
+      hrows: hrows,
+      histCount: hrowsSrc.length + (hrowsSrc.length === 1 ? ' run' : ' runs'),
+      closeAll: () => this.setState({ hist: false, open: '', toast: '' }),
+      showOpen: showOpen,
+      d: d
+    };
+  }
+}
+</script>
+</body>
+</html>

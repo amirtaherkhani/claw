@@ -1,6 +1,6 @@
 # CLAUDE.md: Claw
 
-Native macOS app (Swift 6, SwiftUI) that manages Claude Code plugins, skills, commands, rules, subagents, MCP servers and hooks. Read `docs/OVERVIEW.md` first; requirements are in `docs/PRD.md`, design in `docs/TECHNICAL-DESIGN.md` (its TypeScript blocks are the behaviour spec, see ADR-0001), plan in `docs/ROADMAP.md`.
+Native macOS app (Swift 6, SwiftUI) that manages Claude Code plugins, skills, commands, rules, subagents, MCP servers and hooks. Read `docs/OVERVIEW.md` first; requirements are in `docs/PRD.md`, design in `docs/TECHNICAL-DESIGN.md` (its TypeScript blocks are the behaviour spec, see ADR-0001), plan in `docs/ROADMAP.md`. **Current state and the next tasks: `docs/NEXT-STEPS.md`.** UI design (prototype boards, tokens, board-to-code map): `docs/design/README.md`.
 
 ## Project facts
 
