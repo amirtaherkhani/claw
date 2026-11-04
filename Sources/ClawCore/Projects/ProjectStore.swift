@@ -28,7 +28,7 @@ public struct RegisteredProject: Codable, Sendable, Equatable {
     }
 }
 
-/// Clef's own list of project folders (PRD F03). Stored in Clef's application-support folder, never
+/// Claw's own list of project folders (PRD F03). Stored in Claw's application-support folder, never
 /// in Claude Code's configuration. Pure list operations are separate from loading and saving.
 public struct ProjectRegistry: Sendable {
     public let file: String
@@ -37,17 +37,17 @@ public struct ProjectRegistry: Sendable {
         self.file = file
     }
 
-    /// `~/Library/Application Support/Clef/projects.json` on macOS; `$XDG_CONFIG_HOME/clef/projects.json`
-    /// (default `~/.config/clef`) elsewhere.
+    /// `~/Library/Application Support/Claw/projects.json` on macOS; `$XDG_CONFIG_HOME/claw/projects.json`
+    /// (default `~/.config/claw`) elsewhere.
     public static func defaultFile(environment: [String: String] = ProcessInfo.processInfo.environment, home: String)
         -> String
     {
         #if os(macOS)
-            joinPath(home, "Library", "Application Support", "Clef", "projects.json")
+            joinPath(home, "Library", "Application Support", "Claw", "projects.json")
         #else
             joinPath(
                 environment["XDG_CONFIG_HOME"].flatMap { $0.isEmpty ? nil : $0 } ?? joinPath(home, ".config"),
-                "clef", "projects.json")
+                "claw", "projects.json")
         #endif
     }
 

@@ -1,6 +1,6 @@
-# Roadmap: Config Manager
+# Roadmap: Claw
 
-> **Update 2026-11-04 — stack and name changed.** The app is now **Clef**, built in **Swift + SwiftUI** ([ADR-0001](adr/0001-stack-swift-swiftui.md), [ADR-0002](adr/0002-name-clef.md)). Where this document says TypeScript, Electron, React, pnpm, zod or `jsonc-parser`, read the Swift equivalent: the TypeScript blocks are the **behaviour spec**, ported to `Sources/ClefCore`. Requirements, ownership rules, spikes and the milestone order are unchanged.
+> **Stack: Swift 6 + SwiftUI, app name Claw** ([ADR-0001](adr/0001-stack-swift-swiftui.md), [ADR-0002](adr/0002-name-claw.md)). Updated 2026-11-04. TypeScript blocks in `TECHNICAL-DESIGN.md` are kept as the behaviour spec; the Swift code in `Sources/ClawCore` implements them.
 
 
 Version 0.1 · 2026-11-04 · Status: draft
@@ -16,7 +16,7 @@ Effort figures are **estimates [A]** for one full-time engineer. No benchmark wa
 | Milestone | Goal | Features | Effort | Ends with |
 | :- | :- | :- | :- | :- |
 | **M0** Foundations and spikes | Repo, decisions, unknowns closed | none (setup) | ~1 wk | ADRs accepted, all spikes answered |
-| **M1** Core read-only | Scan and classify everything, from a CLI | F02, F14, data for F03, F04 | ~3 wks | `cfgmgr scan --json` matches Claude Code's own views |
+| **M1** Core read-only | Scan and classify everything, from a CLI | F02, F14, data for F03, F04 | ~3 wks | `claw scan --json` matches Claude Code's own views |
 | **M2** Safe write pipeline | Change things safely and undo them, from a CLI | F07, F08, F11 core, F12 core, F15 | ~3 wks | Apply, rollback, restore proven by tests |
 | **M3** GUI shell, read-only | The prototype running on real data | F01, F03, F04, F05 view, F06 view, F13 view | ~3 wks | Every view shows real scan data |
 | **M4** GUI write flows | Queue, review, apply, history, restore in the UI | F05, F07, F08, F11, F12, F13, F17 | ~2 wks | **Alpha: all P0 features** |
@@ -63,12 +63,12 @@ These follow your standing rules.
 | # | Task | Done when |
 | :- | :- | :- |
 | M0.1 | Ask me the repo name, then on your Mac: `git init /Users/mac/Documents/GitHub/<repo-name>`; if the folder exists, do not overwrite it (check `git remote -v` and `git status`). This cloud session cannot do it because that path does not exist here | Repo exists; default branch protected by habit, work on a branch |
-| M0.2 | Record the environment in `docs/environment.md`: macOS version, `claude --version`, Node LTS, pnpm. No paths with secrets | File committed |
+| M0.2 | Record the environment in `docs/environment.md`: macOS version, Xcode, `swift --version`, `claude --version`. No paths with secrets | File committed |
 | M0.3 | Copy `OVERVIEW.md`, `PRD.md`, `TECHNICAL-DESIGN.md`, `ROADMAP.md` into `docs/`; create `CLAUDE.md` from Appendix B | Committed |
-| M0.4 | Workspace skeleton: `packages/contracts`, `core`, `cli`, `fixtures`, `apps/desktop` (empty); `tsconfig` with `strict` and `noUncheckedIndexedAccess`; ESLint; Vitest; a Linux CI job that runs typecheck, lint and tests | CI green on the empty skeleton |
+| M0.4 | Swift package skeleton: `ClawCore`, `claw`, `ClawApp` (macOS only), `ClawCoreTests`; Swift 6 language mode; `swift format` config; CI with a Linux and a macOS job | CI green on the skeleton |
 | M0.5 | Write ADRs in `docs/adr/`: stack (OQ-1), no fork, distribution (OQ-6), enable/disable policy (TD 9.8), minimum Claude Code and macOS (OQ-4, OQ-5), name (OQ-8) | Each ADR has context, decision, consequences |
 | M0.6 | Run spikes `S1` to `S10` per `TECHNICAL-DESIGN.md` section 15, each in a **temporary config directory**, not your real one. Write `docs/spikes.md` with the commands, the redacted output and the conclusion | Every spike has a status: verified, workaround, or deferred with a reason |
-| M0.7 | Pin exact tool versions (Node, pnpm, Electron, TypeScript, Vitest, `jsonc-parser`, `zod`) from each project's official docs; commit the lockfile | Lockfile committed; versions listed in `docs/environment.md` |
+| M0.7 | Pin tool versions: Swift toolchain, Xcode, CI images and runners; record them in `docs/environment.md` | Versions listed |
 | M0.8 | Update the `[U]` tags in the three docs from the spike results; add a "Verified on `<claude --version>`" line | Docs consistent |
 
 **Exit criteria:** ADRs accepted; spike report complete; `PRD.md` tables have no **[U]** left for P0 features (or the row says "not supported in 1.0"); CI green.
@@ -76,25 +76,25 @@ These follow your standing rules.
 
 ### M1 Core read-only: scan and classify (~3 weeks)
 
-**Goal:** `cfgmgr scan` reads all seven concepts for This Mac or one folder, classifies every item, and writes nothing.
+**Goal:** `claw scan` reads all seven concepts for This Mac or one folder, classifies every item, and writes nothing.
 **Implements:** F02, F14, the data side of F03 and F04. `FR-F02-*`, `FR-F14-*`, `NFR-COMPAT-2`, `NFR-PERF-1`.
 **Design:** `TECHNICAL-DESIGN.md` sections 3, 5, 6, 7, 8.
 
 | # | Task | Done when |
 | :- | :- | :- |
-| M1.1 | `contracts`: `model.ts`, `item.ts`, zod schemas for every JSON file read (tolerant: unknown keys allowed) | Types compile under strict; schemas reject wrong types, accept extra keys |
-| M1.2 | `ReadonlyFs` and a real implementation over `node:fs/promises`; a throwing test double for write methods | Test proves no write method exists |
+| M1.1 | Model types (`Model.swift`, `Item.swift`), `JSONValue` with strict parsing; tolerant reading (unknown keys allowed) | Types compile in Swift 6 mode; malformed input becomes a problem |
+| M1.2 | `ReadonlyFileSystem` protocol and `LocalFileSystem`; in-memory test double | The protocol has no write method |
 | M1.3 | Settings loader: User, Project, Local, Managed layers from the allowlist (TD 3.1); strict JSON; problems instead of exceptions | Fixtures with malformed JSON yield a problem, not a crash |
-| M1.4 | CLI adapter (TD section 4): binary resolution, version, `execFile`, last-line JSON parse, name validation, timeouts | Unit tests incl. hostile names |
+| M1.4 | CLI adapter (TD section 4): binary resolution, version, `Process` with an argument vector, last-line JSON parse, name validation, timeout and cancel | Unit tests incl. hostile names |
 | M1.5 | Plugin reader: `plugin list --json` and `marketplace list --json`, file fallback from `installed_plugins.json` and `known_marketplaces.json`; plugin component reader (standard layout and manifest paths) | Matches `claude plugin list` on the dev Mac |
 | M1.6 | Skill, command, rule, subagent readers with frontmatter parsing; skills-directory plugin detection; synced and managed locations | Fixture golden files |
 | M1.7 | MCP reader: `.mcp.json`; `~/.claude.json` shape from S1; plugin MCP; mask secrets at read time | No secret value reaches a result object (test) |
 | M1.8 | Hook reader: settings files, plugin `hooks/hooks.json`, frontmatter hooks; guard-hook flag (`PreToolUse`, `PermissionRequest`) | Fixture golden files |
 | M1.9 | Classifier P1 to P8 and the table in TD 5.2; `bucketOf`; `capabilities` per ownership (PRD 4.4) | Unit tests per rule; "unknown means Read-only" test |
 | M1.10 | Effective state (TD 6) and cross-check against CLI `enabled`; mismatch becomes a problem | Test with a higher-scope override |
-| M1.11 | Scanner: targets (This Mac, folder), project discovery from `~/.claude.json` and the registry, bounded walk, `AbortSignal`, progress events, `partial` flag | Stop returns within 500 ms in a test |
+| M1.11 | Scanner: targets (This Mac, folder), project discovery from `~/.claude.json` and the registry, task cancellation, progress callback, `partial` flag | Stop returns quickly in a test |
 | M1.12 | Project registry store (`projects.json`), realpath de-duplication | Tests |
-| M1.13 | `cfgmgr scan --json [--folder <path>]` and `cfgmgr list [--concept <id>] [--bucket <id>]` | Output validates against the `ScanResult` schema |
+| M1.13 | `claw scan --json [--folder <path>]` and `claw list [--concept <id>] [--bucket <id>]` | Output validates against the `ScanResult` schema |
 | M1.14 | Fixtures: fake HOME with one item of each ownership per concept, symlinked dotfile, hostile id, managed layer; golden `ScanResult` per fixture | Goldens committed |
 | M1.15 | **Manual comparison** on your Mac: scan output against `/plugin`, `/skills`, `/mcp`, `/hooks` and the subagent list for one project; record differences | `docs/compare-m1.md`; each difference explained or fixed |
 
@@ -109,8 +109,8 @@ These follow your standing rules.
 
 | # | Task | Done when |
 | :- | :- | :- |
-| M2.1 | `json-edit.ts` (TD 9.1) incl. array edits for hooks | Property tests: other bytes unchanged, idempotent, indentation and EOL kept |
-| M2.2 | `atomic-write.ts` (TD 9.3) incl. symlink handling and the stale-hash check | Tests incl. symlinked target and concurrent change |
+| M2.1 | `JSONEdit.swift` (TD 9.1): byte-range edits over the strict scanner, incl. array edits for hooks | Property tests: other bytes unchanged, idempotent, indentation and EOL kept |
+| M2.2 | `AtomicWrite.swift` (TD 9.3) incl. symlink handling and the stale-hash check | Tests incl. symlinked target and concurrent change |
 | M2.3 | Backup store: folder 0700, files 0600, `manifest.json`, `removed/` | Permission test; manifest schema test |
 | M2.4 | History (`history.jsonl`) and recovery of `in-progress` manifests | Kill-mid-apply test recovers |
 | M2.5 | Planner for `setEnabled`: plugin (`enabledPlugins`), skill (`skillOverrides`), rule (`claudeMdExcludes`), subagent (`permissions.deny`), MCP (`disabledMcpjsonServers`, `disabledMcpServers` per S1 and S7) | Golden "before and after" files per concept |
@@ -119,31 +119,31 @@ These follow your standing rules.
 | M2.8 | Override detection: a higher-precedence source defeats the change (FR-F07-2); managed and org-required refusal (FR-F07-3) | Tests with fixtures |
 | M2.9 | Apply: stale check, backup, writes, CLI steps, verify (reparse and `plugin list --json`), rollback on any failure | Fault injection at every step leaves old or new, never half |
 | M2.10 | Restore: diff, new backup first, same pipeline | Apply then restore returns byte-identical files |
-| M2.11 | CLI: `cfgmgr plan`, `apply`, `restore`, `history`; `--dry-run` prints the diff only | Manual run on a temp config dir |
+| M2.11 | CLI: `claw plan`, `apply`, `restore`, `history`; `--dry-run` prints the diff only | Manual run on a temp config dir |
 | M2.12 | **Contract tests** against the real `claude` CLI in a temp config directory (macOS): after each operation `plugin list --json` agrees; run in CI nightly | Green on a macOS runner or your Mac |
-| M2.13 | No-hard-delete test: instrument `fs` to fail the suite on `unlink` or `rm` of user files | Test passes |
+| M2.13 | No-hard-delete test: the apply layer gets a file system that fails the suite on any delete of a user file | Test passes |
 
 **Exit criteria:** `NFR-SAFE-1` to `NFR-SAFE-4` demonstrated by tests; contract tests green; `FR-F15-*` round trip green; dry-run output equals the real diff.
 **Risks:** R2, R3, R4, R7, R8.
 
 ### M3 GUI shell, read-only (~3 weeks)
 
-**Goal:** the prototype's views running on real scan data inside a hardened Electron app. No writing yet.
+**Goal:** the prototype's views running on real scan data in the SwiftUI app. No writing yet.
 **Implements:** F01, F03 UI, F04, view side of F05, F06, F13. `FR-F01-*`, `FR-F03-*`, `FR-F04-*`, `FR-F05-1`, `FR-F06-*`, `NFR-A11Y-1` basics, `NFR-PRIV-1`.
 **Design:** `TECHNICAL-DESIGN.md` sections 10 and 11.
 
 | # | Task | Done when |
 | :- | :- | :- |
-| M3.1 | `apps/desktop` scaffold: main, preload, React renderer; hardening checklist (TD 11); zod-validated IPC channels (TD 10) | Renderer has no Node; test tries `require` and fails |
-| M3.2 | Design tokens and DM Sans bundled locally; Rail and `StatusPill` | No network request on start (test) |
-| M3.3 | `OverviewView` with `ParticleField` (seeded PRNG), static under Reduce Motion | Visual check; reduce-motion test |
-| M3.4 | `ScanView`: target switch, Browse via native dialog, Start and Stop, `scan:progress`, concept flow, bucket results | Progress follows engine events, not a timer |
-| M3.5 | `ProjectsView` and `AddProjectDialog` (drop zone, Browse, validation messages) | Add, activate, scan, reveal, remove-from-list work |
+| M3.1 | App structure: scene, commands, `@Observable` models, navigation (TD 10); hardening checklist (TD 11) | Views never touch files or processes (review) |
+| M3.2 | Accent colour and bucket colours as assets; sidebar and toolbar with system glass | Liquid Glass linter clean; no network request on start |
+| M3.3 | `OverviewView` with the particle visual in `Canvas`, static under Reduce Motion | Visual check; Reduce Motion check |
+| M3.4 | `ScanView`: target picker, `NSOpenPanel` for a folder, Start and Stop, progress from `ScanProgress`, bucket results | Progress follows the scanner, not a timer |
+| M3.5 | `ProjectsView` and the Add project sheet (drop target, Browse, validation messages) | Add, scan, reveal in Finder, remove-from-list work |
 | M3.6 | `SourcesView` | Counts equal scan data |
-| M3.7 | `ItemList` with bucket sidebar, kind chips, table, search and sort | 500-row list stays smooth (virtualise if not) |
-| M3.8 | `DetailDialog`: all fields, secrets masked, "Why Personal?" popover, Copy path, Reveal | Masking test with a fixture holding fake secrets |
-| M3.9 | i18n scaffolding: all strings behind keys; English catalogue | Lint rule or test finds no hard-coded UI text |
-| M3.10 | Playwright smoke tests; `axe` on each view; screenshot comparison against the prototype boards | Critical `axe` violations: none; you approve the visual parity |
+| M3.7 | Item `Table` with bucket sidebar, concept filter, search and sort | 5,000 rows stay smooth |
+| M3.8 | Inspector: all fields, "Why this owner", Copy path, Reveal in Finder | Fixture with fake secrets shows none |
+| M3.9 | Localisation: all strings in a String Catalog (`Localizable.xcstrings`); English | No hard-coded UI text left |
+| M3.10 | XCUITest smoke tests; accessibility audit per view; screenshots compared with the prototype boards | No critical accessibility issue; you approve visual parity |
 
 **Exit criteria:** every view shows real data; no network; hardening checklist passes; keyboard-only walk-through of Overview, Scan, List, Detail works.
 **Risks:** R5, R11.
@@ -194,8 +194,8 @@ These follow your standing rules.
 
 | # | Task | Done when |
 | :- | :- | :- |
-| M6.1 | Security review against `TECHNICAL-DESIGN.md` section 11 (threat table and Electron checklist); fix findings | Written review in `docs/security-review.md` |
-| M6.2 | Dependency audit, lockfile review, CI pins by SHA | No known high issue left unaddressed |
+| M6.1 | Security review against `TECHNICAL-DESIGN.md` section 11 (threat table and macOS checklist); fix findings | Written review in `docs/security-review.md` |
+| M6.2 | Dependency review (should stay none), CI actions pinned by SHA | No unreviewed dependency |
 | M6.3 | Developer ID signing, hardened runtime, minimal entitlements, `notarytool`, stapling, `.dmg` | Gatekeeper opens it on a clean Mac |
 | M6.4 | Update mechanism decision (OQ-7); default off | ADR |
 | M6.5 | Accessibility audit: keyboard, VoiceOver labels, contrast 4.5:1, Reduce Motion | Findings fixed or filed |
@@ -240,7 +240,7 @@ These follow your standing rules.
 | R8 | Settings are read while half-written | Low / Medium | Atomic rename; verify | M2 |
 | R9 | A key marked verified or assumed behaves differently on your Claude Code version | Medium / Medium | Spikes, contract tests, version line in docs | M0 |
 | R10 | Distribution outside the Mac App Store creates friction, or the sandbox assumption is wrong | Low / Medium | ADR in M0; notarisation | M0, M6 |
-| R11 | Electron size and security-patch burden | Medium / Medium | Pin and update on a schedule; no Node in renderer; consider Tauri if it bites | M3, M6 |
+| R11 | SwiftUI can only be built and tested on macOS; Linux and macOS Foundation differ | Medium / Medium | Keep logic in `ClawCore`; macOS CI job; re-check `docs/spikes.md` F1 to F4 on macOS | M0, M3 |
 | R12 | Misclassifying a third-party item as Personal and offering Edit | Medium / Medium | Conservative rules, git remote evidence, "Why Personal?" popover, tests | M1, M5 |
 
 ## 6. Traceability: features to milestones
@@ -278,41 +278,14 @@ Do these on the Mac mini, not in the cloud session.
 
 1. Pick the repo name, then check the target folder does not already exist: `ls /Users/mac/Documents/GitHub`.
 2. Create it: `git init /Users/mac/Documents/GitHub/<repo-name>`; create a working branch before the first commit.
-3. Record versions: `claude --version`, `node --version`, `pnpm --version`, `sw_vers`.
+3. Record versions: `claude --version`, `swift --version`, `xcodebuild -version`, `sw_vers`.
 4. Look at the real CLI surface before relying on the docs: `claude plugin --help`, `claude plugin install --help`, `claude plugin marketplace add --help`, `claude mcp --help`.
 5. For spikes, use a throwaway config directory so your real config is untouched, for example `export CLAUDE_CONFIG_DIR="$(mktemp -d)"` in that shell only. Whether this also relocates `~/.claude.json` is exactly what **S8** checks, so confirm with `claude mcp add` in a temp project and look at which files changed before trusting it.
-6. Copy the four docs into `docs/` and add `CLAUDE.md` from Appendix B.
+6. Clone the repo (or the `clef.bundle` file) into `/Users/mac/Documents/GitHub/claw` and run `swift build && swift test && swift run ClawApp`.
 
-## Appendix B: `CLAUDE.md` template for the app repo
+## Appendix B: `CLAUDE.md` for the app repo
 
-Commands are the intended ones **[A]**; confirm them in M0 and delete this note.
-
-```markdown
-# Config Manager
-
-macOS app to view, add, disable, enable and remove Claude Code and Claude Desktop plugins, skills,
-commands, rules, subagents, MCP servers and hooks. Read docs/PRD.md and docs/TECHNICAL-DESIGN.md first.
-
-## Project facts
-- Install: `pnpm install`
-- Typecheck: `pnpm -r typecheck`   Lint: `pnpm lint`
-- Test one file: `pnpm --filter @cfgmgr/core test -- <file>`   Test all: `pnpm -r test`
-- Build: `pnpm -r build`   Run the desktop app: `pnpm --filter desktop dev`
-- Layout: packages/contracts (types, zod), packages/core (scan, classify, plan, apply),
-  packages/cli, packages/fixtures (fake HOME trees), apps/desktop (Electron main, preload, React renderer).
-- Gotchas: tests never touch the real ~/.claude; use fixtures or a temp config directory.
-  The renderer has no Node access; all file work is in core, reached through typed IPC.
-  Never log or print values from MCP env, headers, tokens or hook commands.
-- Off limits: ~/.claude/plugins/ (use the claude CLI), ~/.claude/backups/, managed locations.
-
-## Rules for this repo
-- The scan is read-only by construction. Do not add write methods to ReadonlyFs.
-- Every write goes through the apply pipeline (backup, atomic write, verify, history). No ad-hoc fs writes.
-- Never hard-delete user files; move them to the backup folder.
-- Call the claude CLI with execFile and an argument array, never a shell string.
-- Mark anything unverified with [U] and link the spike in docs/spikes.md.
-- Work on a branch; commit or push only when asked; never weaken a test to make it pass.
-```
+The live file is `CLAUDE.md` at the repo root (Swift commands, layout, rules). Keep it short and update it in the same change as any new command or rule.
 
 ## Appendix C: Kickoff prompt for Claude Code, M1
 
@@ -321,7 +294,7 @@ Use plan mode and one milestone per branch.
 ```text
 Read docs/PRD.md (sections 4 and 5, features F02 and F14) and docs/TECHNICAL-DESIGN.md (sections 3, 5, 6, 7, 8).
 Implement milestone M1 from docs/ROADMAP.md, one task at a time, in order. For each task: restate the acceptance
-criteria, write the failing test first, implement the smallest change, run typecheck, lint and the tests closest to
+criteria, write the failing test first, implement the smallest change, run swift build, swift format lint and the tests closest to
 the change, then report passed, failed, skipped or not run. Do not touch ~/.claude. Stop and ask before adding a
-dependency or changing a contract in packages/contracts.
+dependency or changing a public type in ClawCore/Model.
 ```

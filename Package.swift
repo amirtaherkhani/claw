@@ -1,26 +1,26 @@
 // swift-tools-version: 6.2
 import PackageDescription
 
-// ClefCore and the `clef` CLI build on macOS and Linux (CI runs the core tests on both).
+// ClawCore and the `claw` CLI build on macOS and Linux (CI runs the core tests on both).
 // The SwiftUI app needs macOS, so its target exists only when the manifest is evaluated on macOS.
 var products: [Product] = [
-    .library(name: "ClefCore", targets: ["ClefCore"]),
-    .executable(name: "clef", targets: ["clef"]),
+    .library(name: "ClawCore", targets: ["ClawCore"]),
+    .executable(name: "claw", targets: ["claw"]),
 ]
 
 var targets: [Target] = [
-    .target(name: "ClefCore"),
-    .executableTarget(name: "clef", dependencies: ["ClefCore"]),
-    .testTarget(name: "ClefCoreTests", dependencies: ["ClefCore"]),
+    .target(name: "ClawCore"),
+    .executableTarget(name: "claw", dependencies: ["ClawCore"]),
+    .testTarget(name: "ClawCoreTests", dependencies: ["ClawCore"]),
 ]
 
 #if os(macOS)
-    products.append(.executable(name: "ClefApp", targets: ["ClefApp"]))
-    targets.append(.executableTarget(name: "ClefApp", dependencies: ["ClefCore"]))
+    products.append(.executable(name: "ClawApp", targets: ["ClawApp"]))
+    targets.append(.executableTarget(name: "ClawApp", dependencies: ["ClawCore"]))
 #endif
 
 let package = Package(
-    name: "Clef",
+    name: "Claw",
     platforms: [.macOS(.v26)],
     products: products,
     targets: targets,

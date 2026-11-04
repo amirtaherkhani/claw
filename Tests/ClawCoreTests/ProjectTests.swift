@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 
-@testable import ClefCore
+@testable import ClawCore
 
 @Suite("Projects, progress and cancel")
 struct ProjectTests {
@@ -19,7 +19,7 @@ struct ProjectTests {
     @Test("Registry add, remove, de-duplicate and save atomically with owner-only permissions")
     func registry() throws {
         let fs = LocalFileSystem()
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("clef-\(UUID().uuidString)").path
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("claw-\(UUID().uuidString)").path
         defer { try? FileManager.default.removeItem(atPath: dir) }
         let real = joinPath(dir, "real")
         let link = joinPath(dir, "link")

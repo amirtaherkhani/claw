@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 
-@testable import ClefCore
+@testable import ClawCore
 
 @Suite("Commands, subagents, rules, MCP servers, hooks")
 struct ConceptTests {

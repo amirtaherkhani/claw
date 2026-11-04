@@ -1,9 +1,9 @@
-# Config Manager: implementation docs
+# Claw: implementation docs
 
-> **Update 2026-11-04 — stack and name changed.** The app is now **Clef**, built in **Swift + SwiftUI** ([ADR-0001](adr/0001-stack-swift-swiftui.md), [ADR-0002](adr/0002-name-clef.md)). Where this document says TypeScript, Electron, React, pnpm, zod or `jsonc-parser`, read the Swift equivalent: the TypeScript blocks are the **behaviour spec**, ported to `Sources/ClefCore`. Requirements, ownership rules, spikes and the milestone order are unchanged.
+> **Stack: Swift 6 + SwiftUI, app name Claw** ([ADR-0001](adr/0001-stack-swift-swiftui.md), [ADR-0002](adr/0002-name-claw.md)). Updated 2026-11-04. TypeScript blocks in `TECHNICAL-DESIGN.md` are kept as the behaviour spec; the Swift code in `Sources/ClawCore` implements them.
 
 
-Working name: **Config Manager** (rename freely; nothing below depends on it).
+App name: **Claw** (ADR-0002). Docs date: 2026-11-04. Prototype: Design-canvas artifact, Version 13 (boards Main, Review, Add plugin).
 Docs date: 2026-11-04. Prototype: Design-canvas artifact, Version 13 (boards Main, Review, Add plugin).
 
 A macOS app that lets you **see, add, disable, enable and remove** the seven kinds of Claude Code and Claude Desktop extensions from one place: plugins, skills, commands, rules, subagents, MCP servers and hooks. It shows an **Edit** button only on items you own.
@@ -11,7 +11,7 @@ A macOS app that lets you **see, add, disable, enable and remove** the seven kin
 ## Answer first
 
 - **Build it as a new app, do not fork Skill Forge.** The only GUI candidate with a matching stack (Tauri 2 + Svelte 5, MIT) was, when checked on 2026-11-04, a repository with 4 commits, 0 stars, no releases, and no documented per-item enable/disable or ownership detection outside MCP servers. See `TECHNICAL-DESIGN.md` section 2.
-- **Recommended stack: a UI-independent TypeScript core library, a CLI on top of it, then an Electron + React shell.** The core and CLI deliver value (and tests) before any GUI exists. This is a recommendation, not a verified fact; the GUI shell can still switch to Tauri without touching the core.
+- **Stack: Swift 6 + SwiftUI** ([ADR-0001](adr/0001-stack-swift-swiftui.md)). `ClawCore` is a UI-free library that builds and tests on macOS and Linux; the `claw` CLI and the SwiftUI app sit on top. The core and CLI deliver value before the GUI is finished.
 - **Everything the app writes goes through one safe pipeline**: plan, review diff, backup, atomic write, verify, record history. Files are never hard-deleted.
 - **Most config contracts are now verified** against the official Claude Code docs. A short list is still unknown and is closed by spikes in milestone M0 (below).
 
@@ -48,24 +48,23 @@ The installed Claude Code version on your Mac was **not** inspected. Several CLI
 | S7 | Semantics and value shape of `deniedMcpServers` and `disabledMcpjsonServers` | MCP toggle |
 | S8 | Where `~/.claude.json` lives when `CLAUDE_CONFIG_DIR` is set | Test isolation |
 | S9 | Does removing a hook entry take effect live (settings are watched)? | Hook disable |
-| S10 | macOS specifics: privacy prompts (TCC) when scanning `~/Documents`; minimum macOS for the chosen Electron release; reading a managed configuration profile; macOS path of the enterprise skills directory | Scan UX, distribution, managed scope |
+| S10 | macOS specifics: privacy prompts (TCC) when scanning `~/Documents`; minimum macOS for the SwiftUI APIs Claw uses; reading a managed configuration profile; macOS path of the enterprise skills directory | Scan UX, distribution, managed scope |
 
 ## Proposed repository layout (for the new repo)
 
-Create it on your Mac as `/Users/mac/Documents/GitHub/<repo-name>`. That path does not exist in this cloud session, so nothing was created there.
+Repository `claw` (on the Mac: `/Users/mac/Documents/GitHub/claw`).
 
 ```text
-<repo-name>/
-├─ CLAUDE.md                  # from ROADMAP.md appendix B
-├─ docs/                      # these files + ADRs + spike reports
-├─ packages/
-│  ├─ core/                   # scan, classify, plan, apply, backup (no UI, no Electron)
-│  ├─ cli/                    # `cfgmgr` command on top of core
-│  ├─ contracts/              # shared zod schemas and TypeScript types (IPC, JSON files)
-│  └─ fixtures/               # fake HOME trees for tests
-├─ apps/
-│  └─ desktop/                # Electron main, preload, React renderer
-└─ pnpm-workspace.yaml        # [A] pnpm for a new repo; follow the lockfile if you choose otherwise
+claw/
+├─ Package.swift              # SwiftPM: ClawCore, claw, ClawApp (macOS only), ClawCoreTests
+├─ CLAUDE.md                  # project facts and rules for Claude Code
+├─ Sources/
+│  ├─ ClawCore/               # scan, classify, state, CLI adapter; later plan, apply, backup (no UI)
+│  ├─ claw/                   # `claw` command line
+│  └─ ClawApp/                # SwiftUI app (macOS 26+)
+├─ Tests/ClawCoreTests/       # Swift Testing; in-memory file system, fake claude runner
+├─ docs/                      # these files, ADRs, spikes, environment
+└─ .github/workflows/ci.yml   # Linux and macOS jobs
 ```
 
 ## Glossary

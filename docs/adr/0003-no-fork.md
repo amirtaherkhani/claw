@@ -8,7 +8,7 @@ Skill Forge (HayriCan/SkillForge, Tauri 2 + Svelte 5, MIT) was the closest open-
 
 ## Decision
 
-Build Clef from scratch (`TECHNICAL-DESIGN.md` section 2). With ADR-0001 the stacks no longer match anyway.
+Build Claw from scratch (`TECHNICAL-DESIGN.md` section 2). With ADR-0001 the stacks no longer match anyway.
 
 ## Consequences
 

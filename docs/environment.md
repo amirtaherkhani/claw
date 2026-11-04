@@ -9,9 +9,9 @@ Record of the tool versions the project was built and tested with. No paths that
 | OS | Ubuntu 24.04.5 LTS, x86_64, 2 cores | `/etc/os-release`, `nproc` |
 | Swift | 6.4.2 (`swift-6.4.2-RELEASE`), from download.swift.org | `swift --version` |
 | swift-format | 6.4.2 (bundled with the toolchain) | `swift format --version` |
-| Claude Code | 2.1.317 | `claude --version` (used for the `clef scan` smoke test) |
+| Claude Code | 2.1.317 | `claude --version` (used for the `claw scan` smoke test) |
 
-Not available there: macOS, Xcode, SwiftUI. `ClefApp` has not been compiled yet.
+Not available there: macOS, Xcode, SwiftUI. `ClawApp` has not been compiled yet.
 
 ## Owner's Mac (fill in during M0.2)
 

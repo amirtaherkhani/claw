@@ -1,4 +1,4 @@
-# ADR-0004: How Clef enables, disables, installs and removes
+# ADR-0004: How Claw enables, disables, installs and removes
 
 - **Status:** Accepted for M2, revisit after spike S3
 - **Source:** `TECHNICAL-DESIGN.md` section 9.8

@@ -1,6 +1,6 @@
 import Testing
 
-@testable import ClefCore
+@testable import ClawCore
 
 @Suite("Effective plugin state")
 struct EffectiveStateTests {

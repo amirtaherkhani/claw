@@ -1,4 +1,4 @@
-# CLAUDE.md: Clef
+# CLAUDE.md: Claw
 
 Native macOS app (Swift 6, SwiftUI) that manages Claude Code plugins, skills, commands, rules, subagents, MCP servers and hooks. Read `docs/OVERVIEW.md` first; requirements are in `docs/PRD.md`, design in `docs/TECHNICAL-DESIGN.md` (its TypeScript blocks are the behaviour spec, see ADR-0001), plan in `docs/ROADMAP.md`.
 
@@ -6,8 +6,8 @@ Native macOS app (Swift 6, SwiftUI) that manages Claude Code plugins, skills, co
 
 - Build: `swift build` · Test all: `swift test` · Test one: `swift test --filter <SuiteOrTestName>`
 - Format check: `swift format lint --strict --recursive Sources Tests Package.swift` (fix with `swift format --in-place --recursive Sources Tests Package.swift`)
-- Run: `swift run clef scan [--json] [--folder <path>] [--no-cli]` · App (macOS): `swift run ClefApp`
-- Layout: `Sources/ClefCore` (no UI; must build on Linux), `Sources/clef` (CLI), `Sources/ClefApp` (SwiftUI, macOS only), `Tests/ClefCoreTests`
+- Run: `swift run claw scan [--json] [--folder <path>] [--no-cli]` · App (macOS): `swift run ClawApp`
+- Layout: `Sources/ClawCore` (no UI; must build on Linux), `Sources/claw` (CLI), `Sources/ClawApp` (SwiftUI, macOS only), `Tests/ClawCoreTests`
 - No third-party dependencies. Adding one needs an ADR.
 - Gotchas: Foundation on Linux differs from macOS (see `docs/spikes.md` F1 to F4). Blocking work never runs on `DispatchQueue.global()`; use a dedicated thread. Config JSON is parsed through `JSONValue.parse` (strict).
 

@@ -1,6 +1,6 @@
-# Technical Design: Config Manager
+# Technical Design: Claw
 
-> **Update 2026-11-04 — stack and name changed.** The app is now **Clef**, built in **Swift + SwiftUI** ([ADR-0001](adr/0001-stack-swift-swiftui.md), [ADR-0002](adr/0002-name-clef.md)). Where this document says TypeScript, Electron, React, pnpm, zod or `jsonc-parser`, read the Swift equivalent: the TypeScript blocks are the **behaviour spec**, ported to `Sources/ClefCore`. Requirements, ownership rules, spikes and the milestone order are unchanged.
+> **Stack: Swift 6 + SwiftUI, app name Claw** ([ADR-0001](adr/0001-stack-swift-swiftui.md), [ADR-0002](adr/0002-name-claw.md)). Updated 2026-11-04. TypeScript blocks in `TECHNICAL-DESIGN.md` are kept as the behaviour spec; the Swift code in `Sources/ClawCore` implements them.
 
 
 Version 0.1 · 2026-11-04 · Status: draft for implementation
@@ -15,8 +15,8 @@ The installed Claude Code version on the target Mac was **not** inspected. Check
 
 Design rules that drive everything else:
 
-1. **One core, many shells.** All behaviour lives in a UI-independent TypeScript library (`@cfgmgr/core`). The CLI and the Electron app are thin shells. [A]
-2. **Scan reads, apply writes, and they never share a code path.** The scan engine only receives a read-only filesystem handle.
+1. **One core, many shells.** All behaviour lives in `ClawCore`, a UI-free Swift library that builds on macOS and Linux. The `claw` CLI and the SwiftUI app are thin shells. [A]
+2. **Scan reads, apply writes, and they never share a code path.** Readers only receive a `ReadonlyFileSystem`.
 3. **Prefer the official CLI for anything that touches Claude Code's own records** (plugin install, uninstall, marketplaces, MCP add and remove). Write files directly only where no CLI exists. [A]
 4. **Every write goes through one pipeline**: plan, review, backup, atomic write, verify, record.
 5. **Never execute scanned content** (hooks, MCP commands, scripts).
@@ -24,16 +24,16 @@ Design rules that drive everything else:
 ```mermaid
 flowchart LR
   subgraph UI["Shells"]
-    GUI["Electron app<br/>React renderer"]
-    CLI["cfgmgr CLI"]
+    GUI["ClawApp<br/>SwiftUI, macOS 26+"]
+    CLI["claw CLI"]
   end
-  subgraph Core["@cfgmgr/core (Node, no UI)"]
-    SCAN["Scan engine<br/>7 readers + project discovery"]
+  subgraph Core["ClawCore (Swift, Foundation only, no UI)"]
+    SCAN["Scanner<br/>7 readers + project discovery"]
     CLASS["Classifier<br/>ownership + buckets"]
-    PLAN["Planner<br/>operations to changes + diff"]
-    APPLY["Apply pipeline<br/>backup, atomic write, verify"]
-    HIST["History, backups, hook stash"]
-    CLIAD["Claude CLI adapter<br/>execFile, no shell"]
+    PLAN["Planner (M2)<br/>operations to changes + diff"]
+    APPLY["Apply pipeline (M2)<br/>backup, atomic write, verify"]
+    HIST["History, backups, hook stash (M2)"]
+    CLIAD["ClaudeCLI adapter<br/>Process, argument vector, no shell"]
   end
   subgraph Disk["Config on disk"]
     SET["settings.json files<br/>user, project, local"]
@@ -43,9 +43,9 @@ flowchart LR
     MAN["Managed settings (read-only)"]
   end
   CC["claude CLI"]
-  GUI -->|typed IPC| Core
+  GUI -->|in-process async calls| Core
   CLI --> Core
-  SCAN -->|read-only fs| Disk
+  SCAN -->|ReadonlyFileSystem| Disk
   SCAN --> CLASS
   CLIAD --> CC
   CC --> PLG
@@ -59,28 +59,44 @@ flowchart LR
 
 ### 2.1 Build, fork or reuse
 
-| Option | Fit | Evidence | Verdict |
-| :- | :- | :- | :- |
-| **Fork HayriCan/SkillForge** (Tauri 2, Svelte 5, TypeScript, Tailwind v4; MIT) | Covers Claude Code, Codex CLI, Gemini CLI | README (checked 2026-11-04): 4 commits, 0 stars, no releases; views for agents, skills, commands, hooks, plans, plugins; MCP enable/disable documented; **no documented enable/disable for other types, no ownership detection, no per-item remove**; rules not named. Source code **not reviewed** | **Do not fork** [A]. Revisit if it matures. MIT allows reading its code for ideas (profiles, `.sfbackup` bundles) |
-| **New app, TypeScript core + Electron + React** | Matches your stack (Node, TypeScript); core is testable on Linux CI; reuses the prototype's HTML/CSS ideas | n/a | **Recommended** [A] |
-| New app, Tauri 2 + Rust core | Small bundle, native webview | Needs Rust; TypeScript core would become a sidecar | Alternative if bundle size matters (OQ-1) |
-| New app, native SwiftUI | Best macOS feel, Liquid Glass | New language; harder to test on Linux; prototype was restyled flat, not native | Not recommended now |
-
-Trade-offs of the recommendation: Electron bundles Chromium, so the app is large and you own security updates for it (R11). Mitigation: keep the renderer free of Node, pin Electron, update on a schedule.
-
-### 2.2 Technology choices (pin exact versions in M0 from the official docs of each; none are claimed here)
-
-| Area | Choice [A] | Notes |
+| Option | Fit | Verdict |
 | :- | :- | :- |
-| Language | TypeScript, `strict: true`, `noUncheckedIndexedAccess`, no `any` without a comment | Your standing rule |
-| Package manager | pnpm workspaces for a new repo | If you prefer otherwise, follow the lockfile you create |
-| JSON editing | `jsonc-parser` (`modify`, `applyEdits`) | Produces minimal text edits, so key order, indentation and unknown keys survive. Settings files are strict JSON [V `settings`], so comments need not be handled |
-| Frontmatter | `yaml` or `gray-matter` | Skills, commands, rules and agents are Markdown with YAML frontmatter [V] |
-| Validation | `zod` | IPC payloads, JSON files read, app state |
-| Tests | `vitest`, `fast-check`, Playwright for Electron | Section 13 |
-| Logging | `pino` with a redaction list | Section 12 |
-| UI | React, CSS variables from the prototype tokens, DM Sans bundled locally | The prototype imports DM Sans from Google Fonts; the app must not call the network (`NFR-PRIV-1`); check the font licence before bundling |
-| Packaging | `electron-builder` or Electron Forge, Developer ID signing, notarisation with `notarytool` | Section 14 |
+| Fork HayriCan/SkillForge (Tauri 2, Svelte 5, TypeScript; MIT) | When checked on 2026-11-04: 4 commits, 0 stars, no releases; documented enable/disable only for MCP servers | Rejected ([ADR-0003](adr/0003-no-fork.md)) |
+| New app, TypeScript core + Electron + React | Earlier recommendation of these docs | Superseded by ADR-0001 |
+| New app, Tauri 2 + Rust | Small bundle, web UI | Not chosen |
+| **New app, native Swift + SwiftUI** | Real Liquid Glass and macOS 26/27 system chrome; one language for core, CLI and app; `ClawCore` still builds and tests on Linux | **Chosen** ([ADR-0001](adr/0001-stack-swift-swiftui.md)) |
+
+Trade-offs: the SwiftUI app compiles only on macOS (CI needs a macOS runner); no ready-made library for minimal-diff JSON editing, so M2 writes one; Foundation on Linux behaves differently in places (`docs/spikes.md` F1 to F4).
+
+### 2.2 Technology choices
+
+| Area | Choice | Notes |
+| :- | :- | :- |
+| Language | Swift 6 language mode, `swift-tools-version: 6.2` | Strict concurrency: shared types are `Sendable`; UI state is `@MainActor` |
+| Build | Swift Package Manager; an Xcode app target is added in M6 for signing | Verified building with Swift 6.4.2 on Linux |
+| Dependencies | **None** (Foundation, SwiftUI, Observation, Testing) | A new dependency needs an ADR |
+| JSON reading | `JSONValue` (tolerant tree) after `StrictJSON.validate` (RFC 8259, rejects comments and trailing commas like Node's `JSON.parse`) | Settings files are strict JSON [V `settings`] |
+| JSON editing (M2) | Own byte-range editor over the strict scanner: replace only the value's bytes, keep key order, indentation, EOL and unknown keys | Replaces `jsonc-parser` from the TypeScript spec |
+| Frontmatter | `Frontmatter` parser (key: value, quotes, block scalars) | Enough for `name`, `description` and flags [V `skills`] |
+| Processes | `Foundation.Process`, argument vector, closed stdin, timeout, cancellation | Section 4 |
+| Tests | Swift Testing (`import Testing`); in-memory `ReadonlyFileSystem`; fake `CommandRunner` | Section 13 |
+| Logging | `os.Logger` (unified logging) with `.private` interpolation by default | Section 12 |
+| UI | SwiftUI on macOS 26+: `NavigationSplitView`, `Table`, `inspector`, sheets, system toolbar (Liquid Glass from the system) | Section 10 |
+| Formatting | `swift format` (bundled with the toolchain), `.swift-format` in the repo, `--strict` in CI | |
+| Packaging (M6) | Developer ID, hardened runtime, `notarytool`, `.dmg` | Section 14 |
+
+### 2.3 Spec to code map
+
+| Spec in this document (TypeScript) | Swift implementation |
+| :- | :- |
+| `packages/contracts/src/model.ts` | `Sources/ClawCore/Model/Model.swift` |
+| `packages/contracts/src/item.ts` | `Sources/ClawCore/Model/Item.swift` |
+| `packages/contracts/src/plan.ts` | M2 (`Sources/ClawCore/Plan/`) |
+| `packages/core/src/classify-plugin.ts` | `Sources/ClawCore/Classify/PluginClassifier.swift` |
+| `packages/core/src/effective-plugin-state.ts` | `Sources/ClawCore/State/EffectivePluginState.swift` |
+| `packages/core/src/redact.ts` | `Sources/ClawCore/Security/Redactor.swift` |
+| `packages/core/src/json-edit.ts` | M2 (`Sources/ClawCore/Write/JSONEdit.swift`) |
+| `packages/core/src/atomic-write.ts` | M2 (`Sources/ClawCore/Write/AtomicWrite.swift`) |
 
 ## 3. Configuration surface (verified contracts)
 
@@ -279,6 +295,8 @@ A plugin load error (`errors` in `plugin list --json`) is a **problem on the ite
 Repository content you did not author (a cloned project) is classified by location, so its project files show as Personal for **editing purposes** but carry a "repository content" marker (`FR-F03-6`); the app never executes them.
 
 ### 5.3 Reference implementation
+
+TypeScript spec below; Swift implementation in `Sources/ClawCore/Classify/PluginClassifier.swift` (section 2.3).
 
 ```ts
 // file: packages/contracts/src/model.ts
@@ -792,67 +810,55 @@ Restore builds a plan whose "after" is the backup's content, shows the diff agai
 
 ---
 
-## 10. Application architecture (Electron shell)
+## 10. Application architecture (SwiftUI)
 
-| Process | Responsibility |
+One process. `ClawApp` links `ClawCore` directly; there is no IPC layer and no web content.
+
+| Layer | Responsibility |
 | :- | :- |
-| Main | Window, menus, dialogs, runs `@cfgmgr/core`; long work in a worker thread or `utilityProcess` so the UI never blocks [A] |
-| Preload | Exposes a small typed API (`window.cfgmgr`) through `contextBridge`; no Node APIs |
-| Renderer | React UI, no filesystem access, no Node |
+| `ClawApp` (scene, commands) | Window, menu commands (Cmd-R scan, Cmd-. stop), app delegate |
+| Models (`@MainActor @Observable`) | `ScanModel` today; `ChangeQueue`, `HistoryModel`, `ProjectsModel` from M3/M4. They own UI state and start work |
+| `ClawCore` | All file and process work, `async`, off the main actor. Long work is a cancellable `Task`; progress comes back through a `@Sendable` callback |
 
-IPC is **request / response with schemas** (zod) on both sides. No channel accepts a path from the renderer that was not first returned by the main process, except folder picks made through the native dialog.
+Rules: views never touch the file system or run processes; folder access the user grants goes through `NSOpenPanel` (and security-scoped bookmarks if the app is ever sandboxed, OQ-6); item text from scanned files is shown with `Text` (never rendered as HTML or Markdown links).
 
-| Channel | Direction | Purpose |
+### 10.1 Prototype to SwiftUI mapping
+
+| Prototype | SwiftUI | Notes |
 | :- | :- | :- |
-| `scan:start` / `scan:stop` / `scan:progress` | R→M / R→M / M→R event | Scan control and progress |
-| `items:list` | R→M | Items from the last scan, filtered |
-| `plan:build` | R→M | Operations to `PlannedChange[]` with diffs |
-| `plan:apply` | R→M | Apply the plan; returns per-change result |
-| `history:list` / `backup:restore` | R→M | History and restore |
-| `projects:list` / `add` / `remove` / `activate` | R→M | Project registry |
-| `prefs:get` / `prefs:set` | R→M | Preferences |
-| `system:reveal` / `system:openInEditor` / `system:copy` | R→M | Reveal in Finder, edit, clipboard |
-| `diagnostics:collect` | R→M | Redacted diagnostics |
-
-### 10.1 Prototype to React mapping
-
-| Prototype | Component | Notes |
-| :- | :- | :- |
-| Rail (Overview, Scan, Projects, 7 concepts, History) | `Rail` | Keyboard navigable |
-| Status pill | `StatusPill` | enabled / total bar, scope switch, last backup, Review button, active project |
-| Overview | `OverviewView`, `ParticleField` | Canvas; seeded PRNG `mulberry32` reused; static when Reduce Motion |
-| Scan | `ScanView`, `ConceptFlow`, `BucketResults` | Driven by `scan:progress` |
-| Projects, Add project | `ProjectsView`, `AddProjectDialog` | Native folder dialog for Browse |
+| Rail (Overview, Scan, Projects, 7 concepts, History) | `NavigationSplitView` sidebar `List` with sections | System sidebar (glass from the system) |
+| Status pill | Toolbar items and `navigationSubtitle` | One prominent action: Scan / Review |
+| Overview | `OverviewView`, particle visual in `Canvas` + `TimelineView` | Static when Reduce Motion is on |
+| Scan | `ScanView`: target picker, `ProgressView` driven by `ScanProgress`, bucket results | Stop cancels the task |
+| Projects, Add project | `ProjectsView`, `.sheet` with drop target and `NSOpenPanel` | Uses `ProjectRegistry` |
 | Sources (flow) | `SourcesView` | |
-| List | `ItemList`, `BucketSidebar`, `KindChips`, `BulkBar` | Virtualised if more than 500 rows [A] |
-| Detail | `DetailDialog` | Secrets masked |
-| History | `HistoryView`, `RestoreDialog` | |
-| Review board | `ReviewSheet` | Real diff component |
-| Add plugin board | `AddPluginDialog` | Validate step before add |
+| List | `Table` with selection, `.searchable`, sort descriptors, bulk toolbar | Content layer: no glass |
+| Detail | `.inspector` with `Form` | Secrets already masked by the core |
+| History | `HistoryView`, restore `.sheet` | M4 |
+| Review board | `ReviewSheet` with a unified diff view | M4 |
+| Add plugin board | `AddPluginSheet`, validate before add | M5 |
 
-### 10.2 Design tokens (from the prototype)
+### 10.2 Design tokens
 
-`--acc: #D4F53C` (lime accent, the one place to rebrand), background `#0B0B0C`, panel `#121214`, borders `#232327` and `#28282C`, text `#F2F2F3`, muted `#8E8E93`; bucket colours Yours `#FFD60A`, Read-only `#6EA3FF`, Needs attention `#FF7A59`; font DM Sans; flat fills, hairline borders, outlined white pills, no gradients. Verify contrast of muted text on panels against 4.5:1 before 1.0 (`NFR-A11Y-1`).
-
----
+Accent `#D4F53C` as the app tint (later an `AccentColor` asset). Bucket colours: Yours yellow, Read-only blue, Needs attention orange, always with a text label. System font (SF Pro) instead of the prototype's DM Sans: native, no bundled font licence, follows Dynamic Type [A]. Glass only on controls and navigation, never on rows or cards; checked with the `liquid-glass` skill linter.
 
 ## 11. Security
 
 | Threat | Example | Control |
 | :- | :- | :- |
 | Executing scanned content | Cloned repo with a hook `rm -rf ~` | Never run hooks, MCP servers or scripts; show only (`NFR-SEC-1`) |
-| Command injection | Plugin id `x; curl …` from a file | `execFile` with argv, strict name pattern (section 4) |
+| Command injection | Plugin id `x; curl …` from a file | `Process` with an argument vector (no shell), strict name pattern (section 4) |
 | Path traversal and symlink escape | Skill folder symlinked to `/etc` | `realpath` containment on every read and every move |
 | Secret leakage | Token in MCP `env` shown in diff or log | Mask in UI, diff, logs, diagnostics; redaction tests |
 | Secrets at rest in backups and stash | Copy of `~/.claude.json` | Mode 0700 and 0600; warn in the UI; never upload |
-| Renderer compromise | XSS from a malicious `description` text | Render item text as text (never HTML), CSP, `contextIsolation`, no Node in renderer, validated IPC |
-| Malicious update or dependency | Supply-chain | Lockfile, pinned versions, `pnpm audit` in CI, signed and notarised builds |
+| UI injection | A malicious `description` with markup or links | Shown with `Text(verbatim:)` or plain `String`, never as HTML or Markdown; no web view in the app |
+| Malicious update or dependency | Supply-chain | No third-party packages (ADR needed to add one); CI actions pinned; signed and notarised builds |
 | Data loss | Bad write | Backup, atomic write, verify, rollback |
 | Over-broad file access | Reading the whole disk | Allowlist reads, opt-in discovery, macOS privacy prompts honoured |
 
-Electron checklist (verify each item against the docs of the pinned Electron release): `contextIsolation: true`, `nodeIntegration: false`, renderer `sandbox: true`, a strict `Content-Security-Policy`, deny `window.open` and `will-navigate` to remote URLs, no `remote` module, load only local files, validate every IPC payload, hardened runtime, no `allowRunningInsecureContent`.
+macOS checklist [A, verify in M6]: hardened runtime; no entitlements beyond what reading `~/.claude` needs; no `WKWebView`; no network calls except explicit user actions (`NFR-PRIV-1`); child processes started without a shell and with a timeout; files written by Claw are 0600 in 0700 folders.
 
-Redaction helper:
+Redaction helper (TypeScript spec; Swift: `Sources/ClawCore/Security/Redactor.swift`):
 
 ```ts
 // file: packages/core/src/redact.ts
@@ -901,8 +907,8 @@ export function redact(value: unknown, parentKey = ''): unknown {
 
 ## 12. Logging and privacy
 
-- Structured JSON logs (`pino`), correlation ID per scan or apply, redaction paths for `env`, `headers`, `command`, `args`, `token`, `authorization`; files under `~/Library/Logs/<App>/`, rotated [A].
-- Log events and counts, not file contents. Never log `~/.claude.json`.
+- `os.Logger` with subsystem `com.amirtaherkhani.claw` and categories `scan`, `apply`, `cli`. Interpolated values are `.private` unless they are counts or enum cases [A].
+- Log events and counts, not file contents. Never log `~/.claude.json`, MCP `env`, `headers`, `args` or hook commands.
 - No telemetry. Network use only for explicit user actions; a test runs the app with the network blocked and asserts normal operation (`NFR-PRIV-1`).
 - Diagnostics export contains versions, paths and counts only.
 
@@ -910,29 +916,32 @@ export function redact(value: unknown, parentKey = ''): unknown {
 
 | Layer | Tooling | What it proves |
 | :- | :- | :- |
-| Unit | `vitest` | Classifier rules P1 to P7, `resolveEnabled`, `setJsonValue`, `redact`, name validation |
-| Property | `fast-check` | `setJsonValue` keeps every other byte and is idempotent; apply then restore returns the original bytes; unknown keys survive |
-| Fixtures | `packages/fixtures/` fake HOME trees: one item of every ownership per concept, a symlinked dotfile, a malformed JSON file, a hostile id, a managed layer | Golden `ScanResult` JSON per fixture |
-| Read-only guarantee | A `ReadonlyFs` that throws on any write; scan runs over all fixtures | The scan cannot write |
-| Pipeline | Fault injection: fail at each step; kill the process mid-apply | Atomicity, rollback, recovery (`NFR-SAFE-1`) |
-| Contract | Real `claude` CLI against a temporary config directory (`CLAUDE_CONFIG_DIR` [U S8]) on a macOS runner | After the app writes, `claude plugin list --json` agrees with the app; run nightly and per CLI release. Whether `claude doctor` can be used non-interactively is [U] |
-| UI / E2E | Playwright for Electron, `axe` | Review flow, restore, keyboard path, a11y |
-| Visual | Screenshot comparison against the prototype boards (Main, Review, Add plugin) | Style parity |
-| Security | Hostile fixtures, network-blocked run, dependency audit | Section 11 |
+| Unit | Swift Testing | Classifier rules P1 to P8, effective state, strict JSON, frontmatter, name validation, redaction |
+| Property | Seeded random generators in Swift Testing (no dependency) | JSON editor keeps every other byte and is idempotent; apply then restore returns the original bytes |
+| Fixtures | In-memory `MemoryFileSystem` fake HOME trees: one item of every ownership per concept, malformed JSON, hostile id, managed layer | Scan results per fixture |
+| Read-only guarantee | `ReadonlyFileSystem` has no write methods; the scanner only gets that type | The scan cannot write |
+| Processes | Real `ProcessRunner` against `/bin/echo` and `/bin/sleep` | No shell, timeout and cancel are bounded |
+| Pipeline (M2) | Fault injection at each step; kill mid-apply | Atomicity, rollback, recovery (`NFR-SAFE-1`) |
+| Contract | Real `claude` CLI with a temporary config directory (`CLAUDE_CONFIG_DIR` [U S8]) on a macOS runner | After a write, `claude plugin list --json` agrees with Claw |
+| UI / E2E (M3+) | XCUITest, `performAccessibilityAudit()` [A, verify availability for macOS in M3] | Review flow, restore, keyboard path, accessibility |
+| Visual | Screenshots compared with the prototype boards | Style parity (owner approves) |
+| Mutation checks | Break a line on purpose, the suite must fail | Tests are not vacuous |
 
-Targets [A]: core line coverage at least 90%; every `FR-*` marked MUST has at least one test; no skipped tests without an issue link.
-CI [A]: Linux for core unit, property and fixture tests; macOS runner for contract, E2E and packaging. Pin third-party actions by commit SHA.
+Targets [A]: every `FR-*` marked MUST has a test; no skipped tests without an issue link.
+CI: Linux job (format, build, test of `ClawCore` and `claw`); macOS job (build including `ClawApp`, test). Pin third-party actions by commit SHA before 1.0.
 
 ## 14. Packaging and release
 
-| Step | Plan [A], verify against current Apple and Electron docs in M6 |
+| Step | Plan [A], verify against current Apple docs in M6 |
 | :- | :- |
+| App target | Xcode project or SwiftPM-based app bundle for `ClawApp`, `Info.plist`, `AccentColor` and app icon assets |
 | Signing | Developer ID Application certificate, hardened runtime, minimal entitlements |
-| Notarisation | `notarytool`, staple the ticket |
-| Artifact | `.dmg` (universal or per-arch: decide in M6) |
+| Notarisation | `xcrun notarytool submit --wait`, then `xcrun stapler staple` |
+| Artifact | `.dmg`; arm64 or universal decided in M6 (macOS 26 is the last release with Intel support, per Apple's announcement [U, verify]) |
 | Distribution | Outside the Mac App Store (the App Sandbox would block reading `~/.claude` without exceptions; OQ-6) |
+| CLI | `claw` shipped inside the app bundle with an "Install command line tool" action, or via Homebrew later |
 | Updates | Decide in M6 (OQ-7); default off; never silent |
-| Release gate | Section 13 suites green, a11y audit done, security checklist done, notarised build opened on a clean Mac |
+| Release gate | Section 13 suites green, accessibility audit done, security checklist done, notarised build opened on a clean Mac |
 
 ## 15. Spikes (close all in M0)
 
@@ -947,7 +956,7 @@ CI [A]: Linux for core unit, property and fixture tests; macOS runner for contra
 | S7 | `deniedMcpServers` semantics; value shape of `disabledMcpjsonServers` | Docs `settings-reference` entries, then test | OQ-2 |
 | S8 | `CLAUDE_CONFIG_DIR` effect on `~/.claude.json` | Set it and run `claude mcp add` | Test isolation recipe |
 | S9 | Hook removal live? Matcher required? | Edit settings during a session; `ConfigChange` hook | F15 timing |
-| S10 | macOS specifics: privacy prompts (TCC) when reading `~/Documents`; minimum macOS for the pinned Electron release; how the app can read a managed configuration profile (domain `com.anthropic.claudecode`); the macOS path of the enterprise skills directory | Run a probe on a fresh user account; read Electron release notes; on a test Mac with a profile installed, try reading it (for example `defaults read com.anthropic.claudecode`, `profiles show`) and record what works; look for the enterprise skills directory next to `/Library/Application Support/ClaudeCode/` | OQ-5, scan UX, managed scope |
+| S10 | macOS specifics: privacy prompts (TCC) when reading `~/Documents`; minimum macOS for the SwiftUI APIs Claw uses; how the app can read a managed configuration profile (domain `com.anthropic.claudecode`); the macOS path of the enterprise skills directory | Run a probe on a fresh user account; read Electron release notes; on a test Mac with a profile installed, try reading it (for example `defaults read com.anthropic.claudecode`, `profiles show`) and record what works; look for the enterprise skills directory next to `/Library/Application Support/ClaudeCode/` | OQ-5, scan UX, managed scope |
 
 ## 16. Appendix: expected file diffs
 

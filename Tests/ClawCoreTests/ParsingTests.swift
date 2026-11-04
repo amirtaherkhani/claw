@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 
-@testable import ClefCore
+@testable import ClawCore
 
 @Suite("Parsing and safety")
 struct ParsingTests {

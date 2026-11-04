@@ -1,16 +1,16 @@
-import ClefCore
+import ClawCore
 import Foundation
 
 let usage = """
-    clef \(ClefVersion.string): read-only view of your Claude Code configuration
+    claw \(ClawVersion.string): read-only view of your Claude Code configuration
 
     Usage:
-      clef scan [options]                 Scan and print items grouped by owner
-      clef list [options]                 Same scan as a compact list (filter with --concept, --bucket)
-      clef projects [list]                Projects Clef knows (registered and found in ~/.claude.json)
-      clef projects add <path>            Register a project folder (stored by Clef, not by Claude Code)
-      clef projects remove <path>         Unregister a project folder
-      clef version | help
+      claw scan [options]                 Scan and print items grouped by owner
+      claw list [options]                 Same scan as a compact list (filter with --concept, --bucket)
+      claw projects [list]                Projects Claw knows (registered and found in ~/.claude.json)
+      claw projects add <path>            Register a project folder (stored by Claw, not by Claude Code)
+      claw projects remove <path>         Unregister a project folder
+      claw version | help
 
     Scan options:
       --json               Print JSON (secret values are never included)
@@ -23,7 +23,7 @@ let usage = """
     """
 
 func fail(_ message: String) -> Never {
-    FileHandle.standardError.write(Data("clef: \(message)\n\n\(usage)\n".utf8))
+    FileHandle.standardError.write(Data("claw: \(message)\n\n\(usage)\n".utf8))
     exit(2)
 }
 
@@ -40,7 +40,7 @@ func writeJSON<T: Encodable>(_ value: T) {
         FileHandle.standardOutput.write(try encoder.encode(value))
         FileHandle.standardOutput.write(Data("\n".utf8))
     } catch {
-        FileHandle.standardError.write(Data("clef: cannot encode output: \(error)\n".utf8))
+        FileHandle.standardError.write(Data("claw: cannot encode output: \(error)\n".utf8))
         exit(1)
     }
 }
@@ -128,7 +128,7 @@ func filtered(_ result: ScanResult, _ options: ScanOptions) -> [Item] {
 let bucketTitles: [Bucket: String] = [.yours: "Yours", .readonly: "Read-only", .attention: "Needs attention"]
 
 func printGrouped(_ result: ScanResult, items: [Item]) {
-    print("Clef scan of \(result.target.path ?? "this Mac")\(result.partial ? " (partial)" : "")")
+    print("Claw scan of \(result.target.path ?? "this Mac")\(result.partial ? " (partial)" : "")")
     if let version = result.claudeCodeVersion { print("Claude Code \(version)") }
     for bucket in Bucket.allCases {
         let group = items.filter { $0.bucket == bucket }
@@ -225,11 +225,11 @@ case "projects":
     do {
         try runProjects(arguments.dropFirst())
     } catch {
-        FileHandle.standardError.write(Data("clef: \(error.localizedDescription)\n".utf8))
+        FileHandle.standardError.write(Data("claw: \(error.localizedDescription)\n".utf8))
         exit(1)
     }
 case "version", "--version":
-    print("clef \(ClefVersion.string)")
+    print("claw \(ClawVersion.string)")
 case "help", "--help", "-h", nil:
     print(usage)
 default:

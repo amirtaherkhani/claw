@@ -1,4 +1,4 @@
-import ClefCore
+import ClawCore
 import SwiftUI
 
 // Layers: the sidebar, toolbar and inspector are system chrome (the functional layer, glass from the system).
@@ -57,7 +57,7 @@ struct ContentView: View {
             ContentUnavailableView {
                 Label("No scan yet", systemImage: "magnifyingglass")
             } description: {
-                Text("Clef reads your Claude Code configuration. Scanning never changes a file.")
+                Text("Claw reads your Claude Code configuration. Scanning never changes a file.")
             } actions: {
                 Button("Scan This Mac") { model.startScan() }
                     .disabled(model.isScanning)
@@ -222,7 +222,7 @@ extension Bucket {
     /// Prototype colors: yellow = Yours, blue = Read-only, orange = Needs attention.
     var color: Color {
         switch self {
-        case .yours: .clefAccent
+        case .yours: .clawAccent
         case .readonly: .blue
         case .attention: .orange
         }

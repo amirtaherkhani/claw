@@ -1,6 +1,6 @@
-# Product Requirements Document: Config Manager
+# Product Requirements Document: Claw
 
-> **Update 2026-11-04 — stack and name changed.** The app is now **Clef**, built in **Swift + SwiftUI** ([ADR-0001](adr/0001-stack-swift-swiftui.md), [ADR-0002](adr/0002-name-clef.md)). Where this document says TypeScript, Electron, React, pnpm, zod or `jsonc-parser`, read the Swift equivalent: the TypeScript blocks are the **behaviour spec**, ported to `Sources/ClefCore`. Requirements, ownership rules, spikes and the milestone order are unchanged.
+> **Stack: Swift 6 + SwiftUI, app name Claw** ([ADR-0001](adr/0001-stack-swift-swiftui.md), [ADR-0002](adr/0002-name-claw.md)). Updated 2026-11-04. TypeScript blocks in `TECHNICAL-DESIGN.md` are kept as the behaviour spec; the Swift code in `Sources/ClawCore` implements them.
 
 
 Version 0.1 · 2026-11-04 · Status: draft for implementation
@@ -11,7 +11,7 @@ Tags: **[V]** verified in official docs · **[A]** assumption or recommendation 
 
 ## 1. Purpose
 
-Claude Code and Claude Desktop load behaviour from many places: marketplace plugins, your own skills, slash commands, rules, subagents, MCP servers and hooks. They live in different files at different scopes, merge by precedence, and the built-in views show only part of the picture. Config Manager is a macOS app that answers four questions for every item:
+Claude Code and Claude Desktop load behaviour from many places: marketplace plugins, your own skills, slash commands, rules, subagents, MCP servers and hooks. They live in different files at different scopes, merge by precedence, and the built-in views show only part of the picture. Claw is a macOS app that answers four questions for every item:
 
 1. **What is installed or active**, in this project and across this Mac?
 2. **Where does it come from**, and can I change it? (Mine or someone else's.)
@@ -379,7 +379,7 @@ Requirement IDs: `FR-F<nn>-<n>`. **MUST** = required for the feature's priority;
 | NFR-PERF-2 | UI stays responsive during scan and apply (work off the UI thread) | No frame stall > 100 ms [A] |
 | NFR-SEC-1 | Never execute content from scanned files (hooks, MCP, scripts) | Code review and test |
 | NFR-SEC-2 | CLI calls without a shell, arguments validated | Test with hostile names |
-| NFR-SEC-3 | Electron hardening (context isolation, no Node in renderer, typed validated IPC, CSP, no remote content) | Checklist in `TECHNICAL-DESIGN.md` section 11 |
+| NFR-SEC-3 | No web content in the app: scanned text is shown as plain text, no `WKWebView`, child processes without a shell, hardened runtime | Checklist in `TECHNICAL-DESIGN.md` section 11 |
 | NFR-SEC-4 | Backups and stash are private to the user (0700 / 0600) | Test |
 | NFR-PRIV-1 | No network access except explicit user actions (marketplace add, update check if enabled); no telemetry | Network log test |
 | NFR-PRIV-2 | Secrets masked in UI, diffs, logs and diagnostics | Redaction unit tests |
@@ -394,7 +394,7 @@ Requirement IDs: `FR-F<nn>-<n>`. **MUST** = required for the feature's priority;
 
 | Item | Value |
 | :- | :- |
-| OS | macOS. Minimum version [U], decide in M0 from the chosen Electron release (S10) |
+| OS | macOS 26 or later (Liquid Glass, SwiftUI APIs used); confirm in ADR-0005 and S10 |
 | Claude Code | CLI present on `PATH` or user-set. Flags used are version-gated in the docs (for example `--json` on `plugin install / uninstall / update / enable / disable` v2.1.268 or later, `marketplace add --json` v2.1.287, `validate --json` v2.1.259, `readFromFolder` in `plugin list --json` v2.1.289). **Recommended baseline: v2.1.289 or later** [A] |
 | Claude Desktop | Code tab reads the same settings files as the CLI [V `desktop`]; chat-app MCP config is P2 (F18) |
 | Not supported | Windows, Linux, WSL |
@@ -412,14 +412,14 @@ Requirement IDs: `FR-F<nn>-<n>`. **MUST** = required for the feature's priority;
 
 | ID | Question | Default if not decided | Decide by |
 | :- | :- | :- | :- |
-| OQ-1 | Electron or Tauri for the GUI shell | Electron + React [A] | End of M0 |
+| OQ-1 | GUI technology | **Closed:** Swift + SwiftUI (ADR-0001) | Done |
 | OQ-2 | MCP disable scope: one project, all registered projects, or global via `deniedMcpServers` [U S7] | One project, with "all registered" option | M0 spike S7 |
 | OQ-3 | Which rule files count: the prototype lists `CLAUDE.md (user)` and `.claude/rules/*.md` | User and project `CLAUDE.md`, `CLAUDE.local.md`, rules; ancestors only inside the project root | M1 |
 | OQ-4 | Minimum Claude Code version | v2.1.289 [A] | M0 |
-| OQ-5 | Minimum macOS | Per Electron release | M0 |
+| OQ-5 | Minimum macOS | macOS 26 proposed (ADR-0005) | M0 |
 | OQ-6 | Mac App Store? The App Sandbox would block reading `~/.claude` without exceptions [A] | No: Developer ID only | M0 |
 | OQ-7 | Auto-update mechanism | Decide in M6 | M6 |
-| OQ-8 | Final app name and bundle id | Working name Config Manager | M0 |
+| OQ-8 | Final app name and bundle id | **Closed:** Claw, `com.amirtaherkhani.claw` proposed (ADR-0002) | Done |
 | OQ-9 | Backup retention | Keep all, manual prune with size readout | M2 |
 | OQ-10 | In-app editor | No; open external editor | M5 |
 

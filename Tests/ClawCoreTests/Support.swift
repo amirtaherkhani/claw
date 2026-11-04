@@ -1,6 +1,6 @@
 import Foundation
 
-@testable import ClefCore
+@testable import ClawCore
 
 /// In-memory, read-only file system for tests. Directories are implied by file paths.
 struct MemoryFileSystem: ReadonlyFileSystem {

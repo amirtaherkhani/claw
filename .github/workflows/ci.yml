@@ -38,7 +38,7 @@ jobs:
           sw_vers
           xcodebuild -version
           swift --version
-      - name: Build (includes ClefApp)
+      - name: Build (includes ClawApp)
         run: swift build
       - name: Test
         run: swift test

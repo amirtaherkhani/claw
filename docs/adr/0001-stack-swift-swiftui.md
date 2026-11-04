@@ -14,12 +14,12 @@ One Swift package, Swift 6 language mode:
 
 | Target | Platforms | Purpose |
 | :- | :- | :- |
-| `ClefCore` (library) | macOS, Linux | Scan, classify, effective state, CLI adapter, later the write pipeline. Foundation only, no UI, no third-party dependencies |
-| `clef` (executable) | macOS, Linux | Command line front end; delivers value and tests before the GUI |
-| `ClefApp` (executable) | macOS 26+ | SwiftUI shell. Declared only when the manifest is evaluated on macOS |
-| `ClefCoreTests` | macOS, Linux | Swift Testing suites |
+| `ClawCore` (library) | macOS, Linux | Scan, classify, effective state, CLI adapter, later the write pipeline. Foundation only, no UI, no third-party dependencies |
+| `claw` (executable) | macOS, Linux | Command line front end; delivers value and tests before the GUI |
+| `ClawApp` (executable) | macOS 26+ | SwiftUI shell. Declared only when the manifest is evaluated on macOS |
+| `ClawCoreTests` | macOS, Linux | Swift Testing suites |
 
-An Xcode app target (bundle, entitlements, signing, notarization) is added in M6. Until then `swift run ClefApp` starts the window.
+An Xcode app target (bundle, entitlements, signing, notarization) is added in M6. Until then `swift run ClawApp` starts the window.
 
 ## Consequences
 
