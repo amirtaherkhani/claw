@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Add plugin</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
+body{margin:0}
+button,a,input{font-family:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #D4F53C;outline-offset:2px}
+button:hover,a:hover{filter:brightness(1.18)}
+*{scrollbar-color:#2A2A2E transparent}
+</style>
+</helmet>
+<div style="--acc:#D4F53C;width:860px;height:760px;box-sizing:border-box;position:relative;background:#0B0B0C;border:1px solid #1C1C1F;border-radius:20px;overflow:hidden;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif;color:#F2F2F3;font-size:13px;color-scheme:dark">
+
+  <div style="position:absolute;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0.35)"></div>
+
+  <div style="position:absolute;left:60px;right:60px;top:24px;bottom:24px;display:flex;flex-direction:column;border-radius:20px;overflow:hidden;background:#121214;border:1px solid #28282C;box-shadow:0 30px 80px rgba(0,0,0,0.6)">
+
+    <div style="flex:none;display:flex;align-items:flex-start;gap:12px;padding:24px 26px 14px">
+      <div style="flex:1">
+        <div style="font-size:26px;font-weight:400;color:#FFFFFF;letter-spacing:-0.01em">Add plugin</div>
+        <div style="margin-top:6px;font-size:13px;color:#8E8E93">Choose where the plugin comes from. The source decides whether you can edit it.</div>
+      </div>
+      <span style="height:20px;padding:0 8px;border-radius:6px;background:#26262A;color:#8E8E93;font-size:10.5px;display:inline-flex;align-items:center">esc</span>
+    </div>
+
+    <div style="flex:1;min-height:0;overflow:auto;padding:0 26px;display:flex;flex-direction:column;gap:18px">
+
+      <div style="display:flex;gap:8px">
+        <button onClick="{{ srcBtn.local.go }}" style="height:30px;padding:0 16px;border:0;border-radius:999px;font-size:12.5px;font-weight:500;cursor:pointer;{{ srcBtn.local.style }}">Local folder</button>
+        <button onClick="{{ srcBtn.github.go }}" style="height:30px;padding:0 16px;border:0;border-radius:999px;font-size:12.5px;font-weight:500;cursor:pointer;{{ srcBtn.github.style }}">GitHub repo</button>
+        <button onClick="{{ srcBtn.market.go }}" style="height:30px;padding:0 16px;border:0;border-radius:999px;font-size:12.5px;font-weight:500;cursor:pointer;{{ srcBtn.market.style }}">Registered marketplace</button>
+      </div>
+
+      <sc-if value="{{ showDrop }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:118px;border:1.5px dashed #3A3A3F;border-radius:16px;background:#0E0E10;text-align:center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"></path></svg>
+          <div style="font-size:14px;font-weight:600;color:#F2F2F3">Drop a folder here</div>
+          <div style="font-size:12px;color:#8E8E93">It needs <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;color:#C8C8CD">.claude-plugin/marketplace.json</span> at its root</div>
+        </div>
+      </sc-if>
+
+      <div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:#C8C8CD">{{ fieldLabel }}</div>
+        <input type="text" readOnly="{{ true }}" value="{{ fieldValue }}" aria-label="{{ fieldLabel }}" style="width:100%;height:40px;box-sizing:border-box;padding:0 16px;border:1px solid #2A2A2E;border-radius:999px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12.5px;background:#0E0E10;color:#F2F2F3">
+        <div style="font-size:12px;color:#8E8E93;margin-top:8px;line-height:1.5">{{ hint }}</div>
+      </div>
+
+      <sc-if value="{{ hasItems }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:#C8C8CD">{{ itemsTitle }}</div>
+          <div style="border:1px solid #232327;border-radius:16px;overflow:hidden;background:#0E0E10">
+            <sc-for list="{{ items }}" as="it" hint-placeholder-count="2">
+              <label style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #1E1E21;cursor:pointer">
+                <input type="checkbox" defaultChecked="{{ it.checked }}" style="width:16px;height:16px;margin:0;accent-color:#D4F53C">
+                <span style="font-size:13.5px;font-weight:600;color:#FFFFFF">{{ it.name }}</span>
+                <span style="flex:1"></span>
+                <span style="font-size:11.5px;color:#8E8E93;font-family:ui-monospace,'SF Mono',Menlo,monospace">{{ it.sub }}</span>
+              </label>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <div style="display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:16px;border:1px solid transparent;{{ outStyle }}">
+        <span style="flex:none;font-size:12px;font-weight:600;padding:3px 12px;border-radius:999px;{{ outBadgeStyle }}">{{ outBadge }}</span>
+        <div style="font-size:12.5px;line-height:1.5">{{ outText }}</div>
+      </div>
+
+      <div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:#C8C8CD">Enable in</div>
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="display:flex;gap:8px">
+            <button onClick="{{ scopeBtn.user.go }}" style="height:28px;padding:0 14px;border:0;border-radius:999px;font-size:12px;font-weight:500;cursor:pointer;{{ scopeBtn.user.style }}">User</button>
+            <button onClick="{{ scopeBtn.project.go }}" style="height:28px;padding:0 14px;border:0;border-radius:999px;font-size:12px;font-weight:500;cursor:pointer;{{ scopeBtn.project.style }}">Project</button>
+            <button onClick="{{ scopeBtn.local.go }}" style="height:28px;padding:0 14px;border:0;border-radius:999px;font-size:12px;font-weight:500;cursor:pointer;{{ scopeBtn.local.style }}">Local</button>
+          </div>
+          <span style="font-size:12px;color:#8E8E93">writes <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;color:#F2F2F3">{{ target }}</span></span>
+        </div>
+      </div>
+
+      <div style="font-size:12px;color:#8E8E93;line-height:1.55;padding-bottom:14px">
+        Runs the claude CLI to add the marketplace and install the plugin (check the exact syntax with <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;color:#F2F2F3">claude plugin --help</span>). One bug report says installs from a directory marketplace were not added to <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;color:#F2F2F3">enabledPlugins</span>, so the app checks that key afterwards and flags “installed but not enabled”.
+      </div>
+    </div>
+
+    <div style="flex:none;display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:16px 26px;border-top:1px solid #1E1E21">
+      <a href="Main.dc.html" style="display:inline-flex;align-items:center;height:40px;padding:0 26px;border:1.5px solid #E8E8EA;border-radius:999px;color:#FFFFFF;font-size:14px;font-weight:500;text-decoration:none">Cancel</a>
+      <a href="Main.dc.html" style="display:inline-flex;align-items:center;height:40px;padding:0 28px;border:1.5px solid var(--acc);border-radius:999px;background:var(--acc);color:#0B0B0C;font-size:14px;font-weight:700;text-decoration:none">Add plugin</a>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":860,"height":760}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const S = Object.assign({ src: 'local', scope: 'User' }, this.state || {});
+
+    // Yellow marks what you can edit (Personal). Marketplace sources stay neutral.
+    const PERSONAL_PANEL = 'background:#0E0E10;border-color:rgba(255,214,10,0.40);color:#F2F2F3;';
+    const PERSONAL_BADGE = 'background:#FFD60A;color:#17130A;';
+    const MARKET_PANEL = 'background:#0E0E10;border-color:#232327;color:#D8D8DC;';
+    const MARKET_BADGE = 'background:#26262A;color:#E4E3DC;';
+
+    const V = {
+      local: {
+        showDrop: true,
+        fieldLabel: 'Folder with .claude-plugin/marketplace.json',
+        fieldValue: '~/Developer/local-dev',
+        hint: 'The folder stays where it is. The plugin loads from it directly, so your edits apply after a reload.',
+        itemsTitle: 'Plugins found in this folder',
+        items: [
+          { name: 'nest-toolkit', sub: 'plugins/nest-toolkit', checked: true },
+          { name: 'tia-scl-review', sub: 'plugins/tia-scl-review', checked: true }
+        ],
+        outBadge: 'Personal',
+        outText: 'Added as Personal. You get an Edit button, and edits go to the source folder, not the cache.',
+        outStyle: PERSONAL_PANEL,
+        outBadgeStyle: PERSONAL_BADGE
+      },
+      github: {
+        showDrop: false,
+        fieldLabel: 'GitHub repository',
+        fieldValue: 'owner/plugin-marketplace',
+        hint: 'The repository is cloned into the plugins folder. After cloning you choose which plugins to install.',
+        itemsTitle: '',
+        items: [],
+        outBadge: 'Marketplace',
+        outText: 'Added as Marketplace. Read-only: the app shows the files but updates overwrite local edits.',
+        outStyle: MARKET_PANEL,
+        outBadgeStyle: MARKET_BADGE
+      },
+      market: {
+        showDrop: false,
+        fieldLabel: 'Marketplace name',
+        fieldValue: 'claude-plugins-official',
+        hint: 'Pick from marketplaces you have already registered.',
+        itemsTitle: 'Registered marketplaces',
+        items: [
+          { name: 'claude-plugins-official', sub: 'github', checked: true },
+          { name: 'ecc', sub: 'github', checked: false },
+          { name: 'searchfit', sub: 'github', checked: false }
+        ],
+        outBadge: 'Marketplace',
+        outText: 'Added as Marketplace. Read-only: the app shows the files but updates overwrite local edits.',
+        outStyle: MARKET_PANEL,
+        outBadgeStyle: MARKET_BADGE
+      }
+    };
+    const TARGET = { User: '~/.claude/settings.json', Project: '.claude/settings.json', Local: '.claude/settings.local.json' };
+    const chip = (on) => on
+      ? 'background:#2E2E33;color:#FFFFFF;'
+      : 'background:#151517;color:#B4B4BA;box-shadow:inset 0 0 0 1px #26262A;';
+    const v = V[S.src];
+
+    return {
+      srcBtn: {
+        local: { go: () => this.setState({ src: 'local' }), style: chip(S.src === 'local') },
+        github: { go: () => this.setState({ src: 'github' }), style: chip(S.src === 'github') },
+        market: { go: () => this.setState({ src: 'market' }), style: chip(S.src === 'market') }
+      },
+      scopeBtn: {
+        user: { go: () => this.setState({ scope: 'User' }), style: chip(S.scope === 'User') },
+        project: { go: () => this.setState({ scope: 'Project' }), style: chip(S.scope === 'Project') },
+        local: { go: () => this.setState({ scope: 'Local' }), style: chip(S.scope === 'Local') }
+      },
+      showDrop: v.showDrop,
+      fieldLabel: v.fieldLabel,
+      fieldValue: v.fieldValue,
+      hint: v.hint,
+      hasItems: v.items.length > 0,
+      itemsTitle: v.itemsTitle,
+      items: v.items,
+      outBadge: v.outBadge,
+      outText: v.outText,
+      outStyle: v.outStyle,
+      outBadgeStyle: v.outBadgeStyle,
+      target: TARGET[S.scope]
+    };
+  }
+}
+</script>
+</body>
+</html>
