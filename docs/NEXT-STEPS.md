@@ -63,6 +63,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | :- | :- | :- | :- |
 | M0, M1, M3 screens | Foundation, read-only scanner and CLI, SwiftUI screens, docs and design | #1 | 2026-11-04 |
 | Loop | `roadmap-loop` skill and CLAUDE.md rule | this PR | 2026-11-04 |
+| Sweep | Branch sweep in `roadmap-loop`: merge what passes the gate and delete merged branches after each roadmap section | this PR | 2026-11-04 |
 
 ## Known gaps and decisions to revisit
 

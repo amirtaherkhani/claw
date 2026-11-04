@@ -5,7 +5,7 @@ description: Run Claw's development loop for the next roadmap task: branch, test
 
 # Roadmap loop
 
-One roadmap task per pass: **pick → branch → plan → test first → implement → check → PR → CI → merge → sync → log → next**. Repeat until a stop condition is hit or the requested amount of work is done.
+One roadmap task per pass: **pick → branch → plan → test first → implement → check → PR → CI → merge → sync → sweep → log → next**. Repeat until a stop condition is hit or the requested amount of work is done.
 
 Read `CLAUDE.md` before the first pass. Its rules win over this file.
 
@@ -109,7 +109,19 @@ Never merge a red or conflicting PR. Never approve your own PR.
 1. `git checkout main && git pull --ff-only`
 2. Confirm CI on main for the merge commit (`gh run list --branch main --limit 1`).
 3. Give a three-line pass report: task, PR link, checks.
-4. Continue with step 0 for the next task, unless a stop condition applies.
+4. Run the branch sweep (section 10).
+5. Continue with step 0 for the next task, unless a stop condition applies.
+
+## 10. Branch sweep
+
+Run this every time work on a section of `docs/ROADMAP.md` (a task in M0 to M7) finishes, before the next task starts, so branches do not pile up.
+
+1. **Merge what is ready.** `gh pr list --state open --json number,title,headRefName,mergeable,mergeStateStatus`. Oldest first, put each PR through the merge gate (section 8) and the stop conditions. If it passes: `gh pr merge <number> --squash --delete-branch`. Recheck the rest after each merge, because one merge can make the next PR conflict.
+2. **Leave the rest in place.** A PR that fails the gate or hits a stop condition stays open, and the report says why. The sweep never overrides either one. A conflict that touches only docs tables may be resolved in that PR's branch; push, wait for CI, then apply the gate again.
+3. **Branches with no PR are not merged.** The default branch changes only through pull requests. List them in the report; open a PR only if the work is finished and yours.
+4. **Delete merged branches.** Squash merges hide from `git branch --merged`, so check each branch against its PR: `gh pr list --state merged --head <branch> --json number,headRefOid`. Delete only when `headRefOid` equals the branch tip, so commits added after the merge survive: `git branch -D <branch>`, and `git push origin --delete <branch>` if it is still on the remote.
+5. **Keep what is in use.** Never delete `main`, a branch checked out in a worktree with a running session, or a worktree with uncommitted changes.
+6. `git fetch --prune`, then report: merged, left open and why, branches deleted, branches kept and why.
 
 ## Stop conditions (stop and ask before going on)
 
