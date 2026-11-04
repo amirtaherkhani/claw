@@ -24,5 +24,7 @@ Each spike turns an **[U]** in the docs into **[V]** or **[A]**. Plans are in `T
 | F3 | `waitUntilExit` on Linux returns only when the child's pipes close; a grandchild keeps them open | Probe: `sh -c "sleep 6 & exit 0"` returned after 7 s | Timeout races exit against deadline + 3 s |
 | F4 | Blocking `DispatchQueue.global()` threads starved Swift concurrency on a 2-core machine | Timeout fired only after the child exited | Blocking work runs on dedicated threads |
 | F5 | Real `claude plugin list --json` (2.1.317) parsed with no problems; synced plugins appear with `@synced` ids | `clef scan --json` smoke test: 18 plugins (P2), 443 plugin skills, 5 personal skills | Fields match `plugins/cli-reference` |
+| F6 | Full scan of all seven concepts on a real config (Claude Code 2.1.317, about 700 items) took 1.1 s; no secret values in the JSON output | `time clef scan --json`; grep for secret patterns | Meets `NFR-PERF-1` (warm scan under 3 s) in the container; measure again on the Mac |
+| F7 | Exact JSON paths in `~/.claude.json` (`mcpServers`, `projects[<path>].mcpServers`, `disabledMcpServers`) are assumed | `MCPReader.readClaudeJson` | Confirm in S1; controls are marked `unknown` until then |
 
 Re-check F2 and F3 on macOS: Foundation there is a different implementation.

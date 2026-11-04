@@ -60,6 +60,11 @@ public struct ClaudeEnvironment: Sendable, Equatable {
     public var knownMarketplacesFile: String { joinPath(pluginsDir, "known_marketplaces.json") }
     public var installedPluginsFile: String { joinPath(pluginsDir, "installed_plugins.json") }
     public var managedSettingsFile: String { joinPath(managedDir, "managed-settings.json") }
+    /// `~/.claude.json` (MCP servers and per-project state) [V `mcp`]. With `CLAUDE_CONFIG_DIR` set it is
+    /// assumed to live inside that folder [A, spike S8].
+    public var claudeJsonFile: String {
+        configDir == joinPath(home, ".claude") ? joinPath(home, ".claude.json") : joinPath(configDir, ".claude.json")
+    }
 
     public func projectSettingsFile(_ project: String) -> String { joinPath(project, ".claude", "settings.json") }
     public func localSettingsFile(_ project: String) -> String { joinPath(project, ".claude", "settings.local.json") }

@@ -4,11 +4,11 @@ public enum ClefVersion {
     public static let string = "0.1.0"
 }
 
-/// Read-only scan of plugins and skills (M1 scope so far; other concepts follow in M1.6 to M1.8).
+/// Read-only scan of all seven concepts. Never writes and never executes scanned content.
 public struct Scanner: Sendable {
     public let environment: ClaudeEnvironment
     public let target: ScanTarget
-    private let fs: any ReadonlyFileSystem
+    let fs: any ReadonlyFileSystem
     private let cli: ClaudeCLI?
 
     public init(
@@ -55,6 +55,9 @@ public struct Scanner: Sendable {
         let plugins = pluginItems(installed: installed, layers: settings.layers, markets: markets, reader: marketReader)
         items += plugins.map(\.item)
         items += skillItems(layers: settings.layers, plugins: plugins)
+        let concepts = conceptItems(layers: settings.layers, plugins: plugins)
+        items += concepts.items
+        problems += concepts.problems
 
         items.sort { ($0.concept.rawValue, $0.name, $0.id) < ($1.concept.rawValue, $1.name, $1.id) }
         return ScanResult(
@@ -178,7 +181,7 @@ public struct Scanner: Sendable {
     // MARK: Skills
 
     /// `skillOverrides` precedence: managed > local > project > user [V `settings`].
-    private func skillOverride(_ name: String, layers: [SettingsLayer], project: String?) -> (
+    func skillOverride(_ name: String, layers: [SettingsLayer], project: String?) -> (
         value: String, layer: SettingsLayer
     )? {
         for scope in SettingsScope.allCases {
