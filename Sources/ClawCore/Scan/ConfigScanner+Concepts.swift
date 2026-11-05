@@ -254,17 +254,23 @@ extension ConfigScanner {
             let (servers, problems) = reader.readMcpJson(file: file, scope: .project, projectPath: project)
             scan.problems += problems
             let disabled = Set(mergedStrings(["disabledMcpjsonServers"], layers: layers, project: project))
+                .union(claudeJson.disabledMcpJsonByProject[project] ?? [])
             let enabledByName = Set(mergedStrings(["enabledMcpjsonServers"], layers: layers, project: project))
+                .union(claudeJson.enabledMcpJsonByProject[project] ?? [])
+            let offInSession = claudeJson.disabledByProject[project] ?? []
             let enableAll = effectiveValue("enableAllProjectMcpServers", layers: layers, project: project)?.boolValue == true
             for server in servers {
-                let off = disabled.contains(server.name)
+                let offByCommand = offInSession.contains(server.name)
+                let off = disabled.contains(server.name) || offByCommand
                 let approved = enableAll || enabledByName.contains(server.name)
-                let notes =
+                var notes =
                     (!off && !approved)
                     ? [Problem(.note, "Not approved in settings; Claude Code asks before first use")] : []
+                if offByCommand { notes.append(Problem(.note, "Turned off in this project with /mcp disable")) }
                 scan.items.append(
                     mcpItem(
-                        server, enabled: !off && approved, enabledBy: off ? "disabledMcpjsonServers" : nil,
+                        server, enabled: !off && approved,
+                        enabledBy: offByCommand ? "disabledMcpServers" : off ? "disabledMcpjsonServers" : nil,
                         control: ControlRef(
                             mechanism: .disabledMcpjsonServers, key: "disabledMcpjsonServers: \(server.name)",
                             status: .unknown),

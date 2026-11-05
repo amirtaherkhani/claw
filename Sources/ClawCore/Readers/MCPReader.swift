@@ -18,6 +18,10 @@ public struct ClaudeJSONServers: Sendable {
     public var local: [MCPServerRecord] = []
     /// `projects[<path>].disabledMcpServers`, by project path.
     public var disabledByProject: [String: Set<String>] = [:]
+    /// `projects[<path>].disabledMcpjsonServers`; honoured alongside the settings key [V S7].
+    public var disabledMcpJsonByProject: [String: Set<String>] = [:]
+    /// `projects[<path>].enabledMcpjsonServers`; honoured alongside the settings key [V S7].
+    public var enabledMcpJsonByProject: [String: Set<String>] = [:]
     public var problems: [Problem] = []
 }
 
@@ -56,7 +60,7 @@ public struct MCPReader: Sendable {
     }
 
     /// `~/.claude.json`: user servers at the top level, local servers and `disabledMcpServers` under
-    /// `projects[<path>]` [V purpose `mcp`; exact JSON paths are assumptions until spike S1].
+    /// `projects[<path>]` [V S1].
     public func readClaudeJson(file: String, projects: [String]) -> ClaudeJSONServers {
         var result = ClaudeJSONServers()
         guard let data = try? fs.readFile(file) else { return result }
@@ -74,8 +78,11 @@ public struct MCPReader: Sendable {
             if let local = state["mcpServers"]?.objectValue {
                 result.local += Self.records(local, file: file, scope: .local, projectPath: project)
             }
-            let disabled = state["disabledMcpServers"]?.arrayValue?.compactMap(\.stringValue) ?? []
-            if !disabled.isEmpty { result.disabledByProject[project] = Set(disabled) }
+            func names(_ key: String) -> Set<String> { Set(state[key]?.arrayValue?.compactMap(\.stringValue) ?? []) }
+            let disabled = names("disabledMcpServers")
+            if !disabled.isEmpty { result.disabledByProject[project] = disabled }
+            result.disabledMcpJsonByProject[project] = names("disabledMcpjsonServers")
+            result.enabledMcpJsonByProject[project] = names("enabledMcpjsonServers")
         }
         return result
     }
