@@ -39,6 +39,12 @@ private enum Fixture {
         "home/.claude/plugins/cache/kit/.mcp.json": #"{"mcpServers":{"search":{"command":"node","args":["s.js"]}}}"#,
         "home/.claude/plugins/cache/kit/hooks/hooks.json":
             #"{"hooks":{"SessionStart":[{"hooks":[{"type":"command","command":"${CLAUDE_PLUGIN_ROOT}/start.sh"}]}]}}"#,
+        // Layouts seen on a real machine (docs/compare-m1.md).
+        "home/.claude/plugins/cache/flat/.mcp.json":
+            #"{"flat-server":{"type":"http","url":"https://flat.example.com/mcp","headers":{"Authorization":"Bearer fake-secret-8"}}}"#,
+        "home/.claude/plugins/cache/declared/.claude-plugin/plugin.json":
+            #"{"name":"declared","mcpServers":{"declared-server":{"command":"node","args":["--key","fake-secret-9"]}}}"#,
+        "home/.claude/plugins/cache/rooted/SKILL.md": "---\nname: rooted-skill\ndescription: At the plugin root\n---\n",
         "dev/market/.claude-plugin/marketplace.json": #"{"name":"local-dev","plugins":[{"name":"nest","source":"./nest"}]}"#,
         "dev/market/.git/config": """
         [remote "origin"]
@@ -72,7 +78,10 @@ private enum Fixture {
         {"id":"cloud@synced","scope":"synced","enabled":true,"installPath":"$ROOT/home/.claude/plugins/cache/cloud"},\
         {"id":"lost@removed-market","scope":"user","enabled":false,"installPath":"$ROOT/home/.claude/plugins/cache/lost"},\
         {"id":"bare","scope":"user","enabled":false,"installPath":"$ROOT/home/.claude/plugins/cache/bare"},\
-        {"id":"evil;rm -rf ~@gh","scope":"user","enabled":true,"installPath":"$ROOT/victim"}]
+        {"id":"evil;rm -rf ~@gh","scope":"user","enabled":true,"installPath":"$ROOT/victim"},\
+        {"id":"flat@gh","scope":"user","enabled":true,"installPath":"$ROOT/home/.claude/plugins/cache/flat"},\
+        {"id":"declared@gh","scope":"user","enabled":true,"installPath":"$ROOT/home/.claude/plugins/cache/declared"},\
+        {"id":"rooted@gh","scope":"user","enabled":true,"installPath":"$ROOT/home/.claude/plugins/cache/rooted"}]
         """
 
     static func create() throws -> String {
@@ -195,6 +204,20 @@ struct GoldenTests {
         // Other scopes still decide state: the user's excludes switch this project rule off.
         let rule = try #require(result.items.first { $0.name == ".claude/rules/security.md" })
         #expect(!rule.enabled)
+    }
+
+    @Test("Plugin layouts found on a real machine are read (M1.15)")
+    func pluginLayouts() async throws {
+        let root = try Fixture.create()
+        defer { try? FileManager.default.removeItem(atPath: root) }
+        let items = await scan(.mac, root: root).items
+        func provided(_ id: String, _ concept: Concept) -> [String] {
+            items.filter { $0.providedBy == id && $0.concept == concept }.map(\.name)
+        }
+
+        #expect(provided("flat@gh", .mcp) == ["plugin:flat:flat-server"])
+        #expect(provided("declared@gh", .mcp) == ["plugin:declared:declared-server"])
+        #expect(provided("rooted@gh", .skills) == ["rooted:rooted-skill"])
     }
 
     @Test("Only items proven Personal offer Edit")

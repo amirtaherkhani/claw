@@ -365,7 +365,8 @@ public struct ConfigScanner: Sendable {
         for plugin in plugins {
             guard let record = plugin.record else { continue }
             let root = record.readFromFolder ?? record.installPath
-            for skill in reader.readSkills(in: joinPath(root, "skills")) {
+            let skills = reader.readSkills(in: joinPath(root, "skills"))
+            for skill in skills.isEmpty ? reader.readRootSkill(in: root, name: record.name) : skills {
                 let classification = Classification(ownership: .plugin, rule: "L4", evidence: ["provided by \(record.id)"])
                 items.append(
                     Item(
