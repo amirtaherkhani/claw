@@ -12,7 +12,9 @@ extension ConfigScanner {
     func conceptItems(layers: [SettingsLayer], plugins: [PluginItem]) -> ConceptScan {
         var scan = ConceptScan()
         let includeUser = target.kind == .mac
-        let installed: [InstalledPlugin] = plugins.compactMap { plugin in plugin.record.map { ($0, plugin.item) } }
+        let installed: [InstalledPlugin] = plugins.compactMap { plugin in
+            plugin.record.flatMap { pluginRoot($0).isEmpty ? nil : ($0, plugin.item) }
+        }
 
         commandItems(layers: layers, installed: installed, includeUser: includeUser, into: &scan)
         agentItems(layers: layers, installed: installed, includeUser: includeUser, into: &scan)

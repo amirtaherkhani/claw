@@ -565,7 +565,7 @@ Not done by default: crawling the disk. The opt-in **Find projects…** action t
 
 ### 8.3 Safety rules inside readers
 
-- Resolve `realpath` and refuse paths that leave the root (symlink escape), except the documented dotfile-manager case where `~/.claude/*` is a symlink: allow when the link target is a regular file inside the user's home and record both paths.
+- Resolve `realpath` and refuse paths that leave the root (symlink escape), except the case where something under `~/.claude` is a symlink made by the user's own tooling: allow when the target, a file or a folder, is inside the user's home. Dotfile managers link files and skill managers link folders [V `docs/spikes.md` F10]. Links in a project get no such exception, because a cloned repository is not trusted. Every refusal becomes a warning.
 - File size cap 2 MB per config file except `~/.claude.json` (stream or parse once, keep only needed keys, never log it).
 - Frontmatter parse failures become problems, never exceptions.
 - Never `eval`, never run a command found in a file.
