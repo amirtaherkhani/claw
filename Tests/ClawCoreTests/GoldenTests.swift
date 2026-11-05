@@ -180,6 +180,23 @@ struct GoldenTests {
         #expect(items.allSatisfy { $0.bucket == $0.classification.ownership.bucket })
     }
 
+    @Test("A folder scan lists only that folder's project and local scope (FR-F02-2)")
+    func folderScanScope() async throws {
+        let root = try Fixture.create()
+        defer { try? FileManager.default.removeItem(atPath: root) }
+        let result = await scan(.folder, root: root)
+        let project = joinPath(root, "work/app")
+
+        #expect(!result.items.isEmpty)
+        for item in result.items {
+            #expect(item.projectPath == project, "\(item.id)")
+            #expect(item.scope == .project || item.scope == .local, "\(item.id)")
+        }
+        // Other scopes still decide state: the user's excludes switch this project rule off.
+        let rule = try #require(result.items.first { $0.name == ".claude/rules/security.md" })
+        #expect(!rule.enabled)
+    }
+
     @Test("Only items proven Personal offer Edit")
     func editNeedsProof() async throws {
         let root = try Fixture.create()

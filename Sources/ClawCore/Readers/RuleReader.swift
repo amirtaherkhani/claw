@@ -27,8 +27,8 @@ public struct RuleReader: Sendable {
             }
         }
 
-        add(joinPath(env.managedDir, "CLAUDE.md"), .managed, nil)
         if includeUser {
+            add(joinPath(env.managedDir, "CLAUDE.md"), .managed, nil)
             add(joinPath(env.configDir, "CLAUDE.md"), .user, nil)
             addTree(joinPath(env.configDir, "rules"), .user, nil)
         }

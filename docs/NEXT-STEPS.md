@@ -7,7 +7,7 @@ Status on 2026-11-05. Start here when you continue in Claude Code on the Mac. Re
 | Milestone | State |
 | :- | :- |
 | M0 Foundations | Done. Open: M0.6 (spikes S1 to S10), M0.8 (update [U] tags from spike results) |
-| M1 Core read-only | Done: all seven concepts, ownership rules, effective state, projects, progress and Stop, CLI. Open: M1.15 manual comparison on the Mac, and the folder scan and symlink gaps under Known gaps |
+| M1 Core read-only | Done: all seven concepts, ownership rules, effective state, projects, progress and Stop, CLI. Open: M1.15 manual comparison on the Mac, and the nested walk and symlink gaps under Known gaps |
 | M2 Safe write pipeline | **Next.** Nothing started |
 | M3 GUI read-only | Screens done and compared with `docs/design/` on the Mac. Open: XCUITest smoke tests, accessibility audit, String Catalog |
 | M4 to M7 | Not started |
@@ -65,6 +65,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | Stop keeps the queue | `ScanOutcome` in `ClawCore`: only a complete scan prunes the queue, and a stopped scan that found nothing leaves the previous scan on screen | #5 | 2026-11-04 |
 | Scan coverage keeps the queue | `ScanOutcome` prunes a change only if the scan covered its item: a folder scan counts for that folder, a Mac scan for what it read. A plugin declared only in a project's settings now belongs to that project | #8 | 2026-11-05 |
 | M1.14 | Fake HOME on a real disk with a symlinked dotfile, hostile ids and a managed layer; golden `ScanResult` for This Mac, one folder and no CLI in `Tests/Goldens` | #9 | 2026-11-05 |
+| FR-F02-2 scope | A folder scan lists only that folder's project and local items; other scopes still decide their state | #10 | 2026-11-05 |
 
 ## Known gaps and decisions to revisit
 
@@ -80,7 +81,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 - A complete scan prunes only changes on items it covers (`ScanOutcome`): a project item needs that project read, anything else needs a Mac scan. So a change stays in Review until it is discarded when its folder is no longer scanned (deleted, unregistered, or reached by another path spelling, since paths are compared as written). A folder scan also ignores the plugins and user-level hooks it lists, so a change on a deleted one waits for a Mac scan. M2's stale check must refuse these at Apply too.
 - A thread abandoned by Stop stays blocked until the dialog is answered, and scanning again blocks a new thread on the same file. One thread per press, ended by answering the dialog.
 - Disk calls outside a scan still run on the main actor: `ProjectInspection.inspect` in view bodies and `AppModel.loadProjects`. Listing a protected folder there could hang the window (F9).
-- A folder scan reads more than FR-F02-2 allows: it also lists plugins, user-level hooks and the managed `CLAUDE.md`. It has no bounded walk for nested `.claude/` folders. `Tests/Goldens/folder.json` records today's behaviour, not the spec.
+- A folder scan has no bounded walk for nested `.claude/` folders yet (FR-F02-2, TD 8.2).
 - FR-F02-5 is not enforced: nothing stops a scan following a symlink out of the scan root.
 - Managed skills are not read (M1.6); the enterprise skills path waits for S10.
 - To accept a scan change on purpose: `CLAW_UPDATE_GOLDENS=1 swift test --filter GoldenTests`, then review the diff in `Tests/Goldens`.
