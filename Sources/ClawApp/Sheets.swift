@@ -98,12 +98,15 @@ struct ItemDetailSheet: View {
     }
 
     private var toggleLabel: String {
-        if let pending = model.queue.pending(for: item.id), pending.action != .remove { return "Undo \(pending.title)" }
-        return item.enabled ? "Disable" : "Enable"
+        if let pending = model.queue.pending(for: item.id), pending.action != .remove {
+            return String(localized: "Undo \(pending.title)")
+        }
+        return item.enabled ? String(localized: "Disable") : String(localized: "Enable")
     }
 
     private var removeLabel: String {
-        model.queue.isQueuedForRemoval(item) ? "Keep" : (item.capabilities.removeLabel ?? "Remove")
+        model.queue.isQueuedForRemoval(item)
+            ? String(localized: "Keep") : (item.capabilities.removeLabel ?? String(localized: "Remove"))
     }
 
     /// The queued change, or what toggling would do.
@@ -114,7 +117,7 @@ struct ItemDetailSheet: View {
             item, action: item.enabled ? .disable : .enable, writeScope: model.writeScope, home: model.home)
     }
 
-    private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+    private func section<Content: View>(_ title: LocalizedStringKey, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title).font(.headline)
             content()
@@ -214,8 +217,8 @@ struct HistoryView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             PageHeader(
-                title: "History",
-                subtitle: "Every apply is recorded with its backup, so you can restore it.",
+                title: String(localized: "History"),
+                subtitle: String(localized: "Every apply is recorded with its backup, so you can restore it."),
                 writesTo: "~/.claude.bak/")
             HStack {
                 Image(systemName: "magnifyingglass").foregroundStyle(Theme.muted)
@@ -223,7 +226,7 @@ struct HistoryView: View {
             }
             .panel(padding: 10)
             HStack(spacing: 8) {
-                Chip(title: "All", selected: concept == nil) { concept = nil }
+                Chip(title: String(localized: "All"), selected: concept == nil) { concept = nil }
                 ForEach(Concept.allCases, id: \.self) { candidate in
                     Chip(title: ItemPresentation.conceptTitle(candidate), selected: concept == candidate) {
                         concept = candidate
@@ -368,8 +371,8 @@ struct AddPluginSheet: View {
                 .panel(padding: 10)
             } else {
                 DropZone(
-                    title: "Drop a folder here",
-                    detail: "It needs .claude-plugin/marketplace.json at its root.",
+                    title: String(localized: "Drop a folder here"),
+                    detail: String(localized: "It needs .claude-plugin/marketplace.json at its root."),
                     browse: { choosingFolder = true },
                     drop: { url in folder = url.path })
             }

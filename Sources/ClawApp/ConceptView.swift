@@ -167,7 +167,7 @@ struct ItemListView: View {
     private var chips: some View {
         let kinds = Array(Set(model.items(concept: concept, bucket: bucket).map(ItemPresentation.kind))).sorted()
         return HStack(spacing: 8) {
-            Chip(title: "All", selected: kind == nil) { kind = nil }
+            Chip(title: String(localized: "All"), selected: kind == nil) { kind = nil }
             if kinds.count > 1 {
                 ForEach(kinds, id: \.self) { candidate in
                     Chip(title: candidate, selected: kind == candidate) { kind = candidate }
@@ -219,7 +219,9 @@ struct ItemListView: View {
                 .controlSize(.mini)
                 .labelsHidden()
                 .disabled(!item.capabilities.toggle)
-                .help(item.capabilities.toggle ? "Queue a change for review" : (item.capabilities.reason ?? ""))
+                .help(
+                    item.capabilities.toggle ? String(localized: "Queue a change for review") : (item.capabilities.reason ?? "")
+                )
                 .accessibilityLabel("Enable \(item.name)")
             }
             .width(48)
@@ -264,7 +266,8 @@ struct ItemListView: View {
             Spacer()
             Text(
                 selectedItems.isEmpty
-                    ? ItemPresentation.counted(rows.count, "item") : "\(selectedItems.count) of \(rows.count) selected"
+                    ? ItemPresentation.counted(rows.count, "item")
+                    : String(localized: "\(selectedItems.count) of \(rows.count) selected")
             )
             .foregroundStyle(Theme.muted)
         }

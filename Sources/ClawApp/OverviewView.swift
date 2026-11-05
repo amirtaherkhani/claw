@@ -100,8 +100,8 @@ struct OverviewView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Label("BACKUP", systemImage: "checkmark.shield").font(.caption.weight(.semibold)).tracking(1.5)
                     .foregroundStyle(Theme.accent)
-                LabeledContent("Next", value: "Before every apply")
-                LabeledContent("Recent", value: "No backups yet")
+                LabeledContent("Next", value: String(localized: "Before every apply"))
+                LabeledContent("Recent", value: String(localized: "No backups yet"))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .panel()

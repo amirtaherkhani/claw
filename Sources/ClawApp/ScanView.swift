@@ -10,7 +10,7 @@ struct ScanView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            PageHeader(title: "Scan all configuration", subtitle: subtitle) {
+            PageHeader(title: String(localized: "Scan all configuration"), subtitle: subtitle) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(targetDescription).font(.callout)
                     HStack(spacing: 6) {
@@ -29,13 +29,13 @@ struct ScanView: View {
             }
 
             HStack(spacing: 8) {
-                Chip(title: "This Mac", selected: folderTarget == nil) { folderTarget = nil }
+                Chip(title: String(localized: "This Mac"), selected: folderTarget == nil) { folderTarget = nil }
                 ForEach(model.allProjects.prefix(6), id: \.self) { path in
                     Chip(title: URL(fileURLWithPath: path).lastPathComponent, selected: folderTarget == path) {
                         folderTarget = path
                     }
                 }
-                Chip(title: "Choose folder…", selected: false) { choosingFolder = true }
+                Chip(title: String(localized: "Choose folder…"), selected: false) { choosingFolder = true }
             }
 
             FlowView(flow: SourceFlow.concepts(of: model.items)) { node in
@@ -89,24 +89,31 @@ struct ScanView: View {
     }
 
     private var subtitle: String {
-        "Reads all seven kinds of configuration and sorts every item into Yours, Read-only or Needs attention. Nothing is changed."
+        String(
+            localized:
+                "Reads all seven kinds of configuration and sorts every item into Yours, Read-only or Needs attention. Nothing is changed."
+        )
     }
 
     private var targetDescription: String {
         if let folder = folderTarget {
-            return "One folder: \(ItemPresentation.abbreviate(folder, home: model.home))"
+            return String(localized: "One folder: \(ItemPresentation.abbreviate(folder, home: model.home))")
         }
-        return "This Mac: ~/.claude, managed settings and \(ItemPresentation.counted(model.allProjects.count, "project"))"
+        return String(
+            localized: "This Mac: ~/.claude, managed settings and \(ItemPresentation.counted(model.allProjects.count, "project"))"
+        )
     }
 
     private var statusLine: String {
         if let progress = model.progress {
-            return "\(progress.step.label) · \(ItemPresentation.counted(progress.itemCount, "item")) so far"
+            return String(localized: "\(progress.step.label) · \(ItemPresentation.counted(progress.itemCount, "item")) so far")
         }
-        guard let result = model.result else { return "Not scanned yet" }
+        guard let result = model.result else { return String(localized: "Not scanned yet") }
         let seconds = result.finishedAt.timeIntervalSince(result.startedAt)
-        return "Last scan: \(ItemPresentation.counted(result.items.count, "item")) in \(String(format: "%.1f", seconds)) s"
-            + (result.partial ? " (partial)" : "")
+        return String(
+            localized:
+                "Last scan: \(ItemPresentation.counted(result.items.count, "item")) in \(String(format: "%.1f", seconds)) s")
+            + (result.partial ? String(localized: " (partial)") : "")
     }
 
     /// Opens the first concept that has items in the bucket.

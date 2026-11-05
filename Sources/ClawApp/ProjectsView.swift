@@ -10,7 +10,7 @@ struct ProjectsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                PageHeader(title: "Manage project folders", subtitle: subtitle) {
+                PageHeader(title: String(localized: "Manage project folders"), subtitle: subtitle) {
                     Text("Writes only inside folders you add")
                         .font(.callout).foregroundStyle(Theme.muted)
                         .panel(padding: 12)
@@ -27,9 +27,12 @@ struct ProjectsView: View {
                 }
 
                 DropZone(
-                    title: "Drop a project folder here",
+                    title: String(localized: "Drop a project folder here"),
                     detail:
-                        "A project folder is any folder with .claude/, .mcp.json or CLAUDE.md. Claw only reads it until you change something.",
+                        String(
+                            localized:
+                                "A project folder is any folder with .claude/, .mcp.json or CLAUDE.md. Claw only reads it until you change something."
+                        ),
                     browse: { choosingFolder = true },
                     drop: { url in model.addProjectPath = url.path })
             }
@@ -43,7 +46,8 @@ struct ProjectsView: View {
     private var subtitle: String {
         let registered = model.registered.count
         let found = model.discovered.count
-        return "\(registered) added by you, \(found) found in ~/.claude.json. Claw reads every one on each scan."
+        return String(
+            localized: "\(registered) added by you, \(found) found in ~/.claude.json. Claw reads every one on each scan.")
     }
 }
 
