@@ -8,7 +8,7 @@ Status on 2026-11-05. Start here when you continue in Claude Code on the Mac. Re
 | :- | :- |
 | M0 Foundations | Done. S1 to S4 and S6 to S9 verified and reviewed. S5 and S10 partial: they need a Mac with a managed profile and a fresh user account |
 | M1 Core read-only | Done: all seven concepts, ownership rules, effective state, projects, progress and Stop, CLI. Exit criteria reported in the M1 close-out |
-| M2 Safe write pipeline | **Next.** Nothing started |
+| M2 Safe write pipeline | **In progress.** M2.1 done; M2.2 next |
 | M3 GUI read-only | Screens done and compared with `docs/design/` on the Mac; text in a String Catalog, XCUITest smoke tests and accessibility audit added. Open: your review of the M3 exit criteria |
 | M4 to M7 | Not started |
 
@@ -16,7 +16,7 @@ Code: `amirtaherkhani/claw`, `main`, CI green on Linux and macOS.
 
 ## Open before M2
 
-1. Owner decision: do S5 and S10 block M2? They touch F18, managed skills and privacy prompts, none of which M2 writes.
+1. S5 and S10 stay partial; the owner chose on 2026-11-05 not to let them block M2.
 
 ## Spikes to run before M2 writes anything
 
@@ -76,6 +76,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | S8, F11 | `.claude.json` follows `CLAUDE_CONFIG_DIR` even when it names `~/.claude`; missing files under `/private` no longer look like links leaving the root | #19 | 2026-11-05 |
 | S1, S7 | `.mcp.json` servers read every disable source, including `/mcp disable` and the project entry of `.claude.json` | #20 | 2026-11-05 |
 | M0.8 | [U] tags, TD 3.4, the M2.5 row and ADR-0004 updated from the spike results | #21 | 2026-11-05 |
+| M2.1 | `JSONEdit`: set, remove and array insert as one byte-range edit; 600-seed property tests | #22 | 2026-11-05 |
 
 ## Known gaps and decisions to revisit
 
