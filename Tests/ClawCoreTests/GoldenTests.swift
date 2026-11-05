@@ -64,6 +64,24 @@ private enum Fixture {
         "managed/CLAUDE.md": "# Policy",
         "managed/managed-settings.json":
             #"{"hooks":{"PreToolUse":[{"matcher":"Write","hooks":[{"type":"command","command":"/opt/audit.sh"}]}]}}"#,
+        // Custom paths in plugin manifests.
+        "home/.claude/plugins/cache/custom/.claude-plugin/plugin.json": """
+        {"name":"custom","skills":"./extra-skills/","commands":["./extra-commands/","./one.md"],"agents":"./extra-agents",
+         "hooks":"./config/hooks.json","mcpServers":"./config/mcp.json"}
+        """,
+        "home/.claude/plugins/cache/custom/extra-skills/custom-skill/SKILL.md":
+            "---\nname: custom-skill\ndescription: Custom path\n---\n",
+        "home/.claude/plugins/cache/custom/extra-commands/listed.md": "From a folder",
+        "home/.claude/plugins/cache/custom/one.md": "From a file",
+        "home/.claude/plugins/cache/custom/extra-agents/custom-agent.md":
+            "---\nname: custom-agent\ndescription: Custom path\n---\n",
+        "home/.claude/plugins/cache/custom/config/hooks.json":
+            #"{"hooks":{"Notification":[{"hooks":[{"type":"command","command":"custom-hook.sh"}]}]}}"#,
+        "home/.claude/plugins/cache/custom/config/mcp.json": #"{"mcpServers":{"custom-server":{"command":"node"}}}"#,
+        "home/.claude/plugins/cache/inline/.claude-plugin/plugin.json":
+            #"{"name":"inline","hooks":{"hooks":{"Notification":[{"hooks":[{"type":"command","command":"inline-hook.sh"}]}]}}}"#,
+        "home/.claude/plugins/cache/traversal/.claude-plugin/plugin.json":
+            #"{"name":"traversal","commands":"../../../../../outside","skills":"/etc"}"#,
         // Nested projects for a folder scan.
         "work/app/packages/api/.claude/commands/api-task.md": "Nested command",
         "work/app/a/b/c/d/.claude/commands/depth-four.md": "At the depth limit",
@@ -103,7 +121,10 @@ private enum Fixture {
         {"id":"flat@gh","scope":"user","enabled":true,"installPath":"$ROOT/home/.claude/plugins/cache/flat"},\
         {"id":"declared@gh","scope":"user","enabled":true,"installPath":"$ROOT/home/.claude/plugins/cache/declared"},\
         {"id":"rooted@gh","scope":"user","enabled":true,"installPath":"$ROOT/home/.claude/plugins/cache/rooted"},\
-        {"id":"pathless@synced","scope":"synced","enabled":false,"installPath":""}]
+        {"id":"pathless@synced","scope":"synced","enabled":false,"installPath":""},\
+        {"id":"custom@gh","scope":"user","enabled":true,"installPath":"$ROOT/home/.claude/plugins/cache/custom"},\
+        {"id":"inline@gh","scope":"user","enabled":true,"installPath":"$ROOT/home/.claude/plugins/cache/inline"},\
+        {"id":"traversal@gh","scope":"user","enabled":true,"installPath":"$ROOT/home/.claude/plugins/cache/traversal"}]
         """
 
     static func create() throws -> String {
@@ -309,6 +330,32 @@ struct GoldenTests {
 
         let late = NestedProjectWalk(fileSystem: fs, timeLimit: .zero).find(under: "/p")
         #expect(late.truncated)
+    }
+
+    @Test("Custom paths in plugin.json are read (M1.5)")
+    func manifestPaths() async throws {
+        let root = try Fixture.create()
+        defer { try? FileManager.default.removeItem(atPath: root) }
+        let items = await scan(.mac, root: root).items
+        func provided(_ id: String, _ concept: Concept) -> [String] {
+            items.filter { $0.providedBy == id && $0.concept == concept }.map(\.name).sorted()
+        }
+
+        #expect(provided("custom@gh", .skills) == ["custom:custom-skill"])
+        #expect(provided("custom@gh", .commands) == ["/custom:listed", "/custom:one"])
+        #expect(provided("custom@gh", .agents) == ["custom:custom-agent"])
+        #expect(provided("custom@gh", .mcp) == ["plugin:custom:custom-server"])
+        #expect(provided("custom@gh", .hooks).count == 1)
+        #expect(provided("inline@gh", .hooks).count == 1)
+    }
+
+    @Test("A manifest path cannot leave its plugin")
+    func manifestEscape() async throws {
+        let root = try Fixture.create()
+        defer { try? FileManager.default.removeItem(atPath: root) }
+        let result = await scan(.mac, root: root)
+        #expect(!result.items.contains { $0.providedBy == "traversal@gh" })
+        #expect(result.problems.contains { $0.message.contains("leaves its plugin") })
     }
 
     @Test("Only items proven Personal offer Edit")

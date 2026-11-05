@@ -35,6 +35,38 @@
       "scope" : "user"
     },
     {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Provided by a plugin: enable, disable or remove the plugin",
+        "remove" : false,
+        "toggle" : false
+      },
+      "classification" : {
+        "evidence" : [
+          "provided by custom@gh"
+        ],
+        "ownership" : "plugin",
+        "rule" : "L4"
+      },
+      "concept" : "agents",
+      "control" : {
+        "key" : "enabledPlugins[\"custom@gh\"]",
+        "mechanism" : "parentPlugin",
+        "status" : "verified"
+      },
+      "description" : "Custom path",
+      "enabled" : true,
+      "id" : "agents:plugin:custom@gh:custom-agent",
+      "location" : "$ROOT/home/.claude/plugins/cache/custom/extra-agents/custom-agent.md",
+      "name" : "custom:custom-agent",
+      "problems" : [
+
+      ],
+      "providedBy" : "custom@gh",
+      "scope" : "plugin"
+    },
+    {
       "bucket" : "yours",
       "capabilities" : {
         "edit" : true,
@@ -161,6 +193,70 @@
 
       ],
       "scope" : "user"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Provided by a plugin: enable, disable or remove the plugin",
+        "remove" : false,
+        "toggle" : false
+      },
+      "classification" : {
+        "evidence" : [
+          "provided by custom@gh"
+        ],
+        "ownership" : "plugin",
+        "rule" : "L4"
+      },
+      "concept" : "commands",
+      "control" : {
+        "key" : "enabledPlugins[\"custom@gh\"]",
+        "mechanism" : "parentPlugin",
+        "status" : "verified"
+      },
+      "description" : "From a folder",
+      "enabled" : true,
+      "id" : "commands:plugin:custom@gh:listed",
+      "location" : "$ROOT/home/.claude/plugins/cache/custom/extra-commands/listed.md",
+      "name" : "/custom:listed",
+      "problems" : [
+
+      ],
+      "providedBy" : "custom@gh",
+      "scope" : "plugin"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Provided by a plugin: enable, disable or remove the plugin",
+        "remove" : false,
+        "toggle" : false
+      },
+      "classification" : {
+        "evidence" : [
+          "provided by custom@gh"
+        ],
+        "ownership" : "plugin",
+        "rule" : "L4"
+      },
+      "concept" : "commands",
+      "control" : {
+        "key" : "enabledPlugins[\"custom@gh\"]",
+        "mechanism" : "parentPlugin",
+        "status" : "verified"
+      },
+      "description" : "From a file",
+      "enabled" : true,
+      "id" : "commands:plugin:custom@gh:one",
+      "location" : "$ROOT/home/.claude/plugins/cache/custom/one.md",
+      "name" : "/custom:one",
+      "problems" : [
+
+      ],
+      "providedBy" : "custom@gh",
+      "scope" : "plugin"
     },
     {
       "bucket" : "yours",
@@ -324,6 +420,70 @@
       ],
       "projectPath" : "$ROOT/work/app",
       "scope" : "project"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Provided by a plugin: enable, disable or remove the plugin",
+        "remove" : false,
+        "toggle" : false
+      },
+      "classification" : {
+        "evidence" : [
+          "provided by custom@gh"
+        ],
+        "ownership" : "plugin",
+        "rule" : "L4"
+      },
+      "concept" : "hooks",
+      "control" : {
+        "key" : "enabledPlugins[\"custom@gh\"]",
+        "mechanism" : "parentPlugin",
+        "status" : "verified"
+      },
+      "description" : "command hook",
+      "enabled" : true,
+      "id" : "hooks:plugin:$ROOT/home/.claude/plugins/cache/custom/config/hooks.json#Notification/0/0",
+      "location" : "$ROOT/home/.claude/plugins/cache/custom/config/hooks.json › hooks.Notification[0].hooks[0]",
+      "name" : "Notification · custom-hook.sh",
+      "problems" : [
+
+      ],
+      "providedBy" : "custom@gh",
+      "scope" : "plugin"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Provided by a plugin: enable, disable or remove the plugin",
+        "remove" : false,
+        "toggle" : false
+      },
+      "classification" : {
+        "evidence" : [
+          "provided by inline@gh"
+        ],
+        "ownership" : "plugin",
+        "rule" : "L4"
+      },
+      "concept" : "hooks",
+      "control" : {
+        "key" : "enabledPlugins[\"inline@gh\"]",
+        "mechanism" : "parentPlugin",
+        "status" : "verified"
+      },
+      "description" : "command hook",
+      "enabled" : true,
+      "id" : "hooks:plugin:$ROOT/home/.claude/plugins/cache/inline/.claude-plugin/plugin.json#Notification/0/0",
+      "location" : "$ROOT/home/.claude/plugins/cache/inline/.claude-plugin/plugin.json › hooks.Notification[0].hooks[0]",
+      "name" : "Notification · inline-hook.sh",
+      "problems" : [
+
+      ],
+      "providedBy" : "inline@gh",
+      "scope" : "plugin"
     },
     {
       "bucket" : "yours",
@@ -596,6 +756,38 @@
       },
       "classification" : {
         "evidence" : [
+          "provided by custom@gh"
+        ],
+        "ownership" : "plugin",
+        "rule" : "L4"
+      },
+      "concept" : "mcp",
+      "control" : {
+        "key" : "enabledPlugins[\"custom@gh\"]",
+        "mechanism" : "parentPlugin",
+        "status" : "verified"
+      },
+      "description" : "stdio · node",
+      "enabled" : true,
+      "id" : "mcp:plugin:~:custom@gh:custom-server",
+      "location" : "$ROOT/home/.claude/plugins/cache/custom/config/mcp.json",
+      "name" : "plugin:custom:custom-server",
+      "problems" : [
+
+      ],
+      "providedBy" : "custom@gh",
+      "scope" : "plugin"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Provided by a plugin: enable, disable or remove the plugin",
+        "remove" : false,
+        "toggle" : false
+      },
+      "classification" : {
+        "evidence" : [
           "provided by declared@gh"
         ],
         "ownership" : "plugin",
@@ -833,6 +1025,38 @@
       },
       "concept" : "plugins",
       "control" : {
+        "key" : "enabledPlugins[\"custom@gh\"]",
+        "mechanism" : "enabledPlugins",
+        "status" : "verified"
+      },
+      "description" : "custom@gh",
+      "enabled" : true,
+      "id" : "plugins:user:custom@gh",
+      "location" : "$ROOT/home/.claude/plugins/cache/custom",
+      "name" : "custom",
+      "problems" : [
+
+      ],
+      "scope" : "user"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Installed from a marketplace: edit the source upstream",
+        "remove" : true,
+        "removeLabel" : "Uninstall",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "marketplace \"gh\": github marketplace"
+        ],
+        "ownership" : "market",
+        "rule" : "P7"
+      },
+      "concept" : "plugins",
+      "control" : {
         "key" : "enabledPlugins[\"declared@gh\"]",
         "mechanism" : "enabledPlugins",
         "status" : "verified"
@@ -914,6 +1138,38 @@
           "message" : "Declared in settings but not installed",
           "severity" : "warning"
         }
+      ],
+      "scope" : "user"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Installed from a marketplace: edit the source upstream",
+        "remove" : true,
+        "removeLabel" : "Uninstall",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "marketplace \"gh\": github marketplace"
+        ],
+        "ownership" : "market",
+        "rule" : "P7"
+      },
+      "concept" : "plugins",
+      "control" : {
+        "key" : "enabledPlugins[\"inline@gh\"]",
+        "mechanism" : "enabledPlugins",
+        "status" : "verified"
+      },
+      "description" : "inline@gh",
+      "enabled" : true,
+      "id" : "plugins:user:inline@gh",
+      "location" : "$ROOT/home/.claude/plugins/cache/inline",
+      "name" : "inline",
+      "problems" : [
+
       ],
       "scope" : "user"
     },
@@ -1113,6 +1369,38 @@
       "scope" : "user"
     },
     {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Installed from a marketplace: edit the source upstream",
+        "remove" : true,
+        "removeLabel" : "Uninstall",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "marketplace \"gh\": github marketplace"
+        ],
+        "ownership" : "market",
+        "rule" : "P7"
+      },
+      "concept" : "plugins",
+      "control" : {
+        "key" : "enabledPlugins[\"traversal@gh\"]",
+        "mechanism" : "enabledPlugins",
+        "status" : "verified"
+      },
+      "description" : "traversal@gh",
+      "enabled" : true,
+      "id" : "plugins:user:traversal@gh",
+      "location" : "$ROOT/home/.claude/plugins/cache/traversal",
+      "name" : "traversal",
+      "problems" : [
+
+      ],
+      "scope" : "user"
+    },
+    {
       "bucket" : "yours",
       "capabilities" : {
         "edit" : true,
@@ -1276,6 +1564,38 @@
         }
       ],
       "scope" : "user"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Provided by a plugin: enable, disable or remove the plugin",
+        "remove" : false,
+        "toggle" : false
+      },
+      "classification" : {
+        "evidence" : [
+          "provided by custom@gh"
+        ],
+        "ownership" : "plugin",
+        "rule" : "L4"
+      },
+      "concept" : "skills",
+      "control" : {
+        "key" : "enabledPlugins[\"custom@gh\"]",
+        "mechanism" : "parentPlugin",
+        "status" : "verified"
+      },
+      "description" : "Custom path",
+      "enabled" : true,
+      "id" : "skills:plugin:custom@gh:custom-skill",
+      "location" : "$ROOT/home/.claude/plugins/cache/custom/extra-skills/custom-skill",
+      "name" : "custom:custom-skill",
+      "problems" : [
+
+      ],
+      "providedBy" : "custom@gh",
+      "scope" : "plugin"
     },
     {
       "bucket" : "readonly",
@@ -1506,6 +1826,16 @@
   "problems" : [
     {
       "message" : "plugin list entry 6 has an unsafe id; skipped",
+      "severity" : "warning"
+    },
+    {
+      "file" : "$ROOT/home/.claude/plugins/cache/traversal/.claude-plugin/plugin.json",
+      "message" : "Manifest path leaves its plugin; it was skipped: /etc",
+      "severity" : "warning"
+    },
+    {
+      "file" : "$ROOT/home/.claude/plugins/cache/traversal/.claude-plugin/plugin.json",
+      "message" : "Manifest path leaves its plugin; it was skipped: ../../../../../outside",
       "severity" : "warning"
     },
     {
