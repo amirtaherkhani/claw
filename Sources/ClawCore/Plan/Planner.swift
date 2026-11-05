@@ -13,11 +13,24 @@ public struct FileEdit: Sendable, Equatable {
     public let reason: String
 }
 
+/// One `claude` call, as an argument vector: no shell ever sees it (`NFR-SEC-2`).
+public struct CliStep: Sendable, Equatable {
+    public let argv: [String]
+    /// Project and local scopes act on the folder the CLI runs in.
+    public let workingDirectory: String?
+}
+
 public struct PlannedChange: Sendable, Equatable {
     public let itemId: String
-    public let enabled: Bool
+    /// `nil` for a removal.
+    public let enabled: Bool?
     /// Empty when the file already says what was asked.
     public let edits: [FileEdit]
+    /// Files and folders that move to the backup.
+    public var moves: [String] = []
+    public var cli: [CliStep] = []
+    /// Files the CLI step rewrites, which the backup has to keep first.
+    public var cliTouches: [String] = []
     public let effect: PlanEffect
     public let warnings: [String]
 }
@@ -53,6 +66,137 @@ public struct Planner: Sendable {
         return try changes.map {
             try plan($0.item, enabled: $0.enabled, writeScope: writeScope, activeProject: activeProject, pending: &pending)
         }
+    }
+
+    /// Plans one removal. `keepData` decides what uninstalling does to a plugin's data folder.
+    public func remove(_ item: Item, keepData: Bool = true) throws -> PlannedChange {
+        var pending: [String: Data] = [:]
+        return try planRemoval(item, keepData: keepData, pending: &pending)
+    }
+
+    /// Plans removals on top of each other. Hooks go last-first, so an earlier removal cannot shift a later index.
+    public func remove(_ items: [Item], keepData: Bool = true) throws -> [PlannedChange] {
+        var pending: [String: Data] = [:]
+        let ordered = items.sorted {
+            (Self.hookPosition($0)?.order ?? []).lexicographicallyPrecedes(Self.hookPosition($1)?.order ?? [])
+        }
+        return try ordered.reversed().map { try planRemoval($0, keepData: keepData, pending: &pending) }
+    }
+
+    private func planRemoval(_ item: Item, keepData: Bool, pending: inout [String: Data]) throws -> PlannedChange {
+        guard item.capabilities.remove else {
+            throw PlanError(reason: item.capabilities.reason ?? "\(item.name) cannot be removed")
+        }
+        switch item.concept {
+        case .plugins: return try removePlugin(item, keepData: keepData, pending: &pending)
+        case .mcp: return try removeServer(item, pending: &pending)
+        case .hooks: return try removeHook(item, pending: &pending)
+        case .skills, .commands, .agents, .rules:
+            let effect: PlanEffect = item.concept == .rules ? .afterClear : item.concept == .agents ? .newSession : .live
+            return PlannedChange(
+                itemId: item.id, enabled: nil, edits: [], moves: [item.location], effect: effect, warnings: [])
+        }
+    }
+
+    private func removePlugin(_ item: Item, keepData: Bool, pending: inout [String: Data]) throws -> PlannedChange {
+        let id = ChangeQueue.idOf(item)
+        guard NameValidator.isValidPluginId(id) else { throw PlanError(reason: "Not a valid plugin id: \(id)") }
+        if item.classification.ownership == .orphan {
+            guard let file = item.enabledByFile else { throw PlanError(reason: "No settings file names \(id)") }
+            let edit = try edit(file, reason: "Remove \(item.name)", pending: &pending) {
+                try Self.removing(["enabledPlugins", .key(id)], from: $0, keeping: 0)
+            }
+            return PlannedChange(itemId: item.id, enabled: nil, edits: edit, effect: .reloadPlugins, warnings: [])
+        }
+        let inProject = item.scope == .project || item.scope == .local
+        let scope = inProject ? item.scope.rawValue : "user"
+        guard !inProject || item.projectPath != nil else { throw PlanError(reason: "No project for \(id)") }
+        var settings = environment.userSettingsFile
+        if let project = item.projectPath, inProject {
+            settings =
+                item.scope == .local ? environment.localSettingsFile(project) : environment.projectSettingsFile(project)
+        }
+        return PlannedChange(
+            itemId: item.id, enabled: nil, edits: [],
+            cli: [
+                CliStep(
+                    argv: ["plugin", "uninstall", id, "--scope", scope] + (keepData ? ["--keep-data"] : []),
+                    workingDirectory: inProject ? item.projectPath : nil)
+            ],
+            cliTouches: [settings, environment.installedPluginsFile], effect: .reloadPlugins,
+            warnings: keepData ? [] : ["Claude Code deletes this plugin's data folder when it leaves its last scope."])
+    }
+
+    private func removeServer(_ item: Item, pending: inout [String: Data]) throws -> PlannedChange {
+        let remote = item.description.hasPrefix("http") || item.description.hasPrefix("sse")
+        let warnings = remote ? ["Removing a remote server also deletes its stored sign-in."] : []
+        if item.scope == .project {
+            let edit = try edit(item.location, reason: "Remove \(item.name)", pending: &pending) {
+                try Self.removing(["mcpServers", .key(item.name)], from: $0, keeping: 1)
+            }
+            return PlannedChange(itemId: item.id, enabled: nil, edits: edit, effect: .newSession, warnings: warnings)
+        }
+        guard NameValidator.isValidName(item.name), !item.name.contains(".") else {
+            throw PlanError(reason: "Not a valid server name: \(item.name)")
+        }
+        return PlannedChange(
+            itemId: item.id, enabled: nil, edits: [],
+            cli: [
+                CliStep(
+                    argv: ["mcp", "remove", item.name, "--scope", item.scope.rawValue],
+                    workingDirectory: item.scope == .local ? item.projectPath : nil)
+            ],
+            cliTouches: [environment.claudeJsonFile], effect: .newSession, warnings: warnings)
+    }
+
+    private func removeHook(_ item: Item, pending: inout [String: Data]) throws -> PlannedChange {
+        guard let position = Self.hookPosition(item) else { throw PlanError(reason: "Cannot locate \(item.name)") }
+        let warnings =
+            ["PreToolUse", "PermissionRequest"].contains(position.event)
+            ? ["Guard hook: it can block or approve tool use, so removing it changes safety behaviour."] : []
+        let edit = try edit(position.file, reason: "Remove \(item.name)", pending: &pending) { data in
+            let settings = try JSONValue.parse(data)
+            let records = HookReader.parse(settings["hooks"], file: position.file).0
+            guard
+                let record = records.first(where: {
+                    $0.event == position.event && $0.groupIndex == position.group && $0.handlerIndex == position.handler
+                }), item.name.hasSuffix(" · \(record.summary)")
+            else { throw JSONEditError(reason: "this hook moved since the scan; scan again") }
+            let group: [JSONPathComponent] = ["hooks", .key(position.event), .index(position.group)]
+            let handlers = group + ["hooks"]
+            let output = try JSONEdit.remove(data, path: handlers + [.index(position.handler)])
+            guard try Self.value(at: handlers, in: output)?.arrayValue?.isEmpty == true else { return output }
+            return try Self.removing(group, from: output, keeping: 0)
+        }
+        return PlannedChange(itemId: item.id, enabled: nil, edits: edit, effect: .live, warnings: warnings)
+    }
+
+    private func edit(
+        _ file: String, reason: String, pending: inout [String: Data], change: (Data) throws -> Data
+    ) throws -> [FileEdit] {
+        let base = try pending[file] ?? read(file)
+        guard let base else { throw PlanError(reason: "\(file) no longer exists") }
+        let after: Data
+        do {
+            after = try change(base)
+        } catch let error as JSONEditError {
+            throw PlanError(reason: "\(file): \(error.reason)")
+        } catch {
+            throw PlanError(reason: "\(file) is not valid JSON")
+        }
+        guard after != base else { return [] }
+        pending[file] = after
+        return [FileEdit(file: file, before: base, after: after, reason: reason)]
+    }
+
+    /// Reads `<file> › hooks.<event>[g].hooks[h]`, the location a hook item carries.
+    private static func hookPosition(_ item: Item) -> (file: String, event: String, group: Int, handler: Int, order: [Int])? {
+        guard item.concept == .hooks else { return nil }
+        let parts = item.location.components(separatedBy: " › hooks.")
+        guard parts.count == 2 else { return nil }
+        let numbers = parts[1].split(whereSeparator: { "[]".contains($0) })
+        guard numbers.count == 4, let group = Int(numbers[1]), let handler = Int(numbers[3]) else { return nil }
+        return (parts[0], String(numbers[0]), group, handler, [group, handler])
     }
 
     private func plan(
