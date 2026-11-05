@@ -41,6 +41,9 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.claw.uitests
+        # XCTest's audit handler differs in isolation between SDKs, and CI's older SDK rejects it in Swift 6 mode.
+        # Test code only: the app and ClawCore stay on Swift 6.
+        SWIFT_VERSION: "5.0"
         GENERATE_INFOPLIST_FILE: true
 schemes:
   Claw:
