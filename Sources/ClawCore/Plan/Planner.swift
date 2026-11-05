@@ -398,6 +398,81 @@ public struct Planner: Sendable {
         }
     }
 
+    private struct Layer {
+        let scope: SettingsScope
+        let file: String
+        let values: JSONValue
+
+        /// Lowest to highest precedence [V S2, TECHNICAL-DESIGN section 6].
+        var rank: Int { [.user, .project, .local, .managed].firstIndex(of: scope) ?? 0 }
+    }
+
+    /// Settings files in force, highest precedence first. One that cannot be read is skipped: the scan reported it.
+    private func layers(project: String?, pending: [String: Data]) -> [Layer] {
+        var files: [(SettingsScope, String)] = [(.managed, environment.managedSettingsFile)]
+        if let project {
+            files.append((.local, environment.localSettingsFile(project)))
+            files.append((.project, environment.projectSettingsFile(project)))
+        }
+        files.append((.user, environment.userSettingsFile))
+        return files.compactMap { scope, file in
+            guard let data = pending[file] ?? (try? fileSystem.readFile(file)),
+                let values = try? JSONValue.parse(data)
+            else { return nil }
+            return Layer(scope: scope, file: file, values: values)
+        }
+    }
+
+    /// Whether another settings file defeats this change (`FR-F07-2`). Managed settings refuse it (`FR-F07-3`).
+    private func overrides(
+        of item: Item, enabled: Bool, writeScope: WriteScope?, project: String?, pending: [String: Data]
+    ) throws -> [String] {
+        guard let writeScope else { return [] }
+        let all = layers(project: project, pending: pending)
+        let written = Layer(scope: writeScope.scope, file: writeScope.file, values: .null)
+
+        /// A key per scope: the highest scope that sets it decides.
+        func highest(_ value: (Layer) -> Bool?) throws -> [String] {
+            let above = all.filter { $0.rank > written.rank }
+            guard let layer = above.first(where: { value($0) != nil }), value(layer) != enabled else { return [] }
+            return try defeated(by: layer)
+        }
+        /// A list adds up across files: one entry anywhere keeps the item off.
+        func listed(_ path: [String], _ entry: String) throws -> [String] {
+            guard enabled else { return [] }
+            let others = all.filter { $0.file != writeScope.file }
+            let holder = others.first { layer in
+                let list = path.reduce(layer.values as JSONValue?) { $0?[$1] }
+                return list?.arrayValue?.contains(.string(entry)) == true
+            }
+            return try holder.map(defeated) ?? []
+        }
+        func defeated(by layer: Layer) throws -> [String] {
+            guard layer.scope != .managed else {
+                throw PlanError(reason: "Your organisation's managed settings decide \(item.name)")
+            }
+            let scope = writeScope.scope.rawValue
+            return [
+                enabled
+                    ? "Enabled in \(scope) settings but stays off: \(layer.scope.rawValue) settings disable it"
+                    : "Disabled in \(scope) settings but still loads: \(layer.scope.rawValue) settings enable it"
+            ]
+        }
+
+        switch item.control.mechanism {
+        case .enabledPlugins:
+            let id = ChangeQueue.idOf(item)
+            return try highest { $0.values["enabledPlugins"]?[id]?.boolValue }
+        case .skillOverrides:
+            let name = ChangeQueue.idOf(item)
+            return try highest { layer in layer.values["skillOverrides"]?[name]?.stringValue.map { $0 != "off" } }
+        case .permissionsDeny: return try listed(["permissions", "deny"], "Agent(\(item.name))")
+        case .claudeMdExcludes: return try listed(["claudeMdExcludes"], item.location)
+        case .disabledMcpjsonServers: return try listed(["disabledMcpjsonServers"], item.name)
+        default: return []
+        }
+    }
+
     private struct Step {
         let file: String
         let effect: PlanEffect
