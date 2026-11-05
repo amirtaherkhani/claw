@@ -43,8 +43,20 @@ public struct LocalFileSystem: ReadonlyFileSystem {
         FileManager.default.fileExists(atPath: path)
     }
 
+    /// `realpath` of the deepest part that exists, with the rest added back. Foundation's resolver drops
+    /// `/private` from a path that exists and keeps it on one that does not, so the two would not compare (F11).
     public func resolvingSymlinks(_ path: String) -> String {
-        URL(fileURLWithPath: path).resolvingSymlinksInPath().path
+        var existing = URL(fileURLWithPath: path).standardizedFileURL.path
+        var missing: [String] = []
+        while true {
+            if let resolved = realpath(existing, nil) {
+                defer { free(resolved) }
+                return missing.reversed().reduce(String(cString: resolved)) { joinPath($0, $1) }
+            }
+            guard existing != "/", !existing.isEmpty else { return path }
+            missing.append((existing as NSString).lastPathComponent)
+            existing = (existing as NSString).deletingLastPathComponent
+        }
     }
 
     public func modificationDate(_ path: String) -> Date? {

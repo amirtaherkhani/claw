@@ -87,9 +87,7 @@ final class AppModel {
         loadProjects()
         scanTarget = target
         let projects = target.kind == .folder ? [target.path ?? ""] : allProjects
-        let env = ClaudeEnvironment(
-            home: environment.home, configDir: environment.configDir, pluginsDir: environment.pluginsDir,
-            managedDir: environment.managedDir, projects: projects)
+        let env = environment.with(projects: projects)
         // GUI apps get a minimal PATH; `locate` also checks the usual install folders.
         let cli = ClaudeCLI.locate(
             environment: ProcessInfo.processInfo.environment, home: environment.home, fileSystem: fileSystem

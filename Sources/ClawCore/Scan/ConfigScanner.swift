@@ -181,9 +181,7 @@ public struct ConfigScanner: Sendable {
     private func reading(through contained: ContainedFileSystem, adding projects: [String]) -> ConfigScanner {
         var copy = self
         copy.fs = contained
-        copy.environment = ClaudeEnvironment(
-            home: environment.home, configDir: environment.configDir, pluginsDir: environment.pluginsDir,
-            managedDir: environment.managedDir, projects: environment.projects + projects)
+        copy.environment = environment.with(projects: environment.projects + projects)
         return copy
     }
 

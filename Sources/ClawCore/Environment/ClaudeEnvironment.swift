@@ -10,7 +10,9 @@ public struct ClaudeEnvironment: Sendable, Equatable {
     /// Managed policy folder: `/Library/Application Support/ClaudeCode` on macOS [V `settings`].
     public let managedDir: String
     /// Registered project folders.
-    public let projects: [String]
+    public private(set) var projects: [String]
+    /// Whether `CLAUDE_CONFIG_DIR` chose the folder. Even when it names `~/.claude`, `.claude.json` moves [V S8].
+    private let configDirWasSet: Bool
 
     public init(
         home: String,
@@ -22,9 +24,17 @@ public struct ClaudeEnvironment: Sendable, Equatable {
         self.home = home
         let config = configDir ?? joinPath(home, ".claude")
         self.configDir = config
+        configDirWasSet = configDir != nil
         self.pluginsDir = pluginsDir ?? joinPath(config, "plugins")
         self.managedDir = managedDir ?? Self.defaultManagedDir
         self.projects = projects
+    }
+
+    /// The same environment with other project folders.
+    public func with(projects: [String]) -> ClaudeEnvironment {
+        var copy = self
+        copy.projects = projects
+        return copy
     }
 
     /// Builds the environment from process variables. Empty variables count as unset.
@@ -60,10 +70,10 @@ public struct ClaudeEnvironment: Sendable, Equatable {
     public var knownMarketplacesFile: String { joinPath(pluginsDir, "known_marketplaces.json") }
     public var installedPluginsFile: String { joinPath(pluginsDir, "installed_plugins.json") }
     public var managedSettingsFile: String { joinPath(managedDir, "managed-settings.json") }
-    /// `~/.claude.json` (MCP servers and per-project state) [V `mcp`]. With `CLAUDE_CONFIG_DIR` set it is
-    /// assumed to live inside that folder [A, spike S8].
+    /// `~/.claude.json` (MCP servers and per-project state) [V `mcp`]; inside the folder when
+    /// `CLAUDE_CONFIG_DIR` is set [V S8].
     public var claudeJsonFile: String {
-        configDir == joinPath(home, ".claude") ? joinPath(home, ".claude.json") : joinPath(configDir, ".claude.json")
+        joinPath(configDirWasSet ? configDir : home, ".claude.json")
     }
 
     public func projectSettingsFile(_ project: String) -> String { joinPath(project, ".claude", "settings.json") }
