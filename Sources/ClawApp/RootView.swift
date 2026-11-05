@@ -123,6 +123,8 @@ struct RailView: View {
             }
         }
         .scrollIndicators(.hidden)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Pages")
         .toolbar(removing: .sidebarToggle)
         .navigationSplitViewColumnWidth(Theme.railWidth)
     }
@@ -164,6 +166,7 @@ private struct RailButton: View {
         }
         .buttonStyle(.plain)
         .help(count.map { "\(entry.title): \($0)" } ?? entry.title)
+        .accessibilityIdentifier("rail.\(entry.title)")
         .accessibilityLabel(entry.title)
         .accessibilityValue(count.map(String.init) ?? "")
         .accessibilityAddTraits(selected ? .isSelected : [])
@@ -207,6 +210,9 @@ struct StatusToolbar: ToolbarContent {
                 .labelStyle(.titleAndIcon)
             }
             .help("Active project. Project and Local scope write into this folder.")
+            .accessibilityLabel("Active project")
+            .accessibilityValue(
+                model.activeProject.map { URL(fileURLWithPath: $0).lastPathComponent } ?? String(localized: "No project"))
         }
         ToolbarItem(placement: .primaryAction) {
             if model.isScanning {

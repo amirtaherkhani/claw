@@ -7,6 +7,7 @@ Native macOS app (Swift 6, SwiftUI) that manages Claude Code plugins, skills, co
 - Build: `swift build` · Test all: `swift test` · Test one: `swift test --filter <SuiteOrTestName>`
 - Format check: `swift format lint --strict --recursive Sources Tests Package.swift` (fix with `swift format --in-place --recursive Sources Tests Package.swift`)
 - Run: `swift run claw scan [--json] [--folder <path>] [--no-cli]` · App (macOS): `swift run ClawApp`
+- UI tests (macOS): `xcodebuild -project Claw.xcodeproj -scheme Claw -destination 'platform=macOS' test`. They move the mouse. After changing `project.yml`: `xcodegen generate`. After changing UI text: `scripts/sync-strings.sh`
 - Layout: `Sources/ClawCore` (no UI; must build on Linux), `Sources/claw` (CLI), `Sources/ClawApp` (SwiftUI, macOS only), `Tests/ClawCoreTests`
 - No third-party dependencies. Adding one needs an ADR.
 - Gotchas: Foundation on Linux differs from macOS (see `docs/spikes.md` F1 to F4). Blocking work never runs on `DispatchQueue.global()`; use a dedicated thread. Config JSON is parsed through `JSONValue.parse` (strict).

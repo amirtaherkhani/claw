@@ -42,3 +42,12 @@ jobs:
         run: swift build
       - name: Test
         run: swift test
+
+  macos-ui:
+    name: App and UI tests (macOS)
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: UI tests
+        run: xcodebuild -project Claw.xcodeproj -scheme Claw -destination 'platform=macOS' test

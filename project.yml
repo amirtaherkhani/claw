@@ -1,0 +1,52 @@
+# Xcode project for the bundled app and its UI tests. Regenerate with `xcodegen generate` after changing this file.
+# `Package.swift` stays the source of truth for ClawCore and the CLI; the app here links the package's ClawCore.
+name: Claw
+options:
+  bundleIdPrefix: dev.claw
+  deploymentTarget:
+    macOS: "26.0"
+  createIntermediateGroups: true
+packages:
+  Claw:
+    path: .
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGN_STYLE: Manual
+    ENABLE_USER_SCRIPT_SANDBOXING: true
+targets:
+  Claw:
+    type: application
+    platform: macOS
+    sources:
+      - Sources/ClawApp
+    dependencies:
+      - package: Claw
+        product: ClawCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.claw.app
+        PRODUCT_NAME: Claw
+        GENERATE_INFOPLIST_FILE: true
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: 1
+  ClawUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - Tests/ClawUITests
+    dependencies:
+      - target: Claw
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.claw.uitests
+        GENERATE_INFOPLIST_FILE: true
+schemes:
+  Claw:
+    build:
+      targets:
+        Claw: all
+    test:
+      targets:
+        - ClawUITests
