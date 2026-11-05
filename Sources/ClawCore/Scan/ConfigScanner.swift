@@ -261,15 +261,16 @@ public struct ConfigScanner: Sendable {
                 PluginItem(
                     item: makePluginItem(
                         record: record, classification: classification,
-                        enabled: state.enabled, state: state, problems: problems),
+                        enabled: state.enabled, state: state, problems: problems, declaredIn: declared[id]?.projectPath),
                     record: nil))
         }
         return result
     }
 
+    /// - Parameter declaredIn: the project whose settings name a plugin that has no install record.
     private func makePluginItem(
         record: PluginRecord, classification: Classification, enabled: Bool,
-        state: EffectiveState, problems: [Problem]
+        state: EffectiveState, problems: [Problem], declaredIn: String? = nil
     ) -> Item {
         let scope: ItemScope =
             switch record.scope {
@@ -285,7 +286,7 @@ public struct ConfigScanner: Sendable {
             name: record.name,
             description: record.version.map { "\(record.id) v\($0)" } ?? record.id,
             scope: scope,
-            projectPath: record.projectPath,
+            projectPath: record.projectPath ?? declaredIn,
             classification: classification,
             location: record.readFromFolder ?? record.installPath,
             enabled: enabled,
