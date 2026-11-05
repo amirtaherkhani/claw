@@ -65,7 +65,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | Loop | `roadmap-loop` skill and CLAUDE.md rule | #2 | 2026-11-04 |
 | M0.2, M3 visual check | First Mac session: versions recorded, icon rail and Go menu, layout fix, button hierarchy, plurals | #3 | 2026-11-04 |
 | Close-out | `roadmap-loop` step 10: merge finished branches and remove merged ones after each section | #6 | 2026-11-05 |
-| F9 | Stop returns during a blocked read; reads leave the concurrency pool; `ScanView` says when macOS may be waiting for a prompt | this PR | 2026-11-04 |
+| F9 | Stop returns during a blocked read; reads leave the concurrency pool; `ScanView` says when macOS may be waiting for a prompt | #4 | 2026-11-04 |
 | Stop keeps the queue | `ScanOutcome` in `ClawCore`: only a complete scan prunes the queue, and a stopped scan that found nothing leaves the previous scan on screen | #5 | 2026-11-04 |
 | Scan coverage keeps the queue | `ScanOutcome` prunes a change only if the scan covered its item: a folder scan counts for that folder, a Mac scan for what it read. A plugin declared only in a project's settings now belongs to that project | #8 | 2026-11-05 |
 
