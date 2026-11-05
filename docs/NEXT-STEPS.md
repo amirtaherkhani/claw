@@ -8,7 +8,7 @@ Status on 2026-11-05. Start here when you continue in Claude Code on the Mac. Re
 | :- | :- |
 | M0 Foundations | Done. S1 to S4 and S6 to S9 verified and reviewed. S5 and S10 partial: they need a Mac with a managed profile and a fresh user account |
 | M1 Core read-only | Done: all seven concepts, ownership rules, effective state, projects, progress and Stop, CLI. Exit criteria reported in the M1 close-out |
-| M2 Safe write pipeline | **In progress.** M2.1 to M2.4 done; M2.5 next |
+| M2 Safe write pipeline | **In progress.** M2.1 to M2.6 done; M2.7 next |
 | M3 GUI read-only | Screens done and compared with `docs/design/` on the Mac; text in a String Catalog, XCUITest smoke tests and accessibility audit added. Open: your review of the M3 exit criteria |
 | M4 to M7 | Not started |
 
@@ -80,6 +80,8 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | M2.2 | `AtomicWrite` with the stale-hash check, link and mode handling; SHA-256 in pure Swift, no dependency | #23 | 2026-11-05 |
 | M2.3 | Backup store: private folders, `manifest.json` saved at each step, originals under `files/`, moves under `removed/` with their modes | #24 | 2026-11-05 |
 | M2.4 | `history.jsonl`; recovery of an `in-progress` backup from every step of an Apply, leaving anything someone else changed | #25 | 2026-11-05 |
+| M2.5 | Planner for `setEnabled`: exact before and after bytes per concept, `unknown` controls refused; three controls verified from S1, S2, S7 | #26 | 2026-11-05 |
+| M2.6 | Planner for removal: CLI uninstall keeps data, files move to backup, `.mcp.json` edit or `mcp remove`, hooks checked against the scan; FR-F08 warnings | #27 | 2026-11-05 |
 
 ## Known gaps and decisions to revisit
 
