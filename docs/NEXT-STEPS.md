@@ -1,27 +1,23 @@
 # Next steps (handoff for Claude Code)
 
-Status on 2026-11-04. Start here when you continue in Claude Code on the Mac. Read `CLAUDE.md` first; this file says where things stand and what to do next.
+Status on 2026-11-05. Start here when you continue in Claude Code on the Mac. Read `CLAUDE.md` first; this file says where things stand and what to do next.
 
 ## Where it stands
 
 | Milestone | State |
 | :- | :- |
 | M0 Foundations | Done. Open: M0.6 (spikes S1 to S10), M0.8 (update [U] tags from spike results) |
-| M1 Core read-only | Done: all seven concepts, ownership rules, effective state, projects, progress and Stop, CLI. Open: M1.14 golden fixtures, M1.15 manual comparison on the Mac |
+| M1 Core read-only | Done: all seven concepts, ownership rules, effective state, projects, progress and Stop, CLI. Open: M1.15 manual comparison on the Mac, and the folder scan and symlink gaps under Known gaps |
 | M2 Safe write pipeline | **Next.** Nothing started |
 | M3 GUI read-only | Screens done and compared with `docs/design/` on the Mac. Open: XCUITest smoke tests, accessibility audit, String Catalog |
 | M4 to M7 | Not started |
 
-Code: `amirtaherkhani/claw`, PR #1 (`feat/m0-m1-foundation`), CI green on Linux and macOS (Xcode 26.6, Swift 6.3.3).
+Code: `amirtaherkhani/claw`, `main`, CI green on Linux and macOS.
 
-## First session on the Mac (about 30 minutes)
+## Open before M2
 
-1. Get the code: `git clone https://github.com/amirtaherkhani/claw /Users/mac/Documents/GitHub/claw && cd /Users/mac/Documents/GitHub/claw && git checkout feat/m0-m1-foundation`
-2. Check it: `swift build && swift test && swift run claw scan`
-3. Run the app: `swift run ClawApp`. Walk every screen next to the boards in `docs/design/prototype` (open the Design artifact link in `docs/design/README.md`). Note what differs.
-4. Fill `docs/environment.md` (macOS, Xcode, Swift, `claude --version`).
-5. Compare `claw scan` with Claude Code's own views (`/plugin`, `/skills`, `/mcp`, `/hooks`, `/agents`) for one project; write differences to `docs/compare-m1.md` (M1.15).
-6. Merge PR #1 when you are happy, then branch for M2: `git checkout main && git pull && git checkout -b feat/m2-write-pipeline`.
+1. M1.15: compare `claw scan` with Claude Code's own views (`/plugin`, `/skills`, `/mcp`, `/hooks`, `/agents`) for one project; write the differences to `docs/compare-m1.md`. This reads real config, so the owner picks the project.
+2. The spikes below, each in a throwaway config directory, with the owner reviewing the results.
 
 ## Spikes to run before M2 writes anything
 
@@ -68,6 +64,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | F9 | Stop returns during a blocked read; reads leave the concurrency pool; `ScanView` says when macOS may be waiting for a prompt | #4 | 2026-11-04 |
 | Stop keeps the queue | `ScanOutcome` in `ClawCore`: only a complete scan prunes the queue, and a stopped scan that found nothing leaves the previous scan on screen | #5 | 2026-11-04 |
 | Scan coverage keeps the queue | `ScanOutcome` prunes a change only if the scan covered its item: a folder scan counts for that folder, a Mac scan for what it read. A plugin declared only in a project's settings now belongs to that project | #8 | 2026-11-05 |
+| M1.14 | Fake HOME on a real disk with a symlinked dotfile, hostile ids and a managed layer; golden `ScanResult` for This Mac, one folder and no CLI in `Tests/Goldens` | #9 | 2026-11-05 |
 
 ## Known gaps and decisions to revisit
 
@@ -83,6 +80,10 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 - A complete scan prunes only changes on items it covers (`ScanOutcome`): a project item needs that project read, anything else needs a Mac scan. So a change stays in Review until it is discarded when its folder is no longer scanned (deleted, unregistered, or reached by another path spelling, since paths are compared as written). A folder scan also ignores the plugins and user-level hooks it lists, so a change on a deleted one waits for a Mac scan. M2's stale check must refuse these at Apply too.
 - A thread abandoned by Stop stays blocked until the dialog is answered, and scanning again blocks a new thread on the same file. One thread per press, ended by answering the dialog.
 - Disk calls outside a scan still run on the main actor: `ProjectInspection.inspect` in view bodies and `AppModel.loadProjects`. Listing a protected folder there could hang the window (F9).
+- A folder scan reads more than FR-F02-2 allows: it also lists plugins, user-level hooks and the managed `CLAUDE.md`. It has no bounded walk for nested `.claude/` folders. `Tests/Goldens/folder.json` records today's behaviour, not the spec.
+- FR-F02-5 is not enforced: nothing stops a scan following a symlink out of the scan root.
+- Managed skills are not read (M1.6); the enterprise skills path waits for S10.
+- To accept a scan change on purpose: `CLAW_UPDATE_GOLDENS=1 swift test --filter GoldenTests`, then review the diff in `Tests/Goldens`.
 
 ## Running the loop
 
