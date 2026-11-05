@@ -73,7 +73,7 @@ public struct ProcessRunner: CommandRunner {
 
 /// Resumes a continuation exactly once; later calls are ignored. A value that arrives before the
 /// continuation is set is kept and delivered on `set`.
-private final class ResumeOnce<T: Sendable>: @unchecked Sendable {
+final class ResumeOnce<T: Sendable>: @unchecked Sendable {
     private let lock = NSLock()
     private var continuation: CheckedContinuation<T, Never>?
     private var pending: T?

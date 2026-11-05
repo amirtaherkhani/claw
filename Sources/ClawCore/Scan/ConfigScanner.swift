@@ -27,10 +27,14 @@ public struct ScanProgress: Sendable, Equatable {
 
     public let step: Step
     public let itemCount: Int
+    /// The path of a disk call that has not returned for a while; macOS may be holding it for a privacy
+    /// prompt (`docs/spikes.md` F9).
+    public let waitingOn: String?
 
-    public init(step: Step, itemCount: Int) {
+    public init(step: Step, itemCount: Int, waitingOn: String? = nil) {
         self.step = step
         self.itemCount = itemCount
+        self.waitingOn = waitingOn
     }
 }
 
@@ -38,21 +42,26 @@ public struct ScanProgress: Sendable, Equatable {
 public struct ConfigScanner: Sendable {
     public let environment: ClaudeEnvironment
     public let target: ScanTarget
-    let fs: any ReadonlyFileSystem
+    private(set) var fs: any ReadonlyFileSystem
     private let cli: ClaudeCLI?
+    private let stallThreshold: Duration
 
+    /// - Parameter stallThreshold: how long one disk call may run before progress reports `waitingOn`.
     public init(
         environment: ClaudeEnvironment, target: ScanTarget = .mac,
-        fileSystem: any ReadonlyFileSystem = LocalFileSystem(), cli: ClaudeCLI?
+        fileSystem: any ReadonlyFileSystem = LocalFileSystem(), cli: ClaudeCLI?,
+        stallThreshold: Duration = .seconds(3)
     ) {
         self.environment = environment
         self.target = target
         self.fs = fileSystem
         self.cli = cli
+        self.stallThreshold = stallThreshold
     }
 
-    /// Runs the scan. Reports progress after each step. When the surrounding task is cancelled (Stop),
-    /// it returns what it has so far with `partial == true`.
+    /// Runs the scan. Reports progress after each step, and again when a disk call stalls or recovers.
+    /// When the surrounding task is cancelled (Stop), it returns the finished steps with `partial == true`,
+    /// even if a disk call is blocked.
     public func scan(progress: (@Sendable (ScanProgress) -> Void)? = nil) async -> ScanResult {
         let started = Date()
         var problems: [Problem] = []
@@ -67,20 +76,34 @@ public struct ConfigScanner: Sendable {
                 target: target, startedAt: started, finishedAt: Date(), partial: partial,
                 claudeCodeVersion: version, items: items, problems: problems)
         }
-        func stopped() -> Bool {
-            guard Task.isCancelled else { return false }
+        func stop() -> ScanResult {
             partial = true
             problems.append(Problem(.note, "Scan stopped; the results are incomplete"))
-            return true
+            return finish()
         }
 
-        progress?(ScanProgress(step: .settings, itemCount: 0))
-        let settings = SettingsLoader(fileSystem: fs).loadAll(environment: environment)
-        problems += settings.problems
-        let marketReader = MarketplaceReader(fileSystem: fs)
-        let (markets, marketProblems) = marketReader.readKnown(file: environment.knownMarketplacesFile)
-        problems += marketProblems
-        if stopped() { return finish() }
+        let disk = StoppableFileSystem(fs)
+        let scanner = reading(through: disk)
+        /// Runs one step's disk work off the concurrency pool. `nil` means the scan was stopped.
+        func read<T: Sendable>(_ step: ScanProgress.Step, _ work: @escaping @Sendable () -> T) async -> T? {
+            let update = ScanProgress(step: step, itemCount: items.count)
+            progress?(update)
+            let watcher = watch(disk, update: update, progress: progress)
+            let value = await disk.run(work)
+            watcher.cancel()
+            await watcher.value  // No stall report may arrive after the next step's progress.
+            return value
+        }
+
+        let loaded = await read(.settings) {
+            let settings = SettingsLoader(fileSystem: disk).loadAll(environment: scanner.environment)
+            let known = MarketplaceReader(fileSystem: disk).readKnown(file: scanner.environment.knownMarketplacesFile)
+            return (settings: settings, markets: known.0, marketProblems: known.1)
+        }
+        guard let loaded else { return stop() }
+        let (settings, markets) = (loaded.settings, loaded.markets)
+        problems += settings.problems + loaded.marketProblems
+        if Task.isCancelled { return stop() }
 
         progress?(ScanProgress(step: .claudeCLI, itemCount: 0))
         var installed: [PluginRecord]?
@@ -102,22 +125,63 @@ public struct ConfigScanner: Sendable {
             partial = true
             problems.append(Problem(.note, "claude CLI not used; plugins come from settings only"))
         }
-        if stopped() { return finish() }
+        if Task.isCancelled { return stop() }
 
-        progress?(ScanProgress(step: .plugins, itemCount: items.count))
-        let plugins = pluginItems(installed: installed, layers: settings.layers, markets: markets, reader: marketReader)
+        let records = installed
+        let classified = await read(.plugins) {
+            scanner.pluginItems(
+                installed: records, layers: settings.layers, markets: markets, reader: MarketplaceReader(fileSystem: disk))
+        }
+        guard let plugins = classified else { return stop() }
         items += plugins.map(\.item)
-        if stopped() { return finish() }
+        if Task.isCancelled { return stop() }
 
-        progress?(ScanProgress(step: .skills, itemCount: items.count))
-        items += skillItems(layers: settings.layers, plugins: plugins)
-        if stopped() { return finish() }
+        let skills = await read(.skills) { scanner.skillItems(layers: settings.layers, plugins: plugins) }
+        guard let skills else { return stop() }
+        items += skills
+        if Task.isCancelled { return stop() }
 
-        progress?(ScanProgress(step: .otherConcepts, itemCount: items.count))
-        let concepts = conceptItems(layers: settings.layers, plugins: plugins)
+        let concepts = await read(.otherConcepts) { scanner.conceptItems(layers: settings.layers, plugins: plugins) }
+        guard let concepts else { return stop() }
         items += concepts.items
         problems += concepts.problems
         return finish()
+    }
+
+    /// Last-modified dates of the items' files, keyed by file. Empty when the task is cancelled.
+    public func modificationDates(for items: [Item]) async -> [String: Date] {
+        let disk = StoppableFileSystem(fs)
+        let dates = await disk.run {
+            var dates: [String: Date] = [:]
+            for item in items {
+                let file = ItemPresentation.file(item)
+                if dates[file] == nil, let date = disk.modificationDate(file) { dates[file] = date }
+            }
+            return dates
+        }
+        return dates ?? [:]
+    }
+
+    private func reading(through disk: StoppableFileSystem) -> ConfigScanner {
+        var copy = self
+        copy.fs = disk
+        return copy
+    }
+
+    /// Repeats `update` with `waitingOn` set while a disk call stalls, and clears it when the call returns.
+    private func watch(
+        _ disk: StoppableFileSystem, update: ScanProgress, progress: (@Sendable (ScanProgress) -> Void)?
+    ) -> Task<Void, Never> {
+        let threshold = stallThreshold
+        return Task {
+            var reported: String?
+            while (try? await Task.sleep(for: .milliseconds(250))) != nil {
+                let waiting = disk.path(runningFor: threshold)
+                guard waiting != reported else { continue }
+                reported = waiting
+                progress?(ScanProgress(step: update.step, itemCount: update.itemCount, waitingOn: waiting))
+            }
+        }
     }
 
     // MARK: Plugins

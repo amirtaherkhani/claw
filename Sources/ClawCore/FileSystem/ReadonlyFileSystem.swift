@@ -1,7 +1,8 @@
 import Foundation
 
 /// Everything the scanner may do with the disk. There are no write methods by design:
-/// scanning is read-only by construction (PRD F02).
+/// scanning is read-only by construction (PRD F02). Any call can block with no limit (`docs/spikes.md` F9),
+/// so scans make them through `StoppableFileSystem`, off the Swift concurrency pool.
 public protocol ReadonlyFileSystem: Sendable {
     /// File contents, or `nil` when the file does not exist.
     func readFile(_ path: String) throws -> Data?

@@ -63,7 +63,9 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | :- | :- | :- | :- |
 | M0, M1, M3 screens | Foundation, read-only scanner and CLI, SwiftUI screens, docs and design | #1 | 2026-11-04 |
 | Loop | `roadmap-loop` skill and CLAUDE.md rule | #2 | 2026-11-04 |
-| M0.2, M3 visual check | First Mac session: versions recorded, icon rail and Go menu, layout fix, button hierarchy, plurals | this PR | 2026-11-04 |
+| M0.2, M3 visual check | First Mac session: versions recorded, icon rail and Go menu, layout fix, button hierarchy, plurals | #3 | 2026-11-04 |
+| Close-out | `roadmap-loop` step 10: merge finished branches and remove merged ones after each section | #6 | 2026-11-05 |
+| F9 | Stop returns during a blocked read; reads leave the concurrency pool; `ScanView` says when macOS may be waiting for a prompt | this PR | 2026-11-04 |
 
 ## Known gaps and decisions to revisit
 
@@ -71,10 +73,13 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 - The app uses the system font instead of DM Sans [A]; change `Theme.swift` if you want DM Sans (bundle it, check the licence).
 - Accent is a hex value in code; move it to an `AccentColor` asset when the Xcode app target is added (M6).
 - The scan runs only on demand; there is no file watching yet.
-- A scan can wait without explanation behind the macOS privacy dialog for `~/Documents`, and Stop may not interrupt it [U] (`docs/spikes.md` F9). Fix before release.
 - `swift run ClawApp` has no bundle ID, so UI automation cannot target it, and a rebuilt ad-hoc bundle counts as a new app for privacy prompts. For visual checks, wrap the binary in a scratch `.app` and set `HOME` to a temporary folder with sample config.
 - Name risk: "Claw" vs the OpenClaw project (ADR-0002). Check before a public release.
 - `known_marketplaces.json` nesting and `~/.claude.json` paths are assumptions until S1 and S3.
+- Stop keeps finished steps only. Stopping during the settings step, where F9 happened, gives an empty partial result that replaces the previous scan on screen.
+- Stop can lose queued changes: `AppModel.startScan` prunes the queue against the items of a partial result, so a change whose item was not reached is dropped.
+- A thread abandoned by Stop stays blocked until the dialog is answered, and scanning again blocks a new thread on the same file. One thread per press, ended by answering the dialog.
+- Disk calls outside a scan still run on the main actor: `ProjectInspection.inspect` in view bodies and `AppModel.loadProjects`. Listing a protected folder there could hang the window (F9).
 
 ## Running the loop
 
