@@ -1,0 +1,11 @@
+{
+  "numStartups": 4,
+  "projects": {
+    "/p": {
+      "allowedTools": [],
+      "disabledMcpServers": [
+        "github"
+      ]
+    }
+  }
+}

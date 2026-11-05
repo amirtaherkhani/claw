@@ -146,7 +146,7 @@
       "control" : {
         "key" : "skillOverrides[\"deploy\"]",
         "mechanism" : "skillOverrides",
-        "status" : "unknown"
+        "status" : "verified"
       },
       "description" : "Deploy it",
       "enabled" : true,
@@ -177,7 +177,7 @@
       "control" : {
         "key" : "skillOverrides[\"shared\"]",
         "mechanism" : "skillOverrides",
-        "status" : "unknown"
+        "status" : "verified"
       },
       "description" : "Inside the project",
       "enabled" : true,
@@ -209,7 +209,7 @@
       "control" : {
         "key" : "skillOverrides[\"test\"]",
         "mechanism" : "skillOverrides",
-        "status" : "unknown"
+        "status" : "verified"
       },
       "description" : "Run tests",
       "enabled" : true,
@@ -372,7 +372,7 @@
       "control" : {
         "key" : "disabledMcpjsonServers: db",
         "mechanism" : "disabledMcpjsonServers",
-        "status" : "unknown"
+        "status" : "verified"
       },
       "description" : "stdio · npx",
       "enabled" : true,
@@ -404,7 +404,7 @@
       "control" : {
         "key" : "projects[<path>].disabledMcpServers",
         "mechanism" : "disabledMcpServers",
-        "status" : "unknown"
+        "status" : "verified"
       },
       "description" : "stdio · tool",
       "enabled" : true,
@@ -436,7 +436,7 @@
       "control" : {
         "key" : "disabledMcpjsonServers: off-server",
         "mechanism" : "disabledMcpjsonServers",
-        "status" : "unknown"
+        "status" : "verified"
       },
       "description" : "stdio · x",
       "enabled" : false,
@@ -469,7 +469,7 @@
       "control" : {
         "key" : "projects[<path>].disabledMcpServers",
         "mechanism" : "disabledMcpServers",
-        "status" : "unknown"
+        "status" : "verified"
       },
       "description" : "http · api.example.com",
       "enabled" : true,
@@ -503,7 +503,7 @@
       "control" : {
         "key" : "disabledMcpjsonServers: unapproved",
         "mechanism" : "disabledMcpjsonServers",
-        "status" : "unknown"
+        "status" : "verified"
       },
       "description" : "http · new.example.com",
       "enabled" : false,

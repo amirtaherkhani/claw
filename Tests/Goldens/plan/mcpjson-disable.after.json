@@ -1,0 +1,8 @@
+{
+  "enabledMcpjsonServers": [
+    "db"
+  ],
+  "disabledMcpjsonServers": [
+    "db"
+  ]
+}

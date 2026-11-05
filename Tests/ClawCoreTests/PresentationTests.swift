@@ -42,7 +42,19 @@ struct PresentationTests {
         #expect(queue.isEmpty)
     }
 
-    @Test("Previews per mechanism, removal, unverified note")
+    @Test("A control not verified yet says so in the preview")
+    func unverifiedNote() {
+        let unverified = Item(
+            concept: .commands, key: "x", name: "/x", description: "", scope: .user,
+            classification: Classification(ownership: .personal, rule: "T", evidence: []), location: "/h/x.md", enabled: true,
+            control: ControlRef(mechanism: .skillOverrides, key: "skillOverrides[\"x\"]", status: .unknown),
+            capabilities: .forOwnership(.personal, isPlugin: false))
+        var queue = ChangeQueue()
+        queue.toggle(unverified, writeScope: WriteScope(scope: .user, file: "/h/.claude/settings.json"), home: "/h")
+        #expect(queue.changes[0].notes.contains { $0.contains("not verified") })
+    }
+
+    @Test("Previews per mechanism, removal")
     func previews() async throws {
         let all = await items()
         var queue = ChangeQueue()
@@ -59,7 +71,7 @@ struct PresentationTests {
         #expect(texts[1].contains("/p/CLAUDE.md"))
         #expect(texts[2].contains("stash"))
         #expect(texts[3].contains("\"deploy\": \"off\""))
-        #expect(queue.changes[3].notes.contains { $0.contains("not verified") })
+        #expect(!queue.changes[3].notes.contains { $0.contains("not verified") })
         #expect(queue.changes[4].action == .remove)
         #expect(queue.changes[4].target == "/p/.claude/commands/test.md")
         #expect(texts[4].contains("never hard-deleted"))

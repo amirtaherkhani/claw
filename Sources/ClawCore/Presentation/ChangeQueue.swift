@@ -177,7 +177,7 @@ public struct ChangeQueue: Sendable, Equatable {
     }
 
     /// Plugin id from the control key `enabledPlugins["id"]`, or the item name.
-    private static func idOf(_ item: Item) -> String {
+    static func idOf(_ item: Item) -> String {
         let key = item.control.key
         guard let open = key.range(of: "[\""), let close = key.range(of: "\"]", options: .backwards),
             open.upperBound <= close.lowerBound
