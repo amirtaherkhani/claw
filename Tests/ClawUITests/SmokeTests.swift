@@ -64,7 +64,8 @@ final class SmokeTests: XCTestCase {
             return true
         case .sufficientElementDescription:
             // The window and split view containers: VoiceOver reads the controls inside them, not the group.
-            return issue.element?.elementType == .group
+            // On CI the virtual Touch Bar also appears: a system element with nothing of Claw's in it.
+            return issue.element?.elementType == .group || issue.element?.elementType == .touchBar
         case .action:
             // The system toolbar `Menu`.
             return issue.element?.elementType == .menuButton
@@ -125,21 +126,21 @@ final class SmokeTests: XCTestCase {
 
     func testEveryPagePassesTheAccessibilityAudit() throws {
         scan()
+        // Collected rather than failed one by one: the audit stops at the first finding it is told to report,
+        // and its own message does not say which element it means.
+        var unexplained: [String] = []
         for page in Self.pages {
             open(page)
             try app.performAccessibilityAudit { issue in
-                let explained = Self.isExplained(issue)
-                if !explained {
-                    // The audit's own failure message does not say which element it means.
+                if !Self.isExplained(issue) {
                     let element = issue.element
-                    print(
-                        "Audit on \(page): \(issue.compactDescription), \(issue.detailedDescription),",
-                        "\(element?.description ?? "no element"), frame \(element?.frame ?? .zero),",
-                        "identifier '\(element?.identifier ?? "")', label '\(element?.label ?? "")',",
-                        "children \(element?.children(matching: .any).count ?? -1)")
+                    unexplained.append(
+                        "\(page): \(issue.compactDescription), \(element?.description ?? "no element"), "
+                            + "frame \(element?.frame ?? .zero), label '\(element?.label ?? "")'")
                 }
-                return explained
+                return true
             }
         }
+        XCTAssertEqual(unexplained, [], unexplained.joined(separator: "\n"))
     }
 }

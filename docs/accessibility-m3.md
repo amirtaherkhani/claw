@@ -10,6 +10,7 @@
 | Window and split view groups with no description | 22 | Accepted: layout containers. VoiceOver reads the controls inside |
 | System toolbar `Menu` reports a missing action | 11 | Accepted: a system control. It was also named "folder", the icon's name; it now has a label and the project as its value |
 | Parent/child mismatch on a 14-point group at the window's top left | CI only | Accepted, on macOS 26 runners and not on macOS 27.2: the size and place of a system window button. Claw has no such element, but the element was identified by its frame, not by name |
+| Virtual Touch Bar with no description | CI only | Accepted: a system element on the runner |
 | Contrast failed or nearly passed | 51 | Excluded from the test, not closed; see below |
 
 Any other finding fails the test.
