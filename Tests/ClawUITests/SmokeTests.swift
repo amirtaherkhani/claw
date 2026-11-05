@@ -68,6 +68,9 @@ final class SmokeTests: XCTestCase {
         case .action:
             // The system toolbar `Menu`.
             return issue.element?.elementType == .menuButton
+        case .parentChild:
+            // Seen on macOS 26 only: a 14-point group at the window's top left, the size of a window button.
+            return issue.element?.elementType == .group && issue.element?.frame.size == CGSize(width: 14, height: 14)
         default:
             return false
         }
