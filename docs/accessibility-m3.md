@@ -20,6 +20,6 @@ Every text colour was computed against canvas, panel and rail backgrounds: the l
 ## Not verified
 
 - A VoiceOver walk-through by a person. The audit reads the accessibility tree; it does not listen.
-- The keyboard-only walk-through in the M3 exit criteria. The Go menu reaches every page with ⌘1 to ⌘9; Tab order was not checked.
+- Part of the keyboard-only walk-through in the M3 exit criteria. Tested: ⌘R scans, ⌘1 to ⌘9 open pages, Esc closes a sheet. Not tested: opening an owner group, moving through the list and opening Detail, which need Tab to reach buttons. That depends on the macOS Keyboard navigation setting, which tests must not change. Hooks and History have no number shortcut; the Go menu reaches them.
 - Reduce Transparency, Increase Contrast and larger text.
 - Sheets: Add plugin opens in a test but is not audited, and neither are Review and Detail.

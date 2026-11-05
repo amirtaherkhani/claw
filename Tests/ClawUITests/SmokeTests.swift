@@ -89,6 +89,27 @@ final class SmokeTests: XCTestCase {
         XCTAssertTrue(text("sample").waitForExistence(timeout: 5))
     }
 
+    /// What the keyboard reaches with default system settings; `docs/accessibility-m3.md` lists what is left.
+    func testKeyboardScansAndOpensPages() {
+        app.typeKey("r", modifierFlags: .command)
+        XCTAssertTrue(text("items enabled").waitForExistence(timeout: 40), "the scan did not finish")
+
+        let pages = ["2": "Scan all configuration", "3": "Manage project folders", "5": "Skills", "1": "items enabled"]
+        for (key, expected) in pages {
+            app.typeKey(key, modifierFlags: .command)
+            XCTAssertTrue(text(expected).waitForExistence(timeout: 5), "command-\(key) did not open \(expected)")
+        }
+    }
+
+    func testEscapeClosesTheAddPluginSheet() {
+        open("Plugins")
+        app.buttons["Add plugin…"].firstMatch.click()
+        let close = app.buttons["Close"].firstMatch
+        XCTAssertTrue(close.waitForExistence(timeout: 5))
+        app.typeKey(.escape, modifierFlags: [])
+        XCTAssertTrue(close.waitForNonExistence(timeout: 5), "Escape did not close the sheet")
+    }
+
     func testAddPluginSheetOpensAndCloses() {
         open("Plugins")
         let add = app.buttons["Add plugin…"].firstMatch
