@@ -28,7 +28,9 @@ struct ConceptView: View {
                     description: Text(
                         model.result == nil
                             ? "Run a scan to see your \(ItemPresentation.conceptTitle(concept).lowercased())."
-                            : "No \(ItemPresentation.conceptTitle(concept).lowercased()) on this Mac or in your projects."))
+                            : "No \(ItemPresentation.conceptTitle(concept).lowercased()) on this Mac or in your projects.")
+                )
+                .centeredEmptyState()
             } else {
                 FlowView(flow: SourceFlow.sources(of: items)) { node in bucket = node.bucket }
                     .panel()
