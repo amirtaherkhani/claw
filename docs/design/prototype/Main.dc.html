@@ -9,7 +9,7 @@
 <x-dc>
 <helmet>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Instrument+Serif:ital@0;1&display=swap');
 body{margin:0}
 button,a,input{font-family:inherit}
 input::placeholder{color:#7E7E84}
@@ -23,7 +23,7 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
 *{scrollbar-color:#2A2A2E transparent}
 </style>
 </helmet>
-<div style="--acc:#D4F53C;--acc-a12:rgba(212,245,60,0.12);--acc-a35:rgba(212,245,60,0.35);width:1360px;height:820px;box-sizing:border-box;position:relative;background:#0B0B0C;border:1px solid #1C1C1F;border-radius:20px;overflow:hidden;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif;color:#F2F2F3;font-size:13px;color-scheme:dark">
+<div style="--acc:#D4F53C;--num:'Bebas Neue','Arial Narrow',Impact,sans-serif;--ser:'Instrument Serif',Georgia,serif;--acc-a12:rgba(212,245,60,0.12);--acc-a35:rgba(212,245,60,0.35);width:1360px;height:820px;box-sizing:border-box;position:relative;background:#0B0B0C;border:1px solid #1C1C1F;border-radius:20px;overflow:hidden;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif;color:#F2F2F3;font-size:13px;color-scheme:dark">
 
   <div style="position:absolute;left:14px;top:14px;display:flex;gap:8px;z-index:30">
     <span style="width:12px;height:12px;border-radius:50%;background:#FF5F57"></span>
@@ -87,7 +87,7 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
 
     <div style="position:absolute;top:10px;left:14px;right:14px;height:50px;box-sizing:border-box;border-radius:16px;background:#141416;border:1px solid #232327;display:flex;align-items:center;gap:18px;padding:0 16px;z-index:10">
       <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px">
-        <div style="font-size:12.5px;color:#9A9AA0;white-space:nowrap"><span style="font-weight:700;color:#FFFFFF">{{ barEnabled }}</span> of {{ barTotal }} items enabled<span style="color:#6E6E74"> · {{ barPending }}</span></div>
+        <div style="font-size:12.5px;color:#9A9AA0;white-space:nowrap"><span style="font-family:var(--num);font-size:18px;line-height:1;color:#FFFFFF">{{ barEnabled }}</span> of <span style="font-family:var(--num);font-size:18px;line-height:1;color:#FFFFFF">{{ barTotal }}</span> items enabled<span style="color:#6E6E74"> · <span style="font-family:var(--num);font-size:18px;line-height:1">{{ barPending.num }}</span>{{ barPending.txt }}</span></div>
         <div style="height:6px;border-radius:3px;background:#2A2A2E;overflow:hidden"><div style="height:6px;border-radius:3px;background:#FFFFFF;{{ barFill }}"></div></div>
       </div>
       <div style="display:flex;gap:2px;padding:2px;border-radius:999px;background:#1C1C1F">
@@ -95,7 +95,7 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
         <button onClick="{{ scopeBtn.project.go }}" style="height:24px;padding:0 12px;border:0;border-radius:999px;font-size:12px;cursor:pointer;{{ scopeBtn.project.style }}">Project</button>
         <button onClick="{{ scopeBtn.local.go }}" style="height:24px;padding:0 12px;border:0;border-radius:999px;font-size:12px;cursor:pointer;{{ scopeBtn.local.style }}">Local</button>
       </div>
-      <span style="font-size:11.5px;color:#7E7E84;white-space:nowrap">Last backup 9 hr. ago</span>
+      <span style="font-size:11.5px;color:#7E7E84;white-space:nowrap">Last backup <span style="font-family:var(--num);font-size:16px;line-height:1;color:#C8C8CD">9</span> hr. ago</span>
       <sc-if value="{{ hasPending }}" hint-placeholder-val="{{ true }}">
         <a href="Review.dc.html" style="font-size:12.5px;font-weight:700;color:var(--acc);text-decoration:none;white-space:nowrap">{{ pendingLabel }}</a>
       </sc-if>
@@ -105,8 +105,8 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
 
     <sc-if value="{{ hasHeader }}" hint-placeholder-val="{{ true }}">
       <div style="position:absolute;left:48px;top:78px;z-index:2">
-        <div style="font-size:30px;font-weight:400;letter-spacing:-0.01em;color:#FFFFFF;line-height:1.1">{{ pageTitle }}</div>
-        <div style="margin-top:8px;font-size:13px;color:#8E8E93">{{ pageSub }} <a href="Review.dc.html" style="color:#8E8E93;text-decoration:none">{{ pageSubLink }}</a></div>
+        <div style="font-size:30px;font-weight:400;letter-spacing:-0.01em;color:#FFFFFF;line-height:1.1">{{ titleP.lead }} <span style="font-family:var(--ser);font-style:italic;font-size:37px;letter-spacing:0">{{ titleP.accent }}</span></div>
+        <div style="margin-top:8px;font-size:13px;color:#8E8E93"><span style="font-family:var(--num);font-size:19px;line-height:1;color:#F2F2F3">{{ pageSub.num }}</span>{{ pageSub.txt }} <a href="Review.dc.html" style="color:#8E8E93;text-decoration:none">{{ pageSubLink }}</a></div>
       </div>
       <div style="position:absolute;right:48px;top:84px;text-align:right;z-index:2">
         <div style="font-size:12px;color:#8E8E93">Writes to <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;color:#D8D8DC">{{ scopeFile }}</span></div>
@@ -123,14 +123,14 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
         <sc-for list="{{ ring }}" as="p" hint-placeholder-count="4">
           <span class="pt" style="{{ p.s }}"></span>
         </sc-for>
-        <div style="position:absolute;left:210px;top:282px;width:520px;text-align:center">
-          <div style="line-height:1"><span style="font-size:116px;font-weight:300;letter-spacing:-0.03em;color:#FFFFFF">{{ barEnabled }}</span><span style="font-size:30px;font-weight:400;color:#8E8E93;margin-left:12px">of {{ barTotal }}</span></div>
-          <div style="margin-top:22px;font-size:14px;letter-spacing:0.22em;color:#C8C8CD">ENABLED</div>
-          <div style="margin-top:14px;font-size:13px;color:#77777C">{{ barTotal }} items across 7 types</div>
+        <div style="position:absolute;left:210px;top:278px;width:520px;text-align:center">
+          <div style="line-height:0.8"><span style="font-family:var(--num);font-size:176px;font-weight:400;color:#FFFFFF">{{ barEnabled }}</span><span style="font-family:var(--ser);font-style:italic;font-size:38px;font-weight:400;color:#8E8E93;margin-left:12px">of</span><span style="font-family:var(--num);font-size:68px;font-weight:400;color:#8E8E93;margin-left:8px">{{ barTotal }}</span></div>
+          <div style="margin-top:18px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;letter-spacing:0.28em;color:#C8C8CD">ENABLED</div>
+          <div style="margin-top:14px;font-size:13px;color:#8E8E93"><span style="font-family:var(--num);font-size:19px;line-height:1;color:#F2F2F3">{{ barTotal }}</span> items across <span style="font-family:var(--num);font-size:19px;line-height:1;color:#F2F2F3">7</span> types</div>
         </div>
         <div style="position:absolute;left:880px;top:312px;width:340px">
-          <div style="font-size:36px;font-weight:400;color:#FFFFFF;line-height:1.1">{{ headline }}</div>
-          <div style="margin-top:12px;font-size:12px;color:#77777C">Last read 3 min. ago · {{ scope }} scope</div>
+          <div style="font-size:36px;font-weight:400;color:#FFFFFF;line-height:1.1"><span style="font-family:var(--num);font-size:64px;line-height:0.9">{{ headlineNum }}</span> {{ headlineLead }} <span style="font-family:var(--ser);font-style:italic;font-size:44px">{{ headlineAccent }}</span></div>
+          <div style="margin-top:12px;font-size:12px;color:#8E8E93">Last read <span style="font-family:var(--num);font-size:17px;line-height:1;color:#F2F2F3">3</span> min. ago · {{ scope }} scope</div>
           <sc-if value="{{ hasPending }}" hint-placeholder-val="{{ true }}">
             <a href="Review.dc.html" style="margin-top:26px;display:inline-flex;align-items:center;gap:10px;height:44px;padding:0 26px;border:1.5px solid #E8E8EA;border-radius:999px;color:#FFFFFF;font-size:14.5px;font-weight:500;text-decoration:none">{{ pendingLabel }} <span aria-hidden="true">→</span></a>
           </sc-if>
@@ -138,13 +138,13 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
             <button onClick="{{ rescan }}" style="display:inline-flex;align-items:center;gap:10px;height:44px;padding:0 26px;border-radius:999px;background:transparent;font-size:14.5px;font-weight:500;cursor:pointer;{{ ovScanBtn }}">Scan all <span aria-hidden="true">→</span></button>
           </div>
         </div>
-        <div style="position:absolute;left:84px;top:690px">
-          <div style="font-size:26px;color:#FFFFFF">{{ editableCount }}</div>
+        <div style="position:absolute;left:84px;top:672px">
+          <div style="font-family:var(--num);font-size:60px;line-height:0.88;color:#FFFFFF">{{ editableCount }}</div>
           <div style="margin-top:4px;font-size:13px;color:#8E8E93">items you own and can edit</div>
         </div>
-        <div style="position:absolute;left:520px;top:690px">
-          <div style="font-size:26px;color:#FFFFFF">8</div>
-          <div style="margin-top:4px;font-size:13px;color:#8E8E93">changes applied <span style="color:#6E6E74">· 7 days</span></div>
+        <div style="position:absolute;left:520px;top:672px">
+          <div style="font-family:var(--num);font-size:60px;line-height:0.88;color:#FFFFFF">8</div>
+          <div style="margin-top:4px;font-size:13px;color:#8E8E93">changes applied <span style="color:#8E8E93">· <span style="font-family:var(--num);font-size:19px;line-height:1;color:#C8C8CD">7</span> days</span></div>
           <div style="margin-top:10px;display:flex;gap:5px">
             <sc-for list="{{ weekBars }}" as="w" hint-placeholder-count="7">
               <span style="{{ w.s }}"></span>
@@ -152,9 +152,9 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
           </div>
         </div>
         <div style="position:absolute;left:940px;top:696px;width:300px;font-size:12px">
-          <div style="display:flex;align-items:center;gap:8px;color:#7E7E84;letter-spacing:0.12em;font-size:11px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>BACKUP</div>
+          <div style="display:flex;align-items:center;gap:8px;color:#7E7E84;font-family:ui-monospace,'SF Mono',Menlo,monospace;letter-spacing:0.2em;font-size:11px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>BACKUP</div>
           <div style="margin-top:8px;display:flex;gap:14px"><span style="width:44px;color:#6E6E74">Next</span><span style="color:#C8C8CD">Before every apply</span></div>
-          <div style="margin-top:5px;display:flex;gap:14px"><span style="width:44px;color:#6E6E74">Recent</span><span style="color:#C8C8CD">11:44 PM <span style="color:#6E6E74">·</span> Applied <span style="color:#6E6E74">·</span> 2 changes</span></div>
+          <div style="margin-top:5px;display:flex;gap:14px"><span style="width:44px;color:#6E6E74">Recent</span><span style="color:#C8C8CD">11:44 PM <span style="color:#6E6E74">·</span> Applied <span style="color:#6E6E74">·</span> <span style="font-family:var(--num);font-size:17px;line-height:1;color:#F2F2F3">2</span> changes</span></div>
         </div>
       </div>
     </sc-if>
@@ -166,7 +166,7 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
         </sc-for>
         <sc-for list="{{ lnodes }}" as="n" hint-placeholder-count="3">
           <div>
-            <div style="{{ n.wrap }}"><span style="font-size:13px;font-weight:600;color:#E8E8EA">{{ n.name }}</span><span style="font-size:11.5px;color:#8E8E93;margin-top:2px">{{ n.sub }}</span></div>
+            <div style="{{ n.wrap }}"><span style="font-size:13px;font-weight:600;color:#E8E8EA">{{ n.name }}</span><span style="font-size:11.5px;color:#8E8E93;margin-top:2px"><span style="font-family:var(--num);font-size:17px;line-height:1;color:#F2F2F3">{{ n.subP.num }}</span>{{ n.subP.txt }}</span></div>
             <span style="{{ n.bar }}"></span>
           </div>
         </sc-for>
@@ -175,7 +175,7 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
             <span style="{{ r.bar }}"></span>
             <span style="display:flex;flex-direction:column;gap:3px;align-items:flex-start;padding-left:20px">
               <span style="font-size:14px;font-weight:600;color:#FFFFFF;display:flex;align-items:center;gap:6px">{{ r.name }}<span style="color:#8E8E93;font-weight:400">›</span></span>
-              <span style="font-size:12px;color:#8E8E93">{{ r.sub }}</span>
+              <span style="font-size:12px;color:#8E8E93"><span style="font-family:var(--num);font-size:18px;line-height:1;color:#F2F2F3">{{ r.subP.num }}</span>{{ r.subP.txt }}</span>
             </span>
           </button>
         </sc-for>
@@ -191,11 +191,11 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
 
     <sc-if value="{{ isProjects }}" hint-placeholder-val="{{ false }}">
       <div style="position:absolute;left:48px;top:78px;z-index:2">
-        <div style="font-size:30px;font-weight:400;letter-spacing:-0.01em;color:#FFFFFF;line-height:1.1">Manage project folders</div>
-        <div style="margin-top:8px;font-size:13px;color:#8E8E93">{{ projSub }}</div>
+        <div style="font-size:30px;font-weight:400;letter-spacing:-0.01em;color:#FFFFFF;line-height:1.1">Manage project <span style="font-family:var(--ser);font-style:italic;font-size:37px;letter-spacing:0">folders</span></div>
+        <div style="margin-top:8px;font-size:13px;color:#8E8E93"><span style="font-family:var(--num);font-size:19px;line-height:1;color:#F2F2F3">{{ projSub.num }}</span>{{ projSub.txt }}</div>
       </div>
       <div style="position:absolute;right:48px;top:84px;text-align:right;z-index:2">
-        <div style="font-size:13px;color:#D8D8DC">{{ projR1 }}</div>
+        <div style="font-size:13px;color:#D8D8DC"><span style="font-family:var(--num);font-size:19px;line-height:1;color:#FFFFFF">{{ projR1.num }}</span>{{ projR1.txt }}</div>
         <div style="margin-top:6px;font-size:11.5px;color:#8E8E93">Writes only inside folders you add</div>
       </div>
       <div style="position:absolute;left:48px;right:48px;top:150px;bottom:24px;display:flex;flex-direction:column;gap:14px">
@@ -213,7 +213,7 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
                   </div>
                   <div style="margin-top:3px;font-size:12px;color:#8E8E93;font-family:ui-monospace,'SF Mono',Menlo,monospace">{{ p.path }}</div>
                 </div>
-                <div style="flex:none;min-width:130px;text-align:right;font-size:12px;color:#8E8E93">{{ p.stat }}</div>
+                <div style="flex:none;min-width:130px;text-align:right;font-size:12px;color:#8E8E93"><span style="font-family:var(--num);font-size:20px;line-height:1;color:#F2F2F3">{{ p.statP.num }}</span>{{ p.statP.txt }}</div>
                 <sc-if value="{{ p.canActivate }}" hint-placeholder-val="{{ false }}">
                   <button onClick="{{ p.makeActive }}" style="flex:none;height:32px;padding:0 6px;border:0;background:transparent;color:var(--acc);font-size:12.5px;font-weight:600;cursor:pointer">Make active</button>
                 </sc-if>
@@ -226,7 +226,7 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
         </sc-if>
         <button onClick="{{ openAddProj }}" aria-label="Add a project folder" style="flex:1;min-height:200px;padding:0;border:1.5px dashed #2E2E32;border-radius:24px;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;cursor:pointer;color:inherit">
           <span style="width:80px;height:80px;border-radius:50%;background:#18181A;display:flex;align-items:center;justify-content:center;color:#9A9AA0"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7zM12 11v5M9.5 13.5h5"></path></svg></span>
-          <span style="margin-top:6px;font-size:20px;font-weight:700;color:#FFFFFF">Drop a project folder here</span>
+          <span style="margin-top:6px;font-size:20px;font-weight:700;color:#FFFFFF">Drop a project folder <span style="font-family:var(--ser);font-style:italic;font-size:25px;font-weight:400">here</span></span>
           <span style="font-size:13px;font-weight:600;color:var(--acc)">or Browse…</span>
           <span style="max-width:440px;text-align:center;font-size:12px;line-height:1.5;color:#7E7E84">A project folder is any folder with .claude/, .mcp.json or CLAUDE.md. The app only reads it until you change something.</span>
         </button>
@@ -235,11 +235,11 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
 
     <sc-if value="{{ isScan }}" hint-placeholder-val="{{ false }}">
       <div style="position:absolute;left:48px;top:78px;z-index:2">
-        <div style="font-size:30px;font-weight:400;letter-spacing:-0.01em;color:#FFFFFF;line-height:1.1">Scan all configuration</div>
+        <div style="font-size:30px;font-weight:400;letter-spacing:-0.01em;color:#FFFFFF;line-height:1.1">Scan all <span style="font-family:var(--ser);font-style:italic;font-size:37px;letter-spacing:0">configuration</span></div>
         <div style="margin-top:8px;font-size:13px;color:#8E8E93">{{ scanSub }}</div>
       </div>
       <div style="position:absolute;right:48px;top:84px;text-align:right;z-index:2">
-        <div style="font-size:13px;color:#D8D8DC">{{ scanR1 }}</div>
+        <div style="font-size:13px;color:#D8D8DC"><span style="font-family:var(--num);font-size:19px;line-height:1;color:#FFFFFF">{{ scanR1.num }}</span>{{ scanR1.txt }}</div>
         <div style="margin-top:6px;font-size:11.5px;color:#8E8E93;display:flex;align-items:center;gap:6px;justify-content:flex-end">
           <sc-if value="{{ scanLive }}" hint-placeholder-val="{{ false }}">
             <span style="width:6px;height:6px;border-radius:50%;background:var(--acc)"></span>
@@ -264,7 +264,7 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
         </sc-for>
         <sc-for list="{{ sL }}" as="n" hint-placeholder-count="3">
           <div>
-            <div style="{{ n.wrap }}"><span style="font-size:13px;font-weight:600;{{ n.nameStyle }}">{{ n.name }}</span><span style="font-size:11.5px;color:#8E8E93;margin-top:2px">{{ n.sub }}</span></div>
+            <div style="{{ n.wrap }}"><span style="font-size:13px;font-weight:600;{{ n.nameStyle }}">{{ n.name }}</span><span style="font-size:11.5px;color:#8E8E93;margin-top:2px"><span style="font-family:var(--num);font-size:17px;line-height:1;color:#F2F2F3">{{ n.subP.num }}</span>{{ n.subP.txt }}</span></div>
             <span style="{{ n.bar }}"></span>
           </div>
         </sc-for>
@@ -273,7 +273,7 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
             <span style="{{ r.bar }}"></span>
             <span style="display:flex;flex-direction:column;gap:3px;align-items:flex-start;padding-left:20px">
               <span style="font-size:14px;font-weight:600;color:#FFFFFF;display:flex;align-items:center;gap:6px">{{ r.name }}<span style="color:#8E8E93;font-weight:400">›</span></span>
-              <span style="font-size:12px;color:#8E8E93">{{ r.sub }}</span>
+              <span style="font-size:12px;color:#8E8E93"><span style="font-family:var(--num);font-size:18px;line-height:1;color:#F2F2F3">{{ r.subP.num }}</span>{{ r.subP.txt }}</span>
             </span>
           </button>
         </sc-for>
@@ -284,7 +284,7 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
       <sc-if value="{{ scanRunning }}" hint-placeholder-val="{{ false }}">
         <div style="position:absolute;left:0;right:0;bottom:92px;display:flex;align-items:center;justify-content:center;gap:12px">
           <div style="width:360px;height:4px;border-radius:2px;background:#2A2A2E;overflow:hidden"><div style="height:4px;border-radius:2px;background:#FFFFFF;{{ scanFill }}"></div></div>
-          <span style="width:36px;font-size:12px;color:#8E8E93">{{ scanPct }}</span>
+          <span style="width:44px;font-family:var(--num);font-size:24px;line-height:1;color:#C8C8CD">{{ scanPct }}</span>
         </div>
       </sc-if>
       <div style="position:absolute;left:0;right:0;bottom:26px;display:flex;justify-content:center;gap:10px">
@@ -304,7 +304,7 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
                 <span style="{{ b.bar }}"></span>
                 <span style="flex:1;min-width:0">
                   <span style="display:block;font-size:15px;font-weight:700;{{ b.nameStyle }}">{{ b.name }}</span>
-                  <span style="display:block;font-size:12px;color:#7E7E84;margin-top:2px">{{ b.sub }}</span>
+                  <span style="display:block;font-size:12px;color:#8E8E93;margin-top:2px"><span style="font-family:var(--num);font-size:18px;line-height:1;color:#F2F2F3">{{ b.subP.num }}</span>{{ b.subP.txt }}</span>
                 </span>
                 <span style="color:#6E6E74;font-size:16px">{{ b.chev }}</span>
               </button>
@@ -326,7 +326,7 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
           <div style="display:flex;align-items:center;gap:10px;min-height:44px">
             <span style="width:8px;height:8px;border-radius:50%;{{ curDot }}"></span>
             <span style="font-size:17px;font-weight:700;color:#FFFFFF">{{ curName }}</span>
-            <span style="font-size:13px;color:#8E8E93">{{ curCount }}</span>
+            <span style="font-size:13px;color:#8E8E93"><span style="font-family:var(--num);font-size:26px;line-height:1;color:#FFFFFF">{{ curCount.num }}</span>{{ curCount.txt }}</span>
             <span style="flex:1"></span>
             <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ false }}">
               <button onClick="{{ bulkRemove }}" style="height:40px;padding:0 22px;border:1.5px solid #6B3A33;border-radius:999px;background:transparent;color:#FF8F85;font-size:14px;font-weight:500;cursor:pointer">{{ removeLabel }}</button>
@@ -378,7 +378,7 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
           <div style="flex:none;display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-top:1px solid #1E1E21">
             <button role="checkbox" aria-checked="{{ allChecked }}" aria-label="Select all" onClick="{{ toggleAll }}" style="{{ allStyle }}">{{ allMark }}</button>
             <span style="font-size:13px;font-weight:700;color:#FFFFFF">Select all</span>
-            <span style="font-size:12px;color:#8E8E93">{{ selSummary }}</span>
+            <span style="font-size:12px;color:#8E8E93"><span style="font-family:var(--num);font-size:18px;line-height:1;color:#F2F2F3">{{ selSummary.num }}</span>{{ selSummary.txt }}</span>
           </div>
         </div>
       </div>
@@ -396,7 +396,7 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
         <div style="position:absolute;top:96px;left:50%;margin-left:-350px;width:700px;max-height:640px;box-sizing:border-box;border-radius:20px;background:#121214;border:1px solid #28282C;box-shadow:0 30px 80px rgba(0,0,0,0.6);display:flex;flex-direction:column;overflow:hidden">
           <div style="display:flex;align-items:flex-start;gap:12px;padding:22px 24px 0">
             <div style="flex:1;min-width:0">
-              <div style="font-size:24px;font-weight:400;color:#FFFFFF;letter-spacing:-0.01em">Add project folder</div>
+              <div style="font-size:24px;font-weight:400;color:#FFFFFF;letter-spacing:-0.01em">Add project <span style="font-family:var(--ser);font-style:italic;font-size:30px;letter-spacing:0">folder</span></div>
               <div style="margin-top:6px;font-size:13px;color:#8E8E93">The app reads the folder first. Nothing is added until you confirm.</div>
             </div>
             <button onClick="{{ closeAddP }}" style="height:20px;padding:0 8px;border:0;border-radius:6px;background:#26262A;color:#8E8E93;font-size:10.5px;cursor:pointer">esc</button>
@@ -409,8 +409,8 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
             </div>
 
             <div style="display:flex;align-items:center;margin:22px 0 8px">
-              <span style="flex:1;font-size:11px;font-weight:600;color:#7E7E84;letter-spacing:0.1em;text-transform:uppercase">Found in this folder</span>
-              <span style="font-size:12px;color:var(--acc)">{{ apFound }}</span>
+              <span style="flex:1;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;font-weight:500;color:#7E7E84;letter-spacing:0.18em;text-transform:uppercase">Found in this folder</span>
+              <span style="font-size:12px;color:var(--acc)"><span style="font-family:var(--num);font-size:18px;line-height:1">{{ apFound.num }}</span>{{ apFound.txt }}</span>
             </div>
             <div style="border:1px solid #232327;border-radius:16px;overflow:hidden;background:#0E0E10">
               <sc-for list="{{ arows }}" as="a" hint-placeholder-count="3">
@@ -456,14 +456,14 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
               <button onClick="{{ c.go }}" style="height:26px;padding:0 14px;border:0;border-radius:999px;font-size:12px;cursor:pointer;{{ c.style }}">{{ c.label }}</button>
             </sc-for>
           </div>
-          <div style="padding:12px 18px 10px;font-size:12.5px;color:#9A9AA0;border-bottom:1px solid #1E1E21">{{ histCount }}</div>
+          <div style="padding:12px 18px 10px;font-size:12.5px;color:#9A9AA0;border-bottom:1px solid #1E1E21"><span style="font-family:var(--num);font-size:22px;line-height:1;color:#FFFFFF">{{ histCount.num }}</span>{{ histCount.txt }}</div>
           <div style="flex:1;min-height:0;overflow:auto;padding:6px 10px">
             <sc-for list="{{ hrows }}" as="h" hint-placeholder-count="4">
               <div class="rw" style="display:flex;align-items:center;gap:14px;padding:10px 10px;border-radius:12px">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><circle cx="12" cy="12" r="8"></circle><path d="M9 12.5l2 2 4-4.5"></path></svg>
                 <div style="flex:1;min-width:0">
                   <div style="font-size:14px;font-weight:700;color:#FFFFFF">{{ h.title }}</div>
-                  <div style="margin-top:3px;font-size:12px;color:#8E8E93">{{ h.sub }}</div>
+                  <div style="margin-top:3px;font-size:12px;color:#8E8E93"><span style="font-family:var(--num);font-size:17px;line-height:1;color:#F2F2F3">{{ h.subP.num }}</span>{{ h.subP.txt }}</div>
                 </div>
                 <button onClick="{{ h.restore }}" aria-label="{{ h.aria }}" style="border:0;background:transparent;color:#8E8E93;cursor:pointer;padding:6px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3"></path></svg></button>
               </div>
@@ -504,10 +504,10 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
               <div style="font-size:12.5px;line-height:1.5">{{ d.note }}</div>
             </div>
 
-            <div style="font-size:11px;font-weight:600;color:#7E7E84;margin:22px 0 8px;letter-spacing:0.1em;text-transform:uppercase">About</div>
+            <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;font-weight:500;color:#7E7E84;margin:22px 0 8px;letter-spacing:0.18em;text-transform:uppercase">About</div>
             <div style="font-size:13px;line-height:1.5;color:#D8D8DC">{{ d.about }}</div>
 
-            <div style="font-size:11px;font-weight:600;color:#7E7E84;margin:22px 0 8px;letter-spacing:0.1em;text-transform:uppercase">Details</div>
+            <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;font-weight:500;color:#7E7E84;margin:22px 0 8px;letter-spacing:0.18em;text-transform:uppercase">Details</div>
             <div style="display:flex;flex-direction:column;gap:7px">
               <sc-for list="{{ d.meta }}" as="m" hint-placeholder-count="3">
                 <div style="display:flex;gap:12px;font-size:12.5px">
@@ -517,7 +517,7 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
               </sc-for>
             </div>
 
-            <div style="font-size:11px;font-weight:600;color:#7E7E84;margin:22px 0 8px;letter-spacing:0.1em;text-transform:uppercase">Controlled by</div>
+            <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;font-weight:500;color:#7E7E84;margin:22px 0 8px;letter-spacing:0.18em;text-transform:uppercase">Controlled by</div>
             <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid #232327;border-radius:14px;background:#0E0E10">
               <span style="flex:1;min-width:0;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;word-break:break-all">{{ d.ctrlKey }}</span>
               <span style="flex:none;font-size:11.5px;color:var(--acc)">{{ d.ctrlState }}</span>
@@ -526,7 +526,7 @@ button:hover:not(:disabled),a:hover{filter:brightness(1.18)}
               <div style="font-size:11.5px;color:#8E8E93;margin-top:6px">† Key name comes from third-party tools. Verify it against the official settings schema before relying on it.</div>
             </sc-if>
 
-            <div style="font-size:11px;font-weight:600;color:#7E7E84;margin:22px 0 8px;letter-spacing:0.1em;text-transform:uppercase">On apply</div>
+            <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;font-weight:500;color:#7E7E84;margin:22px 0 8px;letter-spacing:0.18em;text-transform:uppercase">On apply</div>
             <div style="background:#0E0E10;border:1px solid #232327;border-radius:14px;padding:10px 12px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;line-height:1.6">
               <div style="color:#8E8E93">{{ d.file }}</div>
               <sc-for list="{{ d.diff }}" as="ln" hint-placeholder-count="2">
@@ -1213,7 +1213,21 @@ class Component extends DCLogic {
     }));
 
     const pageSub = pending > 0 ? pending + (pending === 1 ? ' change pending' : ' changes pending') : 'No changes pending';
-    const headline = pending > 0 ? (pending === 1 ? '1 change waiting' : pending + ' changes waiting') : 'Everything in sync';
+    // Splits a leading count from its words, so digits can use the condensed face and words keep their case.
+    const nm = (s) => {
+      const m = /^(\d+)(.*)$/.exec(String(s));
+      return m ? { num: m[1], txt: m[2] } : { num: '', txt: String(s) };
+    };
+    const withSub = (x) => Object.assign({}, x, { subP: nm(x.sub) });
+    // The last word of a title takes the italic serif.
+    const splitTitle = (s) => {
+      const t = String(s);
+      const i = t.lastIndexOf(' ');
+      return i < 0 ? { lead: '', accent: t } : { lead: t.slice(0, i), accent: t.slice(i + 1) };
+    };
+    const headlineNum = pending > 0 ? String(pending) : '';
+    const headlineLead = pending > 0 ? (pending === 1 ? 'change' : 'changes') : 'Everything in';
+    const headlineAccent = pending > 0 ? 'waiting' : 'sync';
 
     return {
       rail: rail,
@@ -1222,15 +1236,15 @@ class Component extends DCLogic {
       scopeFile: scopeFile,
       barEnabled: String(enabled),
       barTotal: String(total),
-      barPending: pending > 0 ? pending + ' pending' : 'nothing pending',
+      barPending: nm(pending > 0 ? pending + ' pending' : 'nothing pending'),
       barFill: 'width:' + (total ? Math.round(enabled / total * 100) : 0) + '%;',
       hasPending: pending > 0,
       ovScanWrap: pending > 0 ? 'margin-top:12px;' : 'margin-top:26px;',
       ovScanBtn: pending > 0 ? 'border:1.5px solid #3A3A3F;color:#C8C8CD;' : 'border:1.5px solid #E8E8EA;color:#FFFFFF;',
       pendingLabel: pendingLabel,
       hasHeader: !isOverview && !isScan && !isProjects,
-      pageTitle: (concept === 'all' && S.target !== 'mac') ? PROJ[S.target].name : label,
-      pageSub: pageSub,
+      titleP: splitTitle((concept === 'all' && S.target !== 'mac') ? PROJ[S.target].name : label),
+      pageSub: nm(pageSub),
       pageSubLink: pending > 0 ? '›' : '',
       isOverview: isOverview,
       isFlow: isFlow,
@@ -1242,17 +1256,17 @@ class Component extends DCLogic {
       hasFound: hasFound,
       foundLabel: '1 project folder found that you do not manage yet',
       openAddProj: openAddProj,
-      projSub: nProj + (nProj === 1 ? ' folder' : ' folders') + ' managed · User scope is always included',
-      projR1: projItems.length + ' items in project folders',
+      projSub: nm(nProj + (nProj === 1 ? ' folder' : ' folders') + ' managed · User scope is always included'),
+      projR1: nm(projItems.length + ' items in project folders'),
       hasProjects: nProj > 0,
-      prows: prows,
+      prows: prows.map((p) => Object.assign({}, p, { statP: nm(p.stat) })),
       goProjects: () => this.setState({ view: 'projects', hist: false, open: '', addP: false, toast: '' }),
       activeProj: S.active ? PROJ[S.active].name : 'No project',
       showAddP: !!S.addP,
       closeAddP: closeAddP,
       apPath: PROJ[apId].path,
       arows: arows,
-      apFound: apTotal + (apTotal === 1 ? ' item found' : ' items found'),
+      apFound: nm(apTotal + (apTotal === 1 ? ' item found' : ' items found')),
       apManaged: apManaged,
       apCanAdd: !apManaged,
       chooseStub: () => this.setState({ toast: 'The folder picker is not part of this prototype. It previews tia-scl-tools.' }),
@@ -1260,7 +1274,7 @@ class Component extends DCLogic {
         if (apManaged) { return; }
         this.setState({ projects: S.projects.concat([apId]), active: S.active || apId, addP: false, view: 'projects', toast: 'Added ' + PROJ[apId].name + '. ' + apTotal + (apTotal === 1 ? ' item' : ' items') + ' found.' });
       },
-      scanR1: scanR1,
+      scanR1: nm(scanR1),
       scanR2: scanR2,
       scanLive: live,
       scanRunning: live,
@@ -1270,18 +1284,20 @@ class Component extends DCLogic {
       scanBtnLabel: live ? 'Stop' : 'Scan',
       sDots: sDots,
       sTw: sTw,
-      sL: sL,
-      sR: sR,
+      sL: sL.map(withSub),
+      sR: sR.map(withSub),
       sHint: sHint,
       sHintStyle: sHintStyle,
       stars: stars,
       ring: ring,
       ringLine: ringLine,
       weekBars: weekBars,
-      headline: headline,
+      headlineNum: headlineNum,
+      headlineLead: headlineLead,
+      headlineAccent: headlineAccent,
       editableCount: String(editable),
-      lnodes: lnodes,
-      rnodes: rnodes,
+      lnodes: lnodes.map(withSub),
+      rnodes: rnodes.map(withSub),
       particles: particles,
       hasHint: hasHint,
       hintStyle: hintStyle,
@@ -1289,10 +1305,10 @@ class Component extends DCLogic {
       openHist: () => this.setState({ hist: true, open: '' }),
       backLabel: concept === 'all' ? (S.back === 'projects' ? 'Projects' : 'Scan results') : 'All sources',
       backFlow: () => this.setState(concept === 'all' ? { view: S.back === 'projects' ? 'projects' : 'scan', chk: {} } : { view: 'flow', kind: 'all' }),
-      buckets: buckets,
+      buckets: buckets.map(withSub),
       curDot: 'background:' + curDef.color + ';',
       curName: curDef.name,
-      curCount: noun(inBucket.length) + ' · ' + (concept === 'all' ? 'all types' : label.toLowerCase()),
+      curCount: nm(noun(inBucket.length) + ' · ' + (concept === 'all' ? 'all types' : label.toLowerCase())),
       curNote: curDef.note,
       chips: chips,
       lrows: lrows,
@@ -1306,13 +1322,13 @@ class Component extends DCLogic {
       allMark: allChecked ? '✓' : (someChecked ? '–' : ''),
       allStyle: 'width:16px;height:16px;flex:none;padding:0;border-radius:5px;font-size:11px;font-weight:700;line-height:13px;text-align:center;cursor:pointer;' + ((allChecked || someChecked) ? 'background:#E8E8EA;border:1.5px solid #E8E8EA;color:#111;' : 'background:transparent;border:1.5px solid #4A4A50;color:transparent;'),
       toggleAll: toggleAll,
-      selSummary: nSel + ' selected · ' + lrowsSrc.length + ' shown',
+      selSummary: nm(nSel + ' selected · ' + lrowsSrc.length + ' shown'),
       hasToast: S.toast !== '',
       toast: S.toast,
       showHist: S.hist,
       hchips: hchips,
-      hrows: hrows,
-      histCount: hrowsSrc.length + (hrowsSrc.length === 1 ? ' run' : ' runs'),
+      hrows: hrows.map(withSub),
+      histCount: nm(hrowsSrc.length + (hrowsSrc.length === 1 ? ' run' : ' runs')),
       closeAll: () => this.setState({ hist: false, open: '', toast: '' }),
       showOpen: showOpen,
       d: d

@@ -11,7 +11,7 @@ The visual design Claw's SwiftUI app follows. Source of truth for layout, copy a
 | `prototype/AddPlugin.dc.html` | Add plugin board, 860 × 760 |
 | `prototype/canvas.json` | Board layout and the design notes shown on the canvas |
 
-The `.dc.html` files are templates for the Claude Design canvas (`<x-dc>`, `{{ bindings }}`, `<sc-if>`, `<sc-for>`); they do not render as plain web pages. The interactive version is the published Design artifact: https://claude.ai/artifact/4x211CbHcazWvYVRFsMr3M (private to the owner). Copies here are byte-identical to its version of 2026-11-04.
+The `.dc.html` files are templates for the Claude Design canvas (`<x-dc>`, `{{ bindings }}`, `<sc-if>`, `<sc-for>`); they do not render as plain web pages. The interactive version is the published Design artifact: https://claude.ai/artifact/4x211CbHcazWvYVRFsMr3M (private to the owner). The board copies here are byte-identical to its version 18 of 2026-11-05.
 
 To read a board without the canvas, strip the inline styles: the structure, copy and bindings are what matter.
 
@@ -24,6 +24,7 @@ To read a board without the canvas, strip the inline styles: the structure, copy
 - The source decides the badge: only a local directory marketplace makes a plugin Yours and editable.
 - In the native app, glass comes only from system chrome (sidebar, toolbar, sheets); content stays flat (see the `liquid-glass` skill and `CLAUDE.md`).
 - Button hierarchy: lime for the primary action, neutral for secondary actions, red for destructive ones. The root `.tint` is lime, so views set `.tint(Theme.text)` for neutral groups and `.tint(Theme.danger)` for destructive buttons.
+- Mixed type in the prototype: numbers use a tall condensed face (`--num`), the last word of a title uses an italic serif (`--ser`), and uppercase section labels are monospace. Bebas Neue has capitals only, so split a count from its words and style just the digits. Buttons, paths and code stay in their plain fonts.
 
 ## Tokens
 
@@ -42,6 +43,8 @@ To read a board without the canvas, strip the inline styles: the structure, copy
 | Selected segment | `#2E2E33` | `Theme.segment` |
 | Rail selected tile, label | `#1C1C1F`, `#9A9AA0` | `Theme.railSelected`, `Theme.railLabel` |
 | Font | DM Sans in the prototype | System font (SF Pro) in the app [A]: native, Dynamic Type, no font licence to bundle |
+| Number font (`--num`) | Bebas Neue, prototype only | Not in the app |
+| Accent font (`--ser`) | Instrument Serif italic, prototype only | Not in the app |
 
 ## Board to code map
 
@@ -61,4 +64,4 @@ To read a board without the canvas, strip the inline styles: the structure, copy
 | Add plugin board | `Sheets.swift` (`AddPluginSheet`) | Inspection done; install disabled until M5 |
 | Toast | `Components.swift` (`ToastView`) | Done |
 
-Every screen was compared with the boards on macOS 27.2 on 2026-11-04. Remaining differences: "last backup" in the status bar (M2) and the system font instead of DM Sans [A].
+Every screen was compared with the boards on macOS 27.2 on 2026-11-04. Remaining differences: "last backup" in the status bar (M2) and the system font instead of DM Sans [A]. The mixed type added to the boards on 2026-11-05 is not in the app and was not part of that comparison.
