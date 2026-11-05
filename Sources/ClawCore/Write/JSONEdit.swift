@@ -48,9 +48,19 @@ public enum JSONEdit {
         return try document.splice(spans[position - 1].upperBound..<spans[position].upperBound, [])
     }
 
-    /// Inserts into the array at `path`, at the end when `index` is `nil`. A missing array is created.
+    /// The bytes of the value at `path` as written, or `nil` when it is absent.
+    public static func text(_ data: Data, path: [JSONPathComponent]) throws -> Data? {
+        let document = try JSONDocument(data)
+        let walk = try document.walk(path, missingIsAllowed: true)
+        guard walk.chain.count > path.count else { return nil }
+        let node = walk.chain[path.count]
+        return Data(document.bytes[node.start..<node.end])
+    }
+
+    /// Inserts into the array at `path`, at the end when `index` is `nil`. A missing array is created. `raw`, when
+    /// given, is `value` as it was once written, used so a restored value keeps its key order and spacing.
     public static func insert(
-        _ data: Data, arrayAt path: [JSONPathComponent], index: Int? = nil, value: JSONValue
+        _ data: Data, arrayAt path: [JSONPathComponent], index: Int? = nil, value: JSONValue, raw: Data? = nil
     ) throws -> Data {
         let document = try JSONDocument(data)
         let walk = try document.walk(path)
@@ -66,7 +76,7 @@ public enum JSONEdit {
             return try document.fillEmpty(
                 array, ancestors: walk.chain.dropLast(),
                 member: { indent, inline in
-                    try document.write(value, indent: indent, inline: inline)
+                    try raw.map { [UInt8]($0) } ?? document.write(value, indent: indent, inline: inline)
                 })
         }
         let inline = document.isInline(array)
@@ -74,13 +84,13 @@ public enum JSONEdit {
         if position == elements.count {
             let last = elements[position - 1]
             let indent = document.lineIndent(last.start)
-            let text = try document.write(value, indent: indent, inline: inline)
+            let text = try raw.map { [UInt8]($0) } ?? document.write(value, indent: indent, inline: inline)
             let gap = inline ? separator : document.eol + Array(indent)
             return try document.splice(last.end..<last.end, [comma] + gap + text)
         }
         let next = elements[position]
         let indent = document.lineIndent(next.start)
-        let text = try document.write(value, indent: indent, inline: inline)
+        let text = try raw.map { [UInt8]($0) } ?? document.write(value, indent: indent, inline: inline)
         let gap = inline ? separator : document.eol + Array(indent)
         return try document.splice(next.start..<next.start, text + [comma] + gap)
     }

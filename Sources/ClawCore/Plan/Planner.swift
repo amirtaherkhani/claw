@@ -20,10 +20,16 @@ public struct CliStep: Sendable, Equatable {
     public let workingDirectory: String?
 }
 
+/// What a change does to the hook stash.
+public enum StashAction: Sendable, Equatable {
+    case put(HookStashEntry)
+    case take(String)
+}
+
 public struct PlannedChange: Sendable, Equatable {
     public let itemId: String
     /// `nil` for a removal.
-    public let enabled: Bool?
+    public var enabled: Bool?
     /// Empty when the file already says what was asked.
     public let edits: [FileEdit]
     /// Files and folders that move to the backup.
@@ -33,6 +39,7 @@ public struct PlannedChange: Sendable, Equatable {
     public var cliTouches: [String] = []
     public let effect: PlanEffect
     public let warnings: [String]
+    public var stash: StashAction?
 }
 
 public struct PlanError: Error, Equatable, CustomStringConvertible {
@@ -52,20 +59,62 @@ public struct Planner: Sendable {
     }
 
     public func setEnabled(
-        _ item: Item, enabled: Bool, writeScope: WriteScope?, activeProject: String?
+        _ item: Item, enabled: Bool, writeScope: WriteScope?, activeProject: String?, date: Date = Date()
     ) throws -> PlannedChange {
         var pending: [String: Data] = [:]
-        return try plan(item, enabled: enabled, writeScope: writeScope, activeProject: activeProject, pending: &pending)
+        return try plan(
+            item, enabled: enabled, writeScope: writeScope, activeProject: activeProject, date: date, pending: &pending)
     }
 
     /// Plans in order; a later change to a file builds on the earlier one.
     public func setEnabled(
-        _ changes: [(item: Item, enabled: Bool)], writeScope: WriteScope?, activeProject: String?
+        _ changes: [(item: Item, enabled: Bool)], writeScope: WriteScope?, activeProject: String?, date: Date = Date()
     ) throws -> [PlannedChange] {
         var pending: [String: Data] = [:]
         return try changes.map {
-            try plan($0.item, enabled: $0.enabled, writeScope: writeScope, activeProject: activeProject, pending: &pending)
+            try plan(
+                $0.item, enabled: $0.enabled, writeScope: writeScope, activeProject: activeProject, date: date,
+                pending: &pending)
         }
+    }
+
+    /// Puts a stashed hook back: in its place when it can, in a group with its matcher otherwise, or in a new group.
+    /// An identical handler already there means nothing to write, and the stash is still taken.
+    public func restore(_ entry: HookStashEntry) throws -> PlannedChange {
+        let base = try read(entry.sourceFile)
+        let text = base ?? Data("{}\n".utf8)
+        let after: Data
+        do {
+            after = try Self.restored(entry, in: text)
+        } catch let error as JSONEditError {
+            throw PlanError(reason: "\(entry.sourceFile): \(error.reason)")
+        }
+        let edits =
+            after == text
+            ? [] : [FileEdit(file: entry.sourceFile, before: base, after: after, reason: "Restore a \(entry.event) hook")]
+        return PlannedChange(
+            itemId: entry.id, enabled: true, edits: edits, effect: .live, warnings: [], stash: .take(entry.id))
+    }
+
+    private static func restored(_ entry: HookStashEntry, in data: Data) throws -> Data {
+        let event: [JSONPathComponent] = ["hooks", .key(entry.event)]
+        let groups = try value(at: event, in: data)?.arrayValue ?? []
+        let matches = groups.indices.filter { groups[$0]["matcher"]?.stringValue == entry.matcher }
+        if matches.contains(where: { groups[$0]["hooks"]?.arrayValue?.contains(entry.handler) == true }) { return data }
+
+        let wanted = entry.position.groupIndex
+        if let group = matches.contains(wanted) ? wanted : matches.first {
+            let count = groups[group]["hooks"]?.arrayValue?.count ?? 0
+            return try JSONEdit.insert(
+                data, arrayAt: event + [.index(group), "hooks"],
+                index: group == wanted ? min(entry.position.handlerIndex, count) : count, value: entry.handler,
+                raw: Data(entry.handlerText.utf8))
+        }
+        var group: [String: JSONValue] = ["hooks": .array([entry.handler])]
+        if let matcher = entry.matcher { group["matcher"] = .string(matcher) }
+        return try JSONEdit.insert(
+            data, arrayAt: event, index: groups.isEmpty ? nil : min(wanted, groups.count), value: .object(group),
+            raw: entry.groupText.map { Data($0.utf8) })
     }
 
     /// Plans one removal. `keepData` decides what uninstalling does to a plugin's data folder.
@@ -171,6 +220,32 @@ public struct Planner: Sendable {
         return PlannedChange(itemId: item.id, enabled: nil, edits: edit, effect: .live, warnings: warnings)
     }
 
+    private func stashHook(_ item: Item, date: Date, pending: inout [String: Data]) throws -> PlannedChange {
+        guard let position = Self.hookPosition(item) else { throw PlanError(reason: "Cannot locate \(item.name)") }
+        guard let data = try pending[position.file] ?? read(position.file) else {
+            throw PlanError(reason: "\(position.file) no longer exists")
+        }
+        var change = try removeHook(item, pending: &pending)
+        let group: [JSONPathComponent] = ["hooks", .key(position.event), .index(position.group)]
+        let path = group + ["hooks", .index(position.handler)]
+        guard let handler = try Self.value(at: path, in: data), let raw = try JSONEdit.text(data, path: path),
+            let groupValue = try Self.value(at: group, in: data)
+        else { throw PlanError(reason: "Cannot locate \(item.name)") }
+        let handlerText = String(decoding: raw, as: UTF8.self)
+        let alone = groupValue["hooks"]?.arrayValue?.count == 1
+        let digest = SHA256.hex(Data("\(position.file)|\(position.event)|\(position.order)|\(handlerText)".utf8))
+        change.enabled = false
+        change.stash = .put(
+            HookStashEntry(
+                id: "hook-\(position.event.lowercased())-\(digest.prefix(6))", sourceFile: position.file,
+                event: position.event, matcher: groupValue["matcher"]?.stringValue, handler: handler,
+                handlerText: handlerText,
+                groupText: alone ? try JSONEdit.text(data, path: group).map { String(decoding: $0, as: UTF8.self) } : nil,
+                position: .init(groupIndex: position.group, handlerIndex: position.handler),
+                stashedAt: BackupStore.timestamp(date)))
+        return change
+    }
+
     private func edit(
         _ file: String, reason: String, pending: inout [String: Data], change: (Data) throws -> Data
     ) throws -> [FileEdit] {
@@ -200,13 +275,18 @@ public struct Planner: Sendable {
     }
 
     private func plan(
-        _ item: Item, enabled: Bool, writeScope: WriteScope?, activeProject: String?, pending: inout [String: Data]
+        _ item: Item, enabled: Bool, writeScope: WriteScope?, activeProject: String?, date: Date,
+        pending: inout [String: Data]
     ) throws -> PlannedChange {
         guard item.capabilities.toggle else {
             throw PlanError(reason: item.capabilities.reason ?? "\(item.name) cannot be turned on or off")
         }
         guard item.control.status != .unknown else {
             throw PlanError(reason: "The control for \(item.name) is not verified")
+        }
+        if item.control.mechanism == .hookStash {
+            guard !enabled else { throw PlanError(reason: "A stashed hook comes back through restore") }
+            return try stashHook(item, date: date, pending: &pending)
         }
         let step = try self.step(for: item, enabled: enabled, writeScope: writeScope, activeProject: activeProject)
         let base = try pending[step.file] ?? read(step.file)
@@ -272,9 +352,7 @@ public struct Planner: Sendable {
             }
         case .disabledMcpServers:
             return try projectEntry(item, enabled: enabled, activeProject: activeProject)
-        case .hookStash:
-            throw PlanError(reason: "Hooks are planned with the stash, which is not built yet")
-        case .syncSetting, .parentPlugin, .none:
+        case .hookStash, .syncSetting, .parentPlugin, .none:
             throw PlanError(reason: "\(item.name) has no switch of its own")
         }
     }
