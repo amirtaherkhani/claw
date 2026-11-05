@@ -18,7 +18,7 @@ extension ConfigScanner {
         agentItems(layers: layers, installed: installed, includeUser: includeUser, into: &scan)
         ruleItems(layers: layers, includeUser: includeUser, into: &scan)
         mcpItems(layers: layers, installed: installed, includeUser: includeUser, into: &scan)
-        hookItems(layers: layers, installed: installed, into: &scan)
+        hookItems(layers: layers, installed: installed, includeUser: includeUser, into: &scan)
         return scan
     }
 
@@ -302,14 +302,17 @@ extension ConfigScanner {
             providedBy: providedBy, problems: problems)
     }
 
-    private func hookItems(layers: [SettingsLayer], installed: [InstalledPlugin], into scan: inout ConceptScan) {
+    private func hookItems(
+        layers: [SettingsLayer], installed: [InstalledPlugin], includeUser: Bool, into scan: inout ConceptScan
+    ) {
         // `disableAllHooks`: value after precedence; managed hooks only by the managed value.
         // `allowManagedHooksOnly` (managed) blocks user, project, local and plugin hooks [V `hooks`].
         let managed = layers.first { $0.scope == .managed }
         let managedOnly = managed?.values["allowManagedHooksOnly"]?.boolValue == true
         let managedDisableAll = managed?.values["disableAllHooks"]?.boolValue == true
 
-        for layer in layers {
+        // A folder scan lists its own layers only; the others still decide state above.
+        for layer in layers where includeUser || layer.projectPath != nil {
             let (hooks, problems) = HookReader.parse(layer.values["hooks"], file: layer.file)
             scan.problems += problems
             let isManaged = layer.scope == .managed

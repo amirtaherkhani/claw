@@ -43,9 +43,8 @@ public struct ScanOutcome: Sendable {
     }
 
     /// Whether the scan looked where the change's item lives, so that its absence means the item is gone.
-    /// A project item needs that project read; anything else needs a scan of this Mac. A folder scan also lists
-    /// plugins and user-level hooks, but counts only for its folder: a stale change costs a discard in Review, while
-    /// a wrongly dropped one is lost without a word.
+    /// A project item needs that project read; anything else needs a scan of this Mac. A folder scan lists nothing
+    /// outside its folder, so it must never prune there: a wrongly dropped change is lost without a word.
     private static func covers(_ change: PendingChange, target: ScanTarget, projects: Set<String>) -> Bool {
         if let project = change.projectPath { return projects.contains(project) }
         return target.kind == .mac

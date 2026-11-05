@@ -128,11 +128,12 @@ public struct ConfigScanner: Sendable {
         if Task.isCancelled { return stop() }
 
         let records = installed
-        let classified = await read(.plugins) {
+        let found = await read(.plugins) {
             scanner.pluginItems(
                 installed: records, layers: settings.layers, markets: markets, reader: MarketplaceReader(fileSystem: disk))
         }
-        guard let plugins = classified else { return stop() }
+        guard let found else { return stop() }
+        let plugins = inTarget(found)
         items += plugins.map(\.item)
         if Task.isCancelled { return stop() }
 
@@ -189,6 +190,12 @@ public struct ConfigScanner: Sendable {
     struct PluginItem {
         let item: Item
         let record: PluginRecord?
+    }
+
+    /// A folder scan keeps only that folder's plugins, and so nothing they provide (FR-F02-2).
+    private func inTarget(_ plugins: [PluginItem]) -> [PluginItem] {
+        guard target.kind == .folder else { return plugins }
+        return plugins.filter { $0.item.projectPath == target.path }
     }
 
     /// Settings layers that decide a plugin's state for a project (`nil` = user scope only).
