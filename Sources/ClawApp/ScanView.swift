@@ -83,6 +83,8 @@ struct ScanView: View {
             .tint(Theme.text)
         }
         .padding(28)
+        // A scan started elsewhere (a project row) must show as this page's target.
+        .onChange(of: model.scanTarget, initial: true) { folderTarget = model.scanTarget.path }
         .fileImporter(isPresented: $choosingFolder, allowedContentTypes: [.folder]) { result in
             if case .success(let url) = result { folderTarget = url.path }
         }
