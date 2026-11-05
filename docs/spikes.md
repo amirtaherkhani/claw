@@ -90,6 +90,7 @@ The first-run approval dialog for a `.mcp.json` server writes to `.claude/settin
 | `deniedMcpServers: [{"serverCommand": ["/usr/bin/false"]}]` | `spike-b` gone |
 | `deniedMcpServers: ["spike-a"]` (bare string) | Ignored, with no message |
 | `disabledMcpjsonServers: ["spike-a"]` in `settings.local.json`, project `settings.json`, user settings, or the project entry of `.claude.json` | `spike-a` gone in all four |
+| `enabledMcpjsonServers: ["spike-a"]` in the project entry of `.claude.json` | Approved: "Pending approval" goes away |
 | The same name in both `enabledMcpjsonServers` and `disabledMcpjsonServers` | Disabled wins |
 
 Value shape: `disabledMcpjsonServers` is an array of server names; `deniedMcpServers` is an array of objects with `serverName`, `serverCommand` or a URL form [binary for the URL form]. A server off through these keys disappears from `claude mcp list`; one off through `disabledMcpServers` stays listed as disabled. OQ-2: the per-project answer stands, and `deniedMcpServers` is a working way to turn a server off everywhere.
