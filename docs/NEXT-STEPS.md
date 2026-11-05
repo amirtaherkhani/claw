@@ -81,7 +81,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | M2.3 | Backup store: private folders, `manifest.json` saved at each step, originals under `files/`, moves under `removed/` with their modes | #24 | 2026-11-05 |
 | M2.4 | `history.jsonl`; recovery of an `in-progress` backup from every step of an Apply, leaving anything someone else changed | #25 | 2026-11-05 |
 | M2.5 | Planner for `setEnabled`: exact before and after bytes per concept, `unknown` controls refused; three controls verified from S1, S2, S7 | #26 | 2026-11-05 |
-| M2.6 | Planner for removal: CLI uninstall keeps data, files move to backup, `.mcp.json` edit or `mcp remove`, hooks checked against the scan; FR-F08 warnings | #27 | 2026-11-05 |
+| M2.6 | Planner for removal: CLI uninstall keeps data, files move to backup, `.mcp.json` edit or `mcp remove`, hooks checked against the scan; FR-F08 warnings | #28 | 2026-11-05 |
 
 ## Known gaps and decisions to revisit
 
