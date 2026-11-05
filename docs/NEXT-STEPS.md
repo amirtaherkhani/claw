@@ -8,7 +8,7 @@ Status on 2026-11-05. Start here when you continue in Claude Code on the Mac. Re
 | :- | :- |
 | M0 Foundations | Done. S1 to S4 and S6 to S9 verified and reviewed. S5 and S10 partial: they need a Mac with a managed profile and a fresh user account |
 | M1 Core read-only | Done: all seven concepts, ownership rules, effective state, projects, progress and Stop, CLI. Exit criteria reported in the M1 close-out |
-| M2 Safe write pipeline | **In progress.** M2.1 done; M2.2 next |
+| M2 Safe write pipeline | **In progress.** M2.1 and M2.2 done; M2.3 next |
 | M3 GUI read-only | Screens done and compared with `docs/design/` on the Mac; text in a String Catalog, XCUITest smoke tests and accessibility audit added. Open: your review of the M3 exit criteria |
 | M4 to M7 | Not started |
 
@@ -77,6 +77,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | S1, S7 | `.mcp.json` servers read every disable source, including `/mcp disable` and the project entry of `.claude.json` | #20 | 2026-11-05 |
 | M0.8 | [U] tags, TD 3.4, the M2.5 row and ADR-0004 updated from the spike results | #21 | 2026-11-05 |
 | M2.1 | `JSONEdit`: set, remove and array insert as one byte-range edit; 600-seed property tests | #22 | 2026-11-05 |
+| M2.2 | `AtomicWrite` with the stale-hash check, link and mode handling; SHA-256 in pure Swift, no dependency | #23 | 2026-11-05 |
 
 ## Known gaps and decisions to revisit
 
