@@ -21,6 +21,8 @@ public struct PendingChange: Sendable, Equatable, Identifiable {
     public let itemId: String
     public let action: Action
     public let concept: Concept
+    /// The project the item belongs to; `nil` for items outside any project.
+    public let projectPath: String?
     public let title: String
     /// File that will change, or the CLI command for steps that run `claude`.
     public let target: String
@@ -169,7 +171,8 @@ public struct ChangeQueue: Sendable, Equatable {
             notes.append("The key this change uses is not verified yet; it is checked in a spike before Apply is enabled.")
         }
         return PendingChange(
-            itemId: item.id, action: action, concept: item.concept, title: "\(verb) \(item.name)", target: target,
+            itemId: item.id, action: action, concept: item.concept, projectPath: item.projectPath,
+            title: "\(verb) \(item.name)", target: target,
             preview: lines.enumerated().map { DiffLine($0.element.0, $0.element.1, id: $0.offset) }, notes: notes)
     }
 

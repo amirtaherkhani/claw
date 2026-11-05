@@ -67,6 +67,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | Close-out | `roadmap-loop` step 10: merge finished branches and remove merged ones after each section | #6 | 2026-11-05 |
 | F9 | Stop returns during a blocked read; reads leave the concurrency pool; `ScanView` says when macOS may be waiting for a prompt | this PR | 2026-11-04 |
 | Stop keeps the queue | `ScanOutcome` in `ClawCore`: only a complete scan prunes the queue, and a stopped scan that found nothing leaves the previous scan on screen | #5 | 2026-11-04 |
+| Scan coverage keeps the queue | `ScanOutcome` prunes a change only if the scan covered its item: a folder scan counts for that folder, a Mac scan for what it read. A plugin declared only in a project's settings now belongs to that project | #8 | 2026-11-05 |
 
 ## Known gaps and decisions to revisit
 
@@ -79,7 +80,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 - `known_marketplaces.json` nesting and `~/.claude.json` paths are assumptions until S1 and S3.
 - Stop keeps finished steps only. A stopped scan that found items replaces the list (FR-F02-3), so later concepts disappear and every Modified date goes blank until the next full scan. One that found nothing leaves the previous scan on screen (`ScanOutcome`).
 - Only a complete scan prunes the queue (`ScanOutcome`). Without the `claude` CLI every scan is partial, so a change whose item was deleted stays in Review until it is discarded. M2's stale check must refuse such a change at Apply.
-- A complete scan of one folder lists no user-level items, so it prunes changes queued on them. `ScanOutcome` looks at `partial`, not at what the target covers.
+- A complete scan prunes only changes on items it covers (`ScanOutcome`): a project item needs that project read, anything else needs a Mac scan. So a change stays in Review until it is discarded when its folder is no longer scanned (deleted, unregistered, or reached by another path spelling, since paths are compared as written). A folder scan also ignores the plugins and user-level hooks it lists, so a change on a deleted one waits for a Mac scan. M2's stale check must refuse these at Apply too.
 - A thread abandoned by Stop stays blocked until the dialog is answered, and scanning again blocks a new thread on the same file. One thread per press, ended by answering the dialog.
 - Disk calls outside a scan still run on the main actor: `ProjectInspection.inspect` in view bodies and `AppModel.loadProjects`. Listing a protected folder there could hang the window (F9).
 

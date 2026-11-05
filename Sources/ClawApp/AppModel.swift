@@ -102,7 +102,8 @@ final class AppModel {
             let (result, modified) = await Self.run(scanner) { update in
                 Task { @MainActor in self.progress = update }
             }
-            let outcome = ScanOutcome(result: result, stopped: Task.isCancelled, previous: self.result, queue: self.queue)
+            let outcome = ScanOutcome(
+                result: result, projects: projects, stopped: Task.isCancelled, previous: self.result, queue: self.queue)
             if outcome.replacesResult {
                 self.result = result
                 self.modified = modified
