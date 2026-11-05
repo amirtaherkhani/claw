@@ -8,7 +8,7 @@ Status on 2026-11-05. Start here when you continue in Claude Code on the Mac. Re
 | :- | :- |
 | M0 Foundations | Done. S1 to S4 and S6 to S9 verified and reviewed. S5 and S10 partial: they need a Mac with a managed profile and a fresh user account |
 | M1 Core read-only | Done: all seven concepts, ownership rules, effective state, projects, progress and Stop, CLI. Exit criteria reported in the M1 close-out |
-| M2 Safe write pipeline | **In progress.** M2.1 to M2.7 done; M2.8 next |
+| M2 Safe write pipeline | **In progress.** M2.1 to M2.8 done; M2.9 next |
 | M3 GUI read-only | Screens done and compared with `docs/design/` on the Mac; text in a String Catalog, XCUITest smoke tests and accessibility audit added. Open: your review of the M3 exit criteria |
 | M4 to M7 | Not started |
 
@@ -83,6 +83,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | M2.5 | Planner for `setEnabled`: exact before and after bytes per concept, `unknown` controls refused; three controls verified from S1, S2, S7 | #26 | 2026-11-05 |
 | M2.6 | Planner for removal: CLI uninstall keeps data, files move to backup, `.mcp.json` edit or `mcp remove`, hooks checked against the scan; FR-F08 warnings | #28 | 2026-11-05 |
 | M2.7 | Hook stash: put keeps the handler and group as written, take puts them back in place or recreates the group; an identical handler is a no-op | #29 | 2026-11-05 |
+| M2.8 | Override detection: a higher scope that defeats a change warns in Claude Code's words; a list in another file keeps an item off; managed settings refuse | #30 | 2026-11-05 |
 
 ## Known gaps and decisions to revisit
 
