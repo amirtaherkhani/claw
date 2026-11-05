@@ -6,7 +6,7 @@ Status on 2026-11-05. Start here when you continue in Claude Code on the Mac. Re
 
 | Milestone | State |
 | :- | :- |
-| M0 Foundations | Done. Open: M0.6 (spikes S1 to S10), M0.8 (update [U] tags from spike results) |
+| M0 Foundations | Done except spikes. M0.6: S1 to S4 and S6 to S9 verified and waiting for your review; S5 and S10 partial. Open: M0.8 (update [U] tags from spike results) |
 | M1 Core read-only | Done: all seven concepts, ownership rules, effective state, projects, progress and Stop, CLI. Exit criteria reported in the M1 close-out |
 | M2 Safe write pipeline | **Next.** Nothing started |
 | M3 GUI read-only | Screens done and compared with `docs/design/` on the Mac; text in a String Catalog, XCUITest smoke tests and accessibility audit added. Open: your review of the M3 exit criteria |
@@ -16,7 +16,8 @@ Code: `amirtaherkhani/claw`, `main`, CI green on Linux and macOS.
 
 ## Open before M2
 
-1. The spikes below, each in a throwaway config directory, with the owner reviewing the results.
+1. Owner review of the spike results in `docs/spikes.md`, then the six changes listed there.
+2. S5 and S10 need a Mac with a managed profile and a fresh user account; decide whether they block M2.
 
 ## Spikes to run before M2 writes anything
 
