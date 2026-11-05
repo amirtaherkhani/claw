@@ -36,10 +36,10 @@ public struct ProjectInspection: Sendable, Equatable {
                 row(".mcp.json") { $0 ? "Project MCP servers" : "No project MCP servers" },
                 row("CLAUDE.md") { $0 ? "Project memory" : "No CLAUDE.md" },
                 row("CLAUDE.local.md") { $0 ? "Your local memory" : "No CLAUDE.local.md" },
-                Row(path: ".claude/skills/", label: "\(skills) skills", found: skills > 0),
-                Row(path: ".claude/commands/", label: "\(commands) commands", found: commands > 0),
-                Row(path: ".claude/agents/", label: "\(agents) subagents", found: agents > 0),
-                Row(path: ".claude/rules/", label: "\(rules) rules", found: rules > 0),
+                Row(path: ".claude/skills/", label: ItemPresentation.counted(skills, "skill"), found: skills > 0),
+                Row(path: ".claude/commands/", label: ItemPresentation.counted(commands, "command"), found: commands > 0),
+                Row(path: ".claude/agents/", label: ItemPresentation.counted(agents, "subagent"), found: agents > 0),
+                Row(path: ".claude/rules/", label: ItemPresentation.counted(rules, "rule"), found: rules > 0),
             ])
     }
 }

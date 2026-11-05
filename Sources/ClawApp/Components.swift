@@ -63,17 +63,21 @@ struct BucketBadge: View {
     }
 }
 
-/// Rounded square with one or two letters.
+/// Rounded square with the item's first letter, tinted by owner group as on the board.
 struct Monogram: View {
     let text: String
-    var size: CGFloat = 26
+    let bucket: Bucket
+    var size: CGFloat = 24
 
     var body: some View {
         Text(text)
-            .font(.system(size: size * 0.38, weight: .semibold, design: .rounded))
+            .font(.system(size: size * 0.5, weight: .bold))
+            .foregroundStyle(Theme.color(bucket))
             .frame(width: size, height: size)
-            .background(Theme.panelRaised, in: RoundedRectangle(cornerRadius: size * 0.3, style: .continuous))
-            .overlay { RoundedRectangle(cornerRadius: size * 0.3, style: .continuous).strokeBorder(Theme.border) }
+            .background(
+                Theme.color(bucket).opacity(0.16),
+                in: RoundedRectangle(cornerRadius: size * 0.29, style: .continuous)
+            )
             .accessibilityHidden(true)
     }
 }
@@ -166,7 +170,10 @@ struct DropZone: View {
         VStack(spacing: 8) {
             Image(systemName: "folder.badge.plus").font(.system(size: 26)).foregroundStyle(Theme.muted)
             Text(title).font(.headline)
-            Button("or Browse…", action: browse).buttonStyle(.link)
+            Button("or Browse…", action: browse)
+                .buttonStyle(.plain)
+                .fontWeight(.semibold)
+                .foregroundStyle(Theme.accent)
             Text(detail).font(.callout).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
                 .frame(maxWidth: 460)
         }

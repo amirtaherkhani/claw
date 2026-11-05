@@ -6,10 +6,10 @@ Status on 2026-11-04. Start here when you continue in Claude Code on the Mac. Re
 
 | Milestone | State |
 | :- | :- |
-| M0 Foundations | Done in the cloud. Open: M0.2 (record your Mac's versions in `docs/environment.md`), M0.6 (spikes S1 to S10), M0.8 (update [U] tags from spike results) |
+| M0 Foundations | Done. Open: M0.6 (spikes S1 to S10), M0.8 (update [U] tags from spike results) |
 | M1 Core read-only | Done: all seven concepts, ownership rules, effective state, projects, progress and Stop, CLI. Open: M1.14 golden fixtures, M1.15 manual comparison on the Mac |
 | M2 Safe write pipeline | **Next.** Nothing started |
-| M3 GUI read-only | Screens done and compiling on macOS CI. Open: visual check against `docs/design/`, XCUITest smoke tests, accessibility audit, String Catalog |
+| M3 GUI read-only | Screens done and compared with `docs/design/` on the Mac. Open: XCUITest smoke tests, accessibility audit, String Catalog |
 | M4 to M7 | Not started |
 
 Code: `amirtaherkhani/claw`, PR #1 (`feat/m0-m1-foundation`), CI green on Linux and macOS (Xcode 26.6, Swift 6.3.3).
@@ -62,7 +62,9 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | Task | Summary | PR | Date |
 | :- | :- | :- | :- |
 | M0, M1, M3 screens | Foundation, read-only scanner and CLI, SwiftUI screens, docs and design | #1 | 2026-11-04 |
-| Loop | `roadmap-loop` skill and CLAUDE.md rule | this PR | 2026-11-04 |
+| Loop | `roadmap-loop` skill and CLAUDE.md rule | #2 | 2026-11-04 |
+| M0.2, M3 visual check | First Mac session: versions recorded, icon rail and Go menu, layout fix, button hierarchy, plurals | #3 | 2026-11-04 |
+| Close-out | `roadmap-loop` step 10: merge finished branches and remove merged ones after each section | #6 | 2026-11-05 |
 | F9 | Stop returns during a blocked read; reads leave the concurrency pool; `ScanView` says when macOS may be waiting for a prompt | this PR | 2026-11-04 |
 
 ## Known gaps and decisions to revisit
@@ -71,6 +73,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 - The app uses the system font instead of DM Sans [A]; change `Theme.swift` if you want DM Sans (bundle it, check the licence).
 - Accent is a hex value in code; move it to an `AccentColor` asset when the Xcode app target is added (M6).
 - The scan runs only on demand; there is no file watching yet.
+- `swift run ClawApp` has no bundle ID, so UI automation cannot target it, and a rebuilt ad-hoc bundle counts as a new app for privacy prompts. For visual checks, wrap the binary in a scratch `.app` and set `HOME` to a temporary folder with sample config.
 - Name risk: "Claw" vs the OpenClaw project (ADR-0002). Check before a public release.
 - `known_marketplaces.json` nesting and `~/.claude.json` paths are assumptions until S1 and S3.
 - Stop keeps finished steps only. Stopping during the settings step, where F9 happened, gives an empty partial result that replaces the previous scan on screen.

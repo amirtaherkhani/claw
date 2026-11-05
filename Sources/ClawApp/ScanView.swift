@@ -74,11 +74,13 @@ struct ScanView: View {
                         model.startScan(target: folderTarget.map(ScanTarget.folder) ?? .mac)
                     }
                     .buttonStyle(.glassProminent)
+                    .tint(Theme.accent)
                 }
                 Button("History", systemImage: "clock.arrow.circlepath") { model.destination = .history }
                     .labelStyle(.iconOnly)
             }
             .controlSize(.large)
+            .tint(Theme.text)
         }
         .padding(28)
         .fileImporter(isPresented: $choosingFolder, allowedContentTypes: [.folder]) { result in
@@ -94,14 +96,16 @@ struct ScanView: View {
         if let folder = folderTarget {
             return "One folder: \(ItemPresentation.abbreviate(folder, home: model.home))"
         }
-        return "This Mac: ~/.claude, managed settings and \(model.allProjects.count) projects"
+        return "This Mac: ~/.claude, managed settings and \(ItemPresentation.counted(model.allProjects.count, "project"))"
     }
 
     private var statusLine: String {
-        if let progress = model.progress { return "\(progress.step.label) · \(progress.itemCount) items so far" }
+        if let progress = model.progress {
+            return "\(progress.step.label) · \(ItemPresentation.counted(progress.itemCount, "item")) so far"
+        }
         guard let result = model.result else { return "Not scanned yet" }
         let seconds = result.finishedAt.timeIntervalSince(result.startedAt)
-        return "Last scan: \(result.items.count) items in \(String(format: "%.1f", seconds)) s"
+        return "Last scan: \(ItemPresentation.counted(result.items.count, "item")) in \(String(format: "%.1f", seconds)) s"
             + (result.partial ? " (partial)" : "")
     }
 

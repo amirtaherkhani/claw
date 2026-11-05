@@ -1,11 +1,11 @@
 ---
 name: roadmap-loop
-description: Run Claw's development loop for the next roadmap task: branch, test-first implementation, local checks, pull request, wait for CI, merge, sync main, then continue with the next task. Use when asked to continue the roadmap, do the next step, work through a milestone, or run the develop-test-PR-merge loop.
+description: Run Claw's development loop for the next roadmap task: branch, test-first implementation, local checks, pull request, wait for CI, merge, sync main, then continue with the next task, and close the section by merging finished branches and removing merged ones. Use when asked to continue the roadmap, do the next step, work through a milestone, close a roadmap section, clean up branches, or run the develop-test-PR-merge loop.
 ---
 
 # Roadmap loop
 
-One roadmap task per pass: **pick → branch → plan → test first → implement → check → PR → CI → merge → sync → log → next**. Repeat until a stop condition is hit or the requested amount of work is done.
+One roadmap task per pass: **pick → branch → plan → test first → implement → check → PR → CI → merge → sync → log → next**. Repeat until a stop condition is hit or the requested amount of work is done, then **close the section** (step 10): merge every finished branch and remove the merged ones.
 
 Read `CLAUDE.md` before the first pass. Its rules win over this file.
 
@@ -109,7 +109,39 @@ Never merge a red or conflicting PR. Never approve your own PR.
 1. `git checkout main && git pull --ff-only`
 2. Confirm CI on main for the merge commit (`gh run list --branch main --limit 1`).
 3. Give a three-line pass report: task, PR link, checks.
-4. Continue with step 0 for the next task, unless a stop condition applies.
+4. Continue with step 0 for the next task, unless a stop condition applies. After the last task of the run, go to step 10.
+
+## 10. Close the section
+
+Run this once at the end of every run, whatever its size: a whole milestone, one task such as `M2.3`, or a set number of tasks. Also run it when the owner asks to close a section. No finished branch should stay open or left behind.
+
+### Merge all branches
+
+1. List every open PR, including those from other sessions: `gh pr list --state open --json number,title,headRefName,mergeable`.
+2. List branches with commits but no PR. If the work is finished, open a PR for it. If you cannot tell, leave it and report it.
+3. Take the PRs oldest first, one at a time:
+   - skip a PR whose branch a session is still working on
+   - bring it up to date if it is behind: `gh pr update-branch <number>`, then wait for CI (step 7)
+   - pass it through the merge gate (step 8) and merge it with `gh pr merge <number> --squash --delete-branch`
+4. A PR that fails the gate or hits a stop condition stays open. Do not force it: go on with the others and ask about it in the report. A visual review PR merges only after the owner approves it.
+
+### Remove merged branches
+
+1. `git fetch origin --prune`, then list merged PRs: `gh pr list --state merged --limit 100 --json number,headRefName,headRefOid`.
+2. A branch can go only when one of these is true:
+   - its tip equals the `headRefOid` of a merged PR, so no commit was added after the merge
+   - all its commits are already in main: it is listed by `git branch --merged origin/main`
+3. If the branch is checked out in a worktree, run `git worktree remove <path>` first, without `--force`. A worktree with uncommitted changes or a running session stays, and so does its branch.
+4. Delete the local branch with `git branch -D <branch>` (squash merges make `-d` refuse) and the remote one with `git push origin --delete <branch>` if it still exists.
+5. Never delete main, a branch with an open PR, or a branch that meets neither test in point 2. Report those that stay.
+
+### Finish
+
+1. `git checkout main && git pull --ff-only`. If main is checked out in another worktree, update it there.
+2. Confirm CI on main is green (`gh run list --branch main --limit 1`).
+3. Report the section: PRs merged, PRs left open and why, branches removed, branches kept and why.
+
+A stop condition ends the run without this step and leaves its branch and PR in place. End of milestone is the exception: it comes after this step.
 
 ## Stop conditions (stop and ask before going on)
 
@@ -121,7 +153,7 @@ Never merge a red or conflicting PR. Never approve your own PR.
 - **CI:** the same failure twice, a failure that is not this PR's, or main red.
 - **Review:** a person requested changes or left an open question.
 - **Merge conflict** that touches logic on both sides.
-- **End of milestone:** check the milestone's exit criteria in `docs/ROADMAP.md`, report them, and stop for the owner's review.
+- **End of milestone:** close the section (step 10), check the milestone's exit criteria in `docs/ROADMAP.md`, report them, and stop for the owner's review.
 - **Secrets:** anything that would print, log or commit a secret value.
 
 When stopping, say exactly what is blocked and what decision or action is needed. Leave the branch and PR in place.

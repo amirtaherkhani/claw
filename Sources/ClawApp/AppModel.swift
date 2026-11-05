@@ -143,7 +143,7 @@ final class AppModel {
         for item in selection where queue.effectiveEnabled(item) != enable {
             if queue.toggle(item, writeScope: writeScope, home: home) != nil { skipped += 1 }
         }
-        if skipped > 0 { show("\(skipped) read-only items were skipped") }
+        if skipped > 0 { show("Skipped \(ItemPresentation.counted(skipped, "read-only item"))") }
     }
 
     func remove(_ selection: [Item]) {
@@ -151,7 +151,7 @@ final class AppModel {
         for item in selection where !queue.isQueuedForRemoval(item) {
             if queue.toggleRemoval(item, home: home) != nil { skipped += 1 }
         }
-        if skipped > 0 { show("\(skipped) items cannot be removed here and were skipped") }
+        if skipped > 0 { show("Skipped \(ItemPresentation.counted(skipped, "item")) that cannot be removed here") }
     }
 
     // MARK: Projects
