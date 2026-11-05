@@ -1,0 +1,911 @@
+{
+  "claudeCodeVersion" : "2.1.316 (Claude Code)",
+  "finishedAt" : "1970-01-01T00:00:00Z",
+  "items" : [
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Provided by a plugin: enable, disable or remove the plugin",
+        "remove" : false,
+        "toggle" : false
+      },
+      "classification" : {
+        "evidence" : [
+          "provided by kit@gh"
+        ],
+        "ownership" : "plugin",
+        "rule" : "L4"
+      },
+      "concept" : "agents",
+      "control" : {
+        "key" : "enabledPlugins[\"kit@gh\"]",
+        "mechanism" : "parentPlugin",
+        "status" : "verified"
+      },
+      "description" : "Helps",
+      "enabled" : true,
+      "enabledBy" : "user",
+      "enabledByFile" : "$ROOT/home/.claude/settings.json",
+      "id" : "agents:plugin:kit@gh:helper",
+      "location" : "$ROOT/home/.claude/plugins/cache/kit/agents/helper.md",
+      "name" : "kit:helper",
+      "problems" : [
+
+      ],
+      "providedBy" : "kit@gh",
+      "scope" : "plugin"
+    },
+    {
+      "bucket" : "yours",
+      "capabilities" : {
+        "edit" : true,
+        "remove" : true,
+        "removeLabel" : "Move to backup",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "file at $ROOT/work/app/.claude/agents/planner.md"
+        ],
+        "ownership" : "personal",
+        "rule" : "L2"
+      },
+      "concept" : "agents",
+      "control" : {
+        "key" : "permissions.deny: Agent(planner)",
+        "mechanism" : "permissionsDeny",
+        "status" : "verified"
+      },
+      "description" : "Plans",
+      "enabled" : true,
+      "id" : "agents:project:$ROOT/work/app:planner",
+      "location" : "$ROOT/work/app/.claude/agents/planner.md",
+      "name" : "planner",
+      "problems" : [
+
+      ],
+      "projectPath" : "$ROOT/work/app",
+      "scope" : "project"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Provided by a plugin: enable, disable or remove the plugin",
+        "remove" : false,
+        "toggle" : false
+      },
+      "classification" : {
+        "evidence" : [
+          "provided by kit@gh"
+        ],
+        "ownership" : "plugin",
+        "rule" : "L4"
+      },
+      "concept" : "commands",
+      "control" : {
+        "key" : "enabledPlugins[\"kit@gh\"]",
+        "mechanism" : "parentPlugin",
+        "status" : "verified"
+      },
+      "description" : "Build",
+      "enabled" : true,
+      "enabledBy" : "user",
+      "enabledByFile" : "$ROOT/home/.claude/settings.json",
+      "id" : "commands:plugin:kit@gh:build",
+      "location" : "$ROOT/home/.claude/plugins/cache/kit/commands/build.md",
+      "name" : "/kit:build",
+      "problems" : [
+
+      ],
+      "providedBy" : "kit@gh",
+      "scope" : "plugin"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Provided by a plugin: enable, disable or remove the plugin",
+        "remove" : false,
+        "toggle" : false
+      },
+      "classification" : {
+        "evidence" : [
+          "provided by nest@local-dev"
+        ],
+        "ownership" : "plugin",
+        "rule" : "L4"
+      },
+      "concept" : "commands",
+      "control" : {
+        "key" : "enabledPlugins[\"nest@local-dev\"]",
+        "mechanism" : "parentPlugin",
+        "status" : "verified"
+      },
+      "description" : "Scaffold",
+      "enabled" : true,
+      "enabledBy" : "user",
+      "enabledByFile" : "$ROOT/home/.claude/settings.json",
+      "id" : "commands:plugin:nest@local-dev:scaffold",
+      "location" : "$ROOT/dev/market/nest/commands/scaffold.md",
+      "name" : "/nest:scaffold",
+      "problems" : [
+
+      ],
+      "providedBy" : "nest@local-dev",
+      "scope" : "plugin"
+    },
+    {
+      "bucket" : "yours",
+      "capabilities" : {
+        "edit" : true,
+        "remove" : true,
+        "removeLabel" : "Move to backup",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "file at $ROOT/work/app/.claude/commands/test.md"
+        ],
+        "ownership" : "personal",
+        "rule" : "L2"
+      },
+      "concept" : "commands",
+      "control" : {
+        "key" : "skillOverrides[\"test\"]",
+        "mechanism" : "skillOverrides",
+        "status" : "unknown"
+      },
+      "description" : "Run tests",
+      "enabled" : true,
+      "id" : "commands:project:$ROOT/work/app:test",
+      "location" : "$ROOT/work/app/.claude/commands/test.md",
+      "name" : "/test",
+      "problems" : [
+
+      ],
+      "projectPath" : "$ROOT/work/app",
+      "scope" : "project"
+    },
+    {
+      "bucket" : "yours",
+      "capabilities" : {
+        "edit" : true,
+        "remove" : true,
+        "removeLabel" : "Remove entry",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "file at $ROOT/work/app/.claude/settings.local.json"
+        ],
+        "ownership" : "personal",
+        "rule" : "L2"
+      },
+      "concept" : "hooks",
+      "control" : {
+        "key" : "remove and stash (no per-hook switch)",
+        "mechanism" : "hookStash",
+        "status" : "verified"
+      },
+      "description" : "command hook",
+      "enabled" : true,
+      "id" : "hooks:local:$ROOT/work/app/.claude/settings.local.json#PostToolUse/0/0",
+      "location" : "$ROOT/work/app/.claude/settings.local.json › hooks.PostToolUse[0].hooks[0]",
+      "name" : "PostToolUse · npx",
+      "problems" : [
+
+      ],
+      "projectPath" : "$ROOT/work/app",
+      "scope" : "local"
+    },
+    {
+      "bucket" : "yours",
+      "capabilities" : {
+        "edit" : true,
+        "remove" : true,
+        "removeLabel" : "Remove entry",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "file at $ROOT/home/.claude/settings.json"
+        ],
+        "ownership" : "personal",
+        "rule" : "L1"
+      },
+      "concept" : "hooks",
+      "control" : {
+        "key" : "remove and stash (no per-hook switch)",
+        "mechanism" : "hookStash",
+        "status" : "verified"
+      },
+      "description" : "command hook",
+      "enabled" : true,
+      "id" : "hooks:user:$ROOT/home/.claude/settings.json#PreToolUse/0/0",
+      "location" : "$ROOT/home/.claude/settings.json › hooks.PreToolUse[0].hooks[0]",
+      "name" : "PreToolUse [Bash] · guard.sh",
+      "problems" : [
+        {
+          "message" : "Guard hook: it can block or approve tool use; removing it changes safety behaviour",
+          "severity" : "note"
+        }
+      ],
+      "scope" : "user"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Set by your organization's managed policy",
+        "remove" : false,
+        "toggle" : false
+      },
+      "classification" : {
+        "evidence" : [
+          "managed settings"
+        ],
+        "ownership" : "managed",
+        "rule" : "L5"
+      },
+      "concept" : "hooks",
+      "control" : {
+        "key" : "managed policy",
+        "mechanism" : "none",
+        "status" : "verified"
+      },
+      "description" : "command hook",
+      "enabled" : true,
+      "id" : "hooks:managed:$ROOT/managed/managed-settings.json#PreToolUse/0/0",
+      "location" : "$ROOT/managed/managed-settings.json › hooks.PreToolUse[0].hooks[0]",
+      "name" : "PreToolUse [Write] · audit.sh",
+      "problems" : [
+        {
+          "message" : "Guard hook: it can block or approve tool use; removing it changes safety behaviour",
+          "severity" : "note"
+        }
+      ],
+      "scope" : "managed"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Provided by a plugin: enable, disable or remove the plugin",
+        "remove" : false,
+        "toggle" : false
+      },
+      "classification" : {
+        "evidence" : [
+          "provided by kit@gh"
+        ],
+        "ownership" : "plugin",
+        "rule" : "L4"
+      },
+      "concept" : "hooks",
+      "control" : {
+        "key" : "enabledPlugins[\"kit@gh\"]",
+        "mechanism" : "parentPlugin",
+        "status" : "verified"
+      },
+      "description" : "command hook",
+      "enabled" : true,
+      "enabledBy" : "user",
+      "id" : "hooks:plugin:$ROOT/home/.claude/plugins/cache/kit/hooks/hooks.json#SessionStart/0/0",
+      "location" : "$ROOT/home/.claude/plugins/cache/kit/hooks/hooks.json › hooks.SessionStart[0].hooks[0]",
+      "name" : "SessionStart · start.sh",
+      "problems" : [
+
+      ],
+      "providedBy" : "kit@gh",
+      "scope" : "plugin"
+    },
+    {
+      "bucket" : "yours",
+      "capabilities" : {
+        "edit" : true,
+        "remove" : true,
+        "removeLabel" : "Remove entry",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "file at $ROOT/home/.claude/settings.json"
+        ],
+        "ownership" : "personal",
+        "rule" : "L1"
+      },
+      "concept" : "hooks",
+      "control" : {
+        "key" : "remove and stash (no per-hook switch)",
+        "mechanism" : "hookStash",
+        "status" : "verified"
+      },
+      "description" : "command hook",
+      "enabled" : true,
+      "id" : "hooks:user:$ROOT/home/.claude/settings.json#Stop/0/0",
+      "location" : "$ROOT/home/.claude/settings.json › hooks.Stop[0].hooks[0]",
+      "name" : "Stop · rm",
+      "problems" : [
+
+      ],
+      "scope" : "user"
+    },
+    {
+      "bucket" : "yours",
+      "capabilities" : {
+        "edit" : true,
+        "remove" : true,
+        "removeLabel" : "Move to backup",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "file at $ROOT/work/app/.mcp.json"
+        ],
+        "ownership" : "personal",
+        "rule" : "L2"
+      },
+      "concept" : "mcp",
+      "control" : {
+        "key" : "disabledMcpjsonServers: db",
+        "mechanism" : "disabledMcpjsonServers",
+        "status" : "unknown"
+      },
+      "description" : "stdio · npx",
+      "enabled" : true,
+      "id" : "mcp:project:$ROOT/work/app::db",
+      "location" : "$ROOT/work/app/.mcp.json",
+      "name" : "db",
+      "problems" : [
+
+      ],
+      "projectPath" : "$ROOT/work/app",
+      "scope" : "project"
+    },
+    {
+      "bucket" : "yours",
+      "capabilities" : {
+        "edit" : true,
+        "remove" : true,
+        "removeLabel" : "Move to backup",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "file at $ROOT/home/.claude.json"
+        ],
+        "ownership" : "personal",
+        "rule" : "L2"
+      },
+      "concept" : "mcp",
+      "control" : {
+        "key" : "projects[<path>].disabledMcpServers",
+        "mechanism" : "disabledMcpServers",
+        "status" : "unknown"
+      },
+      "description" : "stdio · tool",
+      "enabled" : true,
+      "id" : "mcp:local:$ROOT/work/app::local-tool",
+      "location" : "$ROOT/home/.claude.json",
+      "name" : "local-tool",
+      "problems" : [
+
+      ],
+      "projectPath" : "$ROOT/work/app",
+      "scope" : "local"
+    },
+    {
+      "bucket" : "yours",
+      "capabilities" : {
+        "edit" : true,
+        "remove" : true,
+        "removeLabel" : "Move to backup",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "file at $ROOT/work/app/.mcp.json"
+        ],
+        "ownership" : "personal",
+        "rule" : "L2"
+      },
+      "concept" : "mcp",
+      "control" : {
+        "key" : "disabledMcpjsonServers: off-server",
+        "mechanism" : "disabledMcpjsonServers",
+        "status" : "unknown"
+      },
+      "description" : "stdio · x",
+      "enabled" : false,
+      "enabledBy" : "disabledMcpjsonServers",
+      "id" : "mcp:project:$ROOT/work/app::off-server",
+      "location" : "$ROOT/work/app/.mcp.json",
+      "name" : "off-server",
+      "problems" : [
+
+      ],
+      "projectPath" : "$ROOT/work/app",
+      "scope" : "project"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Provided by a plugin: enable, disable or remove the plugin",
+        "remove" : false,
+        "toggle" : false
+      },
+      "classification" : {
+        "evidence" : [
+          "provided by kit@gh"
+        ],
+        "ownership" : "plugin",
+        "rule" : "L4"
+      },
+      "concept" : "mcp",
+      "control" : {
+        "key" : "enabledPlugins[\"kit@gh\"]",
+        "mechanism" : "parentPlugin",
+        "status" : "verified"
+      },
+      "description" : "stdio · node",
+      "enabled" : true,
+      "enabledBy" : "user",
+      "id" : "mcp:plugin:~:kit@gh:search",
+      "location" : "$ROOT/home/.claude/plugins/cache/kit/.mcp.json",
+      "name" : "plugin:kit:search",
+      "problems" : [
+
+      ],
+      "providedBy" : "kit@gh",
+      "scope" : "plugin"
+    },
+    {
+      "bucket" : "yours",
+      "capabilities" : {
+        "edit" : true,
+        "remove" : true,
+        "removeLabel" : "Move to backup",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "file at $ROOT/work/app/.mcp.json"
+        ],
+        "ownership" : "personal",
+        "rule" : "L2"
+      },
+      "concept" : "mcp",
+      "control" : {
+        "key" : "disabledMcpjsonServers: unapproved",
+        "mechanism" : "disabledMcpjsonServers",
+        "status" : "unknown"
+      },
+      "description" : "http · new.example.com",
+      "enabled" : false,
+      "id" : "mcp:project:$ROOT/work/app::unapproved",
+      "location" : "$ROOT/work/app/.mcp.json",
+      "name" : "unapproved",
+      "problems" : [
+        {
+          "message" : "Not approved in settings; Claude Code asks before first use",
+          "severity" : "note"
+        }
+      ],
+      "projectPath" : "$ROOT/work/app",
+      "scope" : "project"
+    },
+    {
+      "bucket" : "attention",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Its marketplace or source is missing",
+        "remove" : true,
+        "removeLabel" : "Remove entry",
+        "toggle" : false
+      },
+      "classification" : {
+        "evidence" : [
+          "id \"bare\" has no @origin"
+        ],
+        "ownership" : "orphan",
+        "rule" : "P1"
+      },
+      "concept" : "plugins",
+      "control" : {
+        "key" : "enabledPlugins[\"bare\"]",
+        "mechanism" : "enabledPlugins",
+        "status" : "verified"
+      },
+      "description" : "bare",
+      "enabled" : false,
+      "id" : "plugins:user:bare",
+      "location" : "$ROOT/home/.claude/plugins/cache/bare",
+      "name" : "bare",
+      "problems" : [
+
+      ],
+      "scope" : "user"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Synced from your claude.ai account: manage it on claude.ai",
+        "remove" : false,
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "origin is synced (claude.ai account)"
+        ],
+        "ownership" : "synced",
+        "rule" : "P2"
+      },
+      "concept" : "plugins",
+      "control" : {
+        "key" : "enabledPlugins[\"cloud@synced\"]",
+        "mechanism" : "enabledPlugins",
+        "status" : "verified"
+      },
+      "description" : "cloud@synced",
+      "enabled" : true,
+      "id" : "plugins:synced:cloud@synced",
+      "location" : "$ROOT/home/.claude/plugins/cache/cloud",
+      "name" : "cloud",
+      "problems" : [
+
+      ],
+      "scope" : "synced"
+    },
+    {
+      "bucket" : "attention",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Its marketplace or source is missing",
+        "remove" : true,
+        "removeLabel" : "Remove entry",
+        "toggle" : false
+      },
+      "classification" : {
+        "evidence" : [
+          "declared in $ROOT/home/.claude/settings.json but not installed"
+        ],
+        "ownership" : "orphan",
+        "rule" : "P8"
+      },
+      "concept" : "plugins",
+      "control" : {
+        "key" : "enabledPlugins[\"ghost@gh\"]",
+        "mechanism" : "enabledPlugins",
+        "status" : "verified"
+      },
+      "description" : "ghost@gh",
+      "enabled" : true,
+      "enabledBy" : "user",
+      "enabledByFile" : "$ROOT/home/.claude/settings.json",
+      "id" : "plugins:user:ghost@gh",
+      "location" : "",
+      "name" : "ghost",
+      "problems" : [
+        {
+          "file" : "$ROOT/home/.claude/settings.json",
+          "message" : "Declared in settings but not installed",
+          "severity" : "warning"
+        }
+      ],
+      "scope" : "user"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Installed from a marketplace: edit the source upstream",
+        "remove" : true,
+        "removeLabel" : "Uninstall",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "marketplace \"gh\": github marketplace"
+        ],
+        "ownership" : "market",
+        "rule" : "P7"
+      },
+      "concept" : "plugins",
+      "control" : {
+        "key" : "enabledPlugins[\"kit@gh\"]",
+        "mechanism" : "enabledPlugins",
+        "status" : "verified"
+      },
+      "description" : "kit@gh v1.2.0",
+      "enabled" : true,
+      "enabledBy" : "user",
+      "enabledByFile" : "$ROOT/home/.claude/settings.json",
+      "id" : "plugins:user:kit@gh",
+      "location" : "$ROOT/home/.claude/plugins/cache/kit",
+      "name" : "kit",
+      "problems" : [
+
+      ],
+      "scope" : "user"
+    },
+    {
+      "bucket" : "attention",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Its marketplace or source is missing",
+        "remove" : true,
+        "removeLabel" : "Remove entry",
+        "toggle" : false
+      },
+      "classification" : {
+        "evidence" : [
+          "marketplace \"removed-market\" is not registered"
+        ],
+        "ownership" : "orphan",
+        "rule" : "P5"
+      },
+      "concept" : "plugins",
+      "control" : {
+        "key" : "enabledPlugins[\"lost@removed-market\"]",
+        "mechanism" : "enabledPlugins",
+        "status" : "verified"
+      },
+      "description" : "lost@removed-market",
+      "enabled" : false,
+      "id" : "plugins:user:lost@removed-market",
+      "location" : "$ROOT/home/.claude/plugins/cache/lost",
+      "name" : "lost",
+      "problems" : [
+
+      ],
+      "scope" : "user"
+    },
+    {
+      "bucket" : "yours",
+      "capabilities" : {
+        "edit" : true,
+        "remove" : true,
+        "removeLabel" : "Uninstall",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "skills-directory plugin at $ROOT/home/.claude/skills/mine"
+        ],
+        "ownership" : "personal",
+        "rule" : "P3"
+      },
+      "concept" : "plugins",
+      "control" : {
+        "key" : "enabledPlugins[\"mine@skills-dir\"]",
+        "mechanism" : "enabledPlugins",
+        "status" : "verified"
+      },
+      "description" : "mine@skills-dir",
+      "enabled" : true,
+      "id" : "plugins:user:mine@skills-dir",
+      "location" : "$ROOT/home/.claude/skills/mine",
+      "name" : "mine",
+      "problems" : [
+
+      ],
+      "scope" : "user"
+    },
+    {
+      "bucket" : "yours",
+      "capabilities" : {
+        "edit" : true,
+        "remove" : true,
+        "removeLabel" : "Uninstall",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "local directory marketplace at $ROOT/dev/market",
+          "loads in place, not copied to the cache",
+          "git remote: https://REDACTED:REDACTED@github.com/o/market.git"
+        ],
+        "ownership" : "personal",
+        "rule" : "P6"
+      },
+      "concept" : "plugins",
+      "control" : {
+        "key" : "enabledPlugins[\"nest@local-dev\"]",
+        "mechanism" : "enabledPlugins",
+        "status" : "verified"
+      },
+      "description" : "nest@local-dev",
+      "enabled" : true,
+      "enabledBy" : "user",
+      "enabledByFile" : "$ROOT/home/.claude/settings.json",
+      "id" : "plugins:user:nest@local-dev",
+      "location" : "$ROOT/dev/market/nest",
+      "name" : "nest",
+      "problems" : [
+
+      ],
+      "scope" : "user"
+    },
+    {
+      "bucket" : "yours",
+      "capabilities" : {
+        "edit" : true,
+        "remove" : true,
+        "removeLabel" : "Move to backup",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "file at $ROOT/work/app/.claude/rules/security.md"
+        ],
+        "ownership" : "personal",
+        "rule" : "L2"
+      },
+      "concept" : "rules",
+      "control" : {
+        "key" : "claudeMdExcludes: $ROOT/work/app/.claude/rules/security.md",
+        "mechanism" : "claudeMdExcludes",
+        "status" : "verified"
+      },
+      "description" : "Project memory",
+      "enabled" : false,
+      "enabledBy" : "claudeMdExcludes",
+      "id" : "rules:project:$ROOT/work/app/.claude/rules/security.md",
+      "location" : "$ROOT/work/app/.claude/rules/security.md",
+      "name" : ".claude/rules/security.md",
+      "problems" : [
+        {
+          "message" : "Excluded by pattern $ROOT/work/app/.claude/rules/**",
+          "severity" : "note"
+        }
+      ],
+      "projectPath" : "$ROOT/work/app",
+      "scope" : "project"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Set by your organization's managed policy",
+        "remove" : false,
+        "toggle" : false
+      },
+      "classification" : {
+        "evidence" : [
+          "under $ROOT/managed"
+        ],
+        "ownership" : "managed",
+        "rule" : "L5"
+      },
+      "concept" : "rules",
+      "control" : {
+        "key" : "managed CLAUDE.md cannot be excluded",
+        "mechanism" : "none",
+        "status" : "verified"
+      },
+      "description" : "Managed memory",
+      "enabled" : true,
+      "id" : "rules:managed:$ROOT/managed/CLAUDE.md",
+      "location" : "$ROOT/managed/CLAUDE.md",
+      "name" : "$ROOT/managed/CLAUDE.md",
+      "problems" : [
+
+      ],
+      "scope" : "managed"
+    },
+    {
+      "bucket" : "yours",
+      "capabilities" : {
+        "edit" : true,
+        "remove" : true,
+        "removeLabel" : "Move to backup",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "file at $ROOT/work/app/CLAUDE.md"
+        ],
+        "ownership" : "personal",
+        "rule" : "L2"
+      },
+      "concept" : "rules",
+      "control" : {
+        "key" : "claudeMdExcludes: $ROOT/work/app/CLAUDE.md",
+        "mechanism" : "claudeMdExcludes",
+        "status" : "verified"
+      },
+      "description" : "Project memory",
+      "enabled" : true,
+      "id" : "rules:project:$ROOT/work/app/CLAUDE.md",
+      "location" : "$ROOT/work/app/CLAUDE.md",
+      "name" : "CLAUDE.md",
+      "problems" : [
+
+      ],
+      "projectPath" : "$ROOT/work/app",
+      "scope" : "project"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Provided by a plugin: enable, disable or remove the plugin",
+        "remove" : false,
+        "toggle" : false
+      },
+      "classification" : {
+        "evidence" : [
+          "provided by kit@gh"
+        ],
+        "ownership" : "plugin",
+        "rule" : "L4"
+      },
+      "concept" : "skills",
+      "control" : {
+        "key" : "enabledPlugins[\"kit@gh\"]",
+        "mechanism" : "parentPlugin",
+        "status" : "verified"
+      },
+      "description" : "Lints",
+      "enabled" : true,
+      "enabledBy" : "user",
+      "enabledByFile" : "$ROOT/home/.claude/settings.json",
+      "id" : "skills:plugin:kit@gh:lint",
+      "location" : "$ROOT/home/.claude/plugins/cache/kit/skills/lint",
+      "name" : "kit:lint",
+      "problems" : [
+
+      ],
+      "providedBy" : "kit@gh",
+      "scope" : "plugin"
+    },
+    {
+      "bucket" : "yours",
+      "capabilities" : {
+        "edit" : true,
+        "remove" : true,
+        "removeLabel" : "Move to backup",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "file at $ROOT/work/app/.claude/skills/migrate/SKILL.md"
+        ],
+        "ownership" : "personal",
+        "rule" : "L2"
+      },
+      "concept" : "skills",
+      "control" : {
+        "key" : "skillOverrides[\"migrate\"]",
+        "mechanism" : "skillOverrides",
+        "status" : "verified"
+      },
+      "description" : "Migrates",
+      "enabled" : true,
+      "id" : "skills:project:$ROOT/work/app:migrate",
+      "location" : "$ROOT/work/app/.claude/skills/migrate",
+      "name" : "migrate",
+      "problems" : [
+
+      ],
+      "projectPath" : "$ROOT/work/app",
+      "scope" : "project"
+    }
+  ],
+  "partial" : false,
+  "problems" : [
+    {
+      "message" : "plugin list entry 6 has an unsafe id; skipped",
+      "severity" : "warning"
+    }
+  ],
+  "startedAt" : "1970-01-01T00:00:00Z",
+  "target" : {
+    "kind" : "folder",
+    "path" : "$ROOT/work/app"
+  }
+}
