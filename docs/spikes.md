@@ -4,15 +4,15 @@ Each spike turns an **[U]** in the docs into **[V]** or **[A]**. Plans are in `T
 
 | Spike | Question | Status | Result |
 | :- | :- | :- | :- |
-| S1 | Structure of `~/.claude.json` (MCP servers, `projects`, `disabledMcpServers`) | Verified, awaiting owner review | See [S1](#s1-claudejson-structure) |
-| S2 | `skillOverrides` for commands; merge across scopes; `Skill(plugin:name)` deny | Verified, awaiting owner review | Works for commands; merged per name; plugin skills ignore it. See [S2 and S6](#s2-and-s6-overrides-and-deny-rules) |
-| S3 | Directory marketplace: what `marketplace add`, `install`, `plugin list --json` write; exact `known_marketplaces.json` shape | Verified, awaiting owner review | ADR-0004 row holds. See [S3](#s3-directory-marketplace) |
-| S4 | Which changes apply live | Verified, awaiting owner review | See [S4 and S9](#s4-and-s9-live-changes-and-hooks) |
+| S1 | Structure of `~/.claude.json` (MCP servers, `projects`, `disabledMcpServers`) | Verified | See [S1](#s1-claudejson-structure) |
+| S2 | `skillOverrides` for commands; merge across scopes; `Skill(plugin:name)` deny | Verified | Works for commands; merged per name; plugin skills ignore it. See [S2 and S6](#s2-and-s6-overrides-and-deny-rules) |
+| S3 | Directory marketplace: what `marketplace add`, `install`, `plugin list --json` write; exact `known_marketplaces.json` shape | Verified | ADR-0004 row holds. See [S3](#s3-directory-marketplace) |
+| S4 | Which changes apply live | Verified | See [S4 and S9](#s4-and-s9-live-changes-and-hooks) |
 | S5 | Claude Desktop chat app config path and format | Partial | File found; this Mac has no MCP servers in it, so the format is not seen. See [S5 and S10](#s5-and-s10-what-this-mac-can-show) |
-| S6 | Deny syntax for plugin subagents | Verified, awaiting owner review | `Agent(plugin:agent)`. See [S2 and S6](#s2-and-s6-overrides-and-deny-rules) |
-| S7 | `deniedMcpServers`; value shape of `disabledMcpjsonServers` | Verified, awaiting owner review | See [S7](#s7-mcp-keys-in-settings) |
-| S8 | `CLAUDE_CONFIG_DIR` effect on `~/.claude.json` | Verified, awaiting owner review | It moves the file. See [S8](#s8-claude_config_dir) |
-| S9 | Hook removal live; matcher required | Verified, awaiting owner review | Live; matcher optional. See [S4 and S9](#s4-and-s9-live-changes-and-hooks) |
+| S6 | Deny syntax for plugin subagents | Verified | `Agent(plugin:agent)`. See [S2 and S6](#s2-and-s6-overrides-and-deny-rules) |
+| S7 | `deniedMcpServers`; value shape of `disabledMcpjsonServers` | Verified | See [S7](#s7-mcp-keys-in-settings) |
+| S8 | `CLAUDE_CONFIG_DIR` effect on `~/.claude.json` | Verified | It moves the file. See [S8](#s8-claude_config_dir) |
+| S9 | Hook removal live; matcher required | Verified | Live; matcher optional. See [S4 and S9](#s4-and-s9-live-changes-and-hooks) |
 | S10 | macOS: TCC prompts, minimum macOS, managed profile, enterprise skills path | Partial | Paths read from the CLI; no profile and no fresh account here. See [S5 and S10](#s5-and-s10-what-this-mac-can-show) |
 
 ## Findings during M1 (cloud, Swift 6.4.2 on Linux)
@@ -179,7 +179,7 @@ So the matcher is optional, and removing the last handler can leave an empty gro
 
 ### Changes these results call for
 
-None of these is made yet: code waits for the owner's review of the results above.
+The owner approved these results on 2026-11-05.
 
 | # | Change | Where |
 | :- | :- | :- |
