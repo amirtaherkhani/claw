@@ -36,7 +36,9 @@ extension BackupStore {
     }
 
     /// Undoes an interrupted Apply. Safe to run again if it is cut short itself.
-    public func rollBack(id: String, date: Date = Date()) throws -> RollbackResult {
+    public func rollBack(
+        id: String, date: Date = Date(), title: String = "Undid a change that was interrupted", stash: HookStash? = nil
+    ) throws -> RollbackResult {
         var session = try resume(id: id)
         guard session.manifest.status == .inProgress else {
             throw BackupError(reason: "\(id) is not an interrupted change")
@@ -60,11 +62,12 @@ extension BackupStore {
                 }
             }
         }
+        for case .string(let entry) in session.manifest.stash { try? stash?.take(entry) }
         let result: BackupManifest.Status = kept.isEmpty ? .rolledBack : .failed
         try session.finish(result)
         try history.append(
             HistoryEntry(
-                id: id, time: Self.timestamp(date), title: "Undid a change that was interrupted",
+                id: id, time: Self.timestamp(date), title: title,
                 files: session.manifest.files.map(\.path) + session.manifest.moves.map(\.from), backupId: id, result: result))
         return RollbackResult(id: id, kept: kept)
     }
