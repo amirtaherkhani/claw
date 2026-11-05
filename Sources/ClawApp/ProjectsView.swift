@@ -71,6 +71,9 @@ private struct ProjectRow: View {
             Text(stat).font(.callout).foregroundStyle(Theme.muted)
             if model.activeProject != path {
                 Button("Make active") { model.setActiveProject(path) }
+                    .buttonStyle(.plain)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Theme.accent)
             }
             Button("Open") { model.reveal(path) }
             Button("Scan") {
@@ -79,18 +82,21 @@ private struct ProjectRow: View {
             }
             if model.isRegistered(path) {
                 Button("Stop managing") { model.removeProject(path) }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(Theme.danger)
                     .accessibilityLabel("Stop managing \(URL(fileURLWithPath: path).lastPathComponent)")
             } else {
                 Button("Add") { model.addProjectPath = path }
             }
         }
+        .tint(Theme.text)
         .padding(12)
     }
 
     private var stat: String {
         let items = model.items.filter { $0.projectPath == path }
         let source = model.isRegistered(path) ? "Added by you" : "Found in ~/.claude.json"
-        return model.result == nil ? source : "\(items.count) items · \(source)"
+        return model.result == nil ? source : "\(ItemPresentation.counted(items.count, "item")) · \(source)"
     }
 }
 
@@ -156,6 +162,7 @@ struct AddProjectSheet: View {
                         dismiss()
                     }
                     .buttonStyle(.glassProminent)
+                    .tint(Theme.accent)
                     .disabled(!inspection.isProject)
                     .help(inspection.isProject ? "Add this folder" : "No .claude/, .mcp.json or CLAUDE.md found")
                 }
@@ -163,6 +170,7 @@ struct AddProjectSheet: View {
         }
         .padding(24)
         .frame(width: 560)
+        .tint(Theme.text)
         .fileImporter(isPresented: $choosingFolder, allowedContentTypes: [.folder]) { result in
             if case .success(let url) = result { path = url.path }
         }

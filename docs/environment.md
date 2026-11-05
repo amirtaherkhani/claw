@@ -13,14 +13,15 @@ Record of the tool versions the project was built and tested with. No paths that
 
 Not available there: macOS, Xcode, SwiftUI. `ClawApp` has not been compiled yet.
 
-## Owner's Mac (fill in during M0.2)
+## Owner's Mac (M0.2, 2026-11-04)
 
-| Tool | Version |
-| :- | :- |
-| macOS | `sw_vers -productVersion` → … |
-| Xcode | `xcodebuild -version` → … |
-| Swift | `swift --version` → … |
-| Claude Code | `claude --version` → … |
+| Tool | Version | Verified how |
+| :- | :- | :- |
+| macOS | 27.2 (build 26B123), arm64 | `sw_vers`, `uname -m` |
+| Xcode | 27.2 (build 27B52) | `xcodebuild -version` |
+| Swift | 6.4.2 (`swiftlang-6.4.2.1.9`, `clang-2100.4.1.1`), target `arm64-apple-macosx27.2.0` | `swift --version` |
+| swift-format | 6.4.4 | `swift format --version` |
+| Claude Code | 2.1.316 | `claude --version` |
 
 ## CI
 

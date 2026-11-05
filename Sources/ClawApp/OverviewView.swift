@@ -60,7 +60,7 @@ struct OverviewView: View {
                     .foregroundStyle(Theme.muted)
                 }
                 if !model.queue.isEmpty {
-                    Button("Review \(model.queue.count) changes →") { model.showReview = true }
+                    Button("Review \(ItemPresentation.counted(model.queue.count, "change")) →") { model.showReview = true }
                         .buttonStyle(.link)
                 }
                 HStack(spacing: 10) {

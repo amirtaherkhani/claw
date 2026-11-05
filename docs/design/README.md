@@ -23,6 +23,7 @@ To read a board without the canvas, strip the inline styles: the structure, copy
 - Hooks have no native per-hook disable; the app removes the entry and keeps a copy to restore.
 - The source decides the badge: only a local directory marketplace makes a plugin Yours and editable.
 - In the native app, glass comes only from system chrome (sidebar, toolbar, sheets); content stays flat (see the `liquid-glass` skill and `CLAUDE.md`).
+- Button hierarchy: lime for the primary action, neutral for secondary actions, red for destructive ones. The root `.tint` is lime, so views set `.tint(Theme.text)` for neutral groups and `.tint(Theme.danger)` for destructive buttons.
 
 ## Tokens
 
@@ -37,13 +38,16 @@ To read a board without the canvas, strip the inline styles: the structure, copy
 | Yours | `#FFD60A` | `Theme.yours` |
 | Read-only | `#6EA3FF` | `Theme.readonly` |
 | Needs attention | `#FF7A59` | `Theme.attention` |
+| Destructive actions | `#FF8F85` | `Theme.danger` |
+| Selected segment | `#2E2E33` | `Theme.segment` |
+| Rail selected tile, label | `#1C1C1F`, `#9A9AA0` | `Theme.railSelected`, `Theme.railLabel` |
 | Font | DM Sans in the prototype | System font (SF Pro) in the app [A]: native, Dynamic Type, no font licence to bundle |
 
 ## Board to code map
 
 | Prototype part | SwiftUI file | State |
 | :- | :- | :- |
-| Rail | `RootView.swift` (`SidebarView`) | Done |
+| Rail | `RootView.swift` (`RailView`, `RailEntry`) | Done: 76 pt icon rail inside the split view's sidebar column; `RailEntry` also drives the Go menu (⌘1 to ⌘9) |
 | Status bar: enabled count, scope switch, last backup, Review, active project | `RootView.swift` (`StatusToolbar`, subtitle) | Done; "last backup" waits for M2 |
 | Overview: particle ring, headline, cards | `OverviewView.swift` | Done; "changes applied" and backup cards show placeholders until M2 |
 | Scan: targets, concept flow, progress, Stop | `ScanView.swift`, `FlowView.swift` | Done |
@@ -57,4 +61,4 @@ To read a board without the canvas, strip the inline styles: the structure, copy
 | Add plugin board | `Sheets.swift` (`AddPluginSheet`) | Inspection done; install disabled until M5 |
 | Toast | `Components.swift` (`ToastView`) | Done |
 
-Visual parity with the boards has **not** been checked on a real screen yet (see `docs/NEXT-STEPS.md`).
+Every screen was compared with the boards on macOS 27.2 on 2026-11-04. Remaining differences: "last backup" in the status bar (M2) and the system font instead of DM Sans [A].

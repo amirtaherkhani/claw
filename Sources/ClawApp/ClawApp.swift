@@ -14,6 +14,7 @@ struct ClawApp: App {
                 .tint(Theme.accent)
                 .preferredColorScheme(.dark)
         }
+        .defaultSize(width: 1360, height: 820)
         .commands {
             CommandGroup(after: .newItem) {
                 Button("Scan This Mac") { model.startScan() }
@@ -26,6 +27,13 @@ struct ClawApp: App {
                 Button("Review Changes…") { model.showReview = true }
                     .keyboardShortcut("r", modifiers: [.command, .shift])
                     .disabled(model.queue.isEmpty)
+            }
+            CommandMenu("Go") {
+                ForEach(Array(RailEntry.all.enumerated()), id: \.element.id) { index, entry in
+                    Button(entry.title) { model.destination = entry.destination }
+                        .keyboardShortcut(
+                            index < 9 ? KeyboardShortcut(KeyEquivalent(Character("\(index + 1)")), modifiers: .command) : nil)
+                }
             }
         }
     }

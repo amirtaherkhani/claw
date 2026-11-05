@@ -14,8 +14,13 @@ enum Theme {
     static let yours = Color(hex: 0xFFD60A)
     static let readonly = Color(hex: 0x6EA3FF)
     static let attention = Color(hex: 0xFF7A59)
+    static let danger = Color(hex: 0xFF8F85)
     static let removed = Color(hex: 0xFF6B6B)
     static let added = Color(hex: 0x7EE08A)
+    static let segment = Color(hex: 0x2E2E33)
+    static let railSelected = Color(hex: 0x1C1C1F)
+    static let railLabel = Color(hex: 0x9A9AA0)
+    static let railWidth: CGFloat = 76
 
     static func color(_ bucket: Bucket) -> Color {
         switch bucket {
@@ -41,7 +46,7 @@ enum Theme {
         case .rules: "doc.text"
         case .agents: "person.2"
         case .mcp: "server.rack"
-        case .hooks: "link"
+        case .hooks: "bolt"
         }
     }
 }

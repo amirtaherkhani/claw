@@ -28,3 +28,12 @@ Each spike turns an **[U]** in the docs into **[V]** or **[A]**. Plans are in `T
 | F7 | Exact JSON paths in `~/.claude.json` (`mcpServers`, `projects[<path>].mcpServers`, `disabledMcpServers`) are assumed | `MCPReader.readClaudeJson` | Confirm in S1; controls are marked `unknown` until then |
 
 Re-check F2 and F3 on macOS: Foundation there is a different implementation.
+
+## Findings during the first Mac session (macOS 27.2, Swift 6.4.2)
+
+| # | Finding | Evidence | Action |
+| :- | :- | :- | :- |
+| F8 | A vertical `fixedSize` on text in a page without a `ScrollView` sets the window's minimum size to one character per line: the window grew to the screen and the sidebar went blank | Scan page at 1510 × 858; after the fix the window shrinks to 1100 × 732 on the same page | `PageHeader` subtitle uses `lineLimit(3)` |
+| F9 | A scan reading `~/Documents` blocks inside `open()` until the macOS privacy dialog is answered; the app shows no reason. It waited 3228 s in one run | `sample` of the running app: `LocalFileSystem.readFile`, then `open`, on a cooperative thread; a `UserNotificationCenter` window was on screen | Open: see below |
+
+F9 follow-ups: whether Stop can interrupt a read blocked this way is unverified [U]; the read runs on a Swift concurrency thread rather than a dedicated one, which is the pattern F4 warns about. A bundled app also needs `NSDocumentsFolderUsageDescription` (M6).
