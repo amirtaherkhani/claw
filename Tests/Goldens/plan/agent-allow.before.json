@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": ["Read"],
+    "deny": [
+      "Agent(nest-reviewer)",
+      "Bash(rm:*)"
+    ]
+  }
+}

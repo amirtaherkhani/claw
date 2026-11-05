@@ -1,0 +1,6 @@
+{
+  "claudeMdExcludes": [
+    "/p/.claude/rules/old.md",
+    "/p/.claude/rules/security.md"
+  ]
+}

@@ -105,7 +105,7 @@ extension ConfigScanner {
                     enabled: override?.value != "off", enabledBy: override?.layer.scope.rawValue,
                     enabledByFile: override?.layer.file,
                     control: ControlRef(
-                        mechanism: .skillOverrides, key: "skillOverrides[\"\(entry.name)\"]", status: .unknown),
+                        mechanism: .skillOverrides, key: "skillOverrides[\"\(entry.name)\"]", status: .verified),
                     capabilities: Capabilities.forOwnership(.personal, isPlugin: false), problems: entry.problems))
         }
         if includeUser {
@@ -227,7 +227,7 @@ extension ConfigScanner {
         let claudeJson = reader.readClaudeJson(file: claudeJsonFile, projects: environment.projects)
         scan.problems += claudeJson.problems
         let perProject = ControlRef(
-            mechanism: .disabledMcpServers, key: "projects[<path>].disabledMcpServers", status: .unknown)
+            mechanism: .disabledMcpServers, key: "projects[<path>].disabledMcpServers", status: .verified)
 
         // User scope: off in a project only through that project's `disabledMcpServers`.
         if includeUser {
@@ -273,7 +273,7 @@ extension ConfigScanner {
                         enabledBy: offByCommand ? "disabledMcpServers" : off ? "disabledMcpjsonServers" : nil,
                         control: ControlRef(
                             mechanism: .disabledMcpjsonServers, key: "disabledMcpjsonServers: \(server.name)",
-                            status: .unknown),
+                            status: .verified),
                         classification: personal("L2", file), problems: notes))
             }
         }

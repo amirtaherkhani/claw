@@ -69,7 +69,7 @@ struct ConceptTests {
         #expect(try item(result, .commands, "/deploy").description == "Deploy it")
         #expect(try item(result, .commands, "/git:commit").bucket == .yours)
         #expect(try !item(result, .commands, "/old-cmd").enabled)
-        #expect(try item(result, .commands, "/old-cmd").control.status == .unknown)
+        #expect(try item(result, .commands, "/old-cmd").control.status == .verified)
         #expect(try item(result, .commands, "/test").scope == .project)
         #expect(try item(result, .commands, "/kit:build").providedBy == "kit@m")
     }

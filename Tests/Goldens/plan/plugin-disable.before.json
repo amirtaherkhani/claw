@@ -1,0 +1,8 @@
+{
+    "theme": "dark",
+    "enabledPlugins": {
+        "kit@market": true,
+        "other@market": true
+    },
+    "unknownKey": [1, 2]
+}

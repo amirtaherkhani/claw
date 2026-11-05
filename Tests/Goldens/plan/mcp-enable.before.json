@@ -1,0 +1,10 @@
+{
+  "projects": {
+    "/p": {
+      "disabledMcpServers": [
+        "github"
+      ],
+      "allowedTools": []
+    }
+  }
+}
