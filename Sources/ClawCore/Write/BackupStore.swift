@@ -199,6 +199,15 @@ public struct BackupSession: Sendable {
         PrivateFiles.tighten(destination)
     }
 
+    /// Notes a hook put in the stash, so a rollback can take it out again.
+    public mutating func recordStash(_ id: String) throws {
+        manifest.stash.append(.string(id))
+        try save()
+    }
+
+    /// Drops a file the Apply never touched, so rollback does not take a stranger's change for its own.
+    mutating func forget(_ path: String) { manifest.files.removeAll { $0.path == path } }
+
     /// The first half of `moveAway`. Separate so a test can stop between the two steps.
     @discardableResult
     mutating func recordMove(of path: String, created: Bool = false) throws -> String {
