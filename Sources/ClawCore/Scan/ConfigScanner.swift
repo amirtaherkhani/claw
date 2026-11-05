@@ -40,7 +40,7 @@ public struct ScanProgress: Sendable, Equatable {
 
 /// Read-only scan of all seven concepts. Never writes and never executes scanned content.
 public struct ConfigScanner: Sendable {
-    public let environment: ClaudeEnvironment
+    public private(set) var environment: ClaudeEnvironment
     public let target: ScanTarget
     private(set) var fs: any ReadonlyFileSystem
     private let cli: ClaudeCLI?
@@ -85,7 +85,7 @@ public struct ConfigScanner: Sendable {
             return finish()
         }
 
-        let scanner = reading(through: contained)
+        var nested: [String] = []
         /// Runs one step's disk work off the concurrency pool. `nil` means the scan was stopped.
         func read<T: Sendable>(_ step: ScanProgress.Step, _ work: @escaping @Sendable () -> T) async -> T? {
             let update = ScanProgress(step: step, itemCount: items.count)
@@ -96,6 +96,16 @@ public struct ConfigScanner: Sendable {
             await watcher.value  // No stall report may arrive after the next step's progress.
             return value
         }
+
+        if target.kind == .folder, let folder = target.path {
+            let walk = await read(.settings) { NestedProjectWalk(fileSystem: contained).find(under: folder) }
+            guard let walk else { return stop() }
+            nested = walk.projects
+            if walk.truncated {
+                problems.append(Problem(.note, "Walk truncated: some nested .claude folders may be missing", file: folder))
+            }
+        }
+        let scanner = reading(through: contained, adding: nested)
 
         let loaded = await read(.settings) {
             let settings = SettingsLoader(fileSystem: contained).loadAll(environment: scanner.environment)
@@ -138,7 +148,7 @@ public struct ConfigScanner: Sendable {
                 installed: records, layers: settings.layers, markets: markets, reader: MarketplaceReader(fileSystem: contained))
         }
         guard let found else { return stop() }
-        let plugins = inTarget(found)
+        let plugins = scanner.inTarget(found)
         items += plugins.map(\.item)
         if Task.isCancelled { return stop() }
 
@@ -168,9 +178,12 @@ public struct ConfigScanner: Sendable {
         return dates ?? [:]
     }
 
-    private func reading(through contained: ContainedFileSystem) -> ConfigScanner {
+    private func reading(through contained: ContainedFileSystem, adding projects: [String]) -> ConfigScanner {
         var copy = self
         copy.fs = contained
+        copy.environment = ClaudeEnvironment(
+            home: environment.home, configDir: environment.configDir, pluginsDir: environment.pluginsDir,
+            managedDir: environment.managedDir, projects: environment.projects + projects)
         return copy
     }
 
@@ -200,7 +213,7 @@ public struct ConfigScanner: Sendable {
     /// A folder scan keeps only that folder's plugins, and so nothing they provide (FR-F02-2).
     private func inTarget(_ plugins: [PluginItem]) -> [PluginItem] {
         guard target.kind == .folder else { return plugins }
-        return plugins.filter { $0.item.projectPath == target.path }
+        return plugins.filter { $0.item.projectPath.map(environment.projects.contains) == true }
     }
 
     /// Settings layers that decide a plugin's state for a project (`nil` = user scope only).

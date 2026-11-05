@@ -64,6 +64,11 @@ private enum Fixture {
         "managed/CLAUDE.md": "# Policy",
         "managed/managed-settings.json":
             #"{"hooks":{"PreToolUse":[{"matcher":"Write","hooks":[{"type":"command","command":"/opt/audit.sh"}]}]}}"#,
+        // Nested projects for a folder scan.
+        "work/app/packages/api/.claude/commands/api-task.md": "Nested command",
+        "work/app/a/b/c/d/.claude/commands/depth-four.md": "At the depth limit",
+        "work/app/a/b/c/d/e/.claude/commands/depth-five.md": "Past the depth limit",
+        "work/app/node_modules/dep/.claude/commands/from-dependency.md": "Ignored folder",
         "victim/keep.txt": "must survive the scan",
         // Symlink destinations: see `links`.
         "outside/skill/SKILL.md": "---\nname: escaped-skill\ndescription: Outside every root\n---\n",
@@ -215,7 +220,8 @@ struct GoldenTests {
 
         #expect(!result.items.isEmpty)
         for item in result.items {
-            #expect(item.projectPath == project, "\(item.id)")
+            let path = try #require(item.projectPath, "\(item.id)")
+            #expect(path == project || path.hasPrefix(project + "/"), "\(item.id)")
             #expect(item.scope == .project || item.scope == .local, "\(item.id)")
         }
         // Other scopes still decide state: the user's excludes switch this project rule off.
@@ -272,6 +278,37 @@ struct GoldenTests {
         let result = await scan(.mac, root: root)
         #expect(result.items.contains { $0.concept == .plugins && $0.name == "pathless" })
         #expect(!result.problems.contains { $0.file?.hasPrefix(root) == false })
+    }
+
+    @Test("A folder scan walks nested .claude folders within its limits (TD 8.2)")
+    func nestedWalk() async throws {
+        let root = try Fixture.create()
+        defer { try? FileManager.default.removeItem(atPath: root) }
+        let names = Set(await scan(.folder, root: root).items.map(\.name))
+        #expect(names.contains("/api-task"))
+        #expect(names.contains("/depth-four"))
+        #expect(!names.contains("/depth-five"))
+        #expect(!names.contains("/from-dependency"))
+
+        let mac = Set(await scan(.mac, root: root).items.map(\.name))
+        #expect(!mac.contains("/api-task"), "a Mac scan does not walk")
+    }
+
+    @Test("The walk stops at its limits and says so")
+    func walkLimits() {
+        let fs = MemoryFileSystem([
+            "/p/a/.claude/x": "", "/p/b/.claude/x": "", "/p/c/.claude/x": "", "/p/d/.claude/x": "",
+        ])
+        let all = NestedProjectWalk(fileSystem: fs).find(under: "/p")
+        #expect(all.projects == ["/p/a", "/p/b", "/p/c", "/p/d"])
+        #expect(!all.truncated)
+
+        let cut = NestedProjectWalk(fileSystem: fs, maxDirectories: 2).find(under: "/p")
+        #expect(cut.truncated)
+        #expect(cut.projects.count < 4)
+
+        let late = NestedProjectWalk(fileSystem: fs, timeLimit: .zero).find(under: "/p")
+        #expect(late.truncated)
     }
 
     @Test("Only items proven Personal offer Edit")

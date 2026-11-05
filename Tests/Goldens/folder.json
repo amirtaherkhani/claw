@@ -44,6 +44,70 @@
       },
       "classification" : {
         "evidence" : [
+          "file at $ROOT/work/app/packages/api/.claude/commands/api-task.md"
+        ],
+        "ownership" : "personal",
+        "rule" : "L2"
+      },
+      "concept" : "commands",
+      "control" : {
+        "key" : "skillOverrides[\"api-task\"]",
+        "mechanism" : "skillOverrides",
+        "status" : "unknown"
+      },
+      "description" : "Nested command",
+      "enabled" : true,
+      "id" : "commands:project:$ROOT/work/app/packages/api:api-task",
+      "location" : "$ROOT/work/app/packages/api/.claude/commands/api-task.md",
+      "name" : "/api-task",
+      "problems" : [
+
+      ],
+      "projectPath" : "$ROOT/work/app/packages/api",
+      "scope" : "project"
+    },
+    {
+      "bucket" : "yours",
+      "capabilities" : {
+        "edit" : true,
+        "remove" : true,
+        "removeLabel" : "Move to backup",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "file at $ROOT/work/app/a/b/c/d/.claude/commands/depth-four.md"
+        ],
+        "ownership" : "personal",
+        "rule" : "L2"
+      },
+      "concept" : "commands",
+      "control" : {
+        "key" : "skillOverrides[\"depth-four\"]",
+        "mechanism" : "skillOverrides",
+        "status" : "unknown"
+      },
+      "description" : "At the depth limit",
+      "enabled" : true,
+      "id" : "commands:project:$ROOT/work/app/a/b/c/d:depth-four",
+      "location" : "$ROOT/work/app/a/b/c/d/.claude/commands/depth-four.md",
+      "name" : "/depth-four",
+      "problems" : [
+
+      ],
+      "projectPath" : "$ROOT/work/app/a/b/c/d",
+      "scope" : "project"
+    },
+    {
+      "bucket" : "yours",
+      "capabilities" : {
+        "edit" : true,
+        "remove" : true,
+        "removeLabel" : "Move to backup",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
           "file at $ROOT/work/app/.claude/commands/shared.md"
         ],
         "ownership" : "personal",
