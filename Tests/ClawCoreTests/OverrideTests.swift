@@ -97,6 +97,8 @@ struct OverrideTests {
         let server = item(.mcp, "db", .disabledMcpjsonServers, key: "disabledMcpjsonServers: db")
         let files = [local.file: #"{"enabledMcpjsonServers":["db"]}"#]
         #expect(try planner(files).setEnabled(server, enabled: false, writeScope: user, activeProject: "/p").warnings.isEmpty)
+        let already = [user.file: #"{"disabledMcpjsonServers":["db"]}"#]
+        #expect(try planner(already).setEnabled(server, enabled: false, writeScope: local, activeProject: "/p").warnings.isEmpty)
     }
 
     @Test("Managed settings refuse, whichever way they point")
