@@ -130,6 +130,8 @@ struct OverviewView: View {
                 )
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Configuration types")
     }
 }
 

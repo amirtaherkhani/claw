@@ -134,6 +134,9 @@
     "Active" : {
 
     },
+    "Active project" : {
+
+    },
     "Active project. Project and Local scope write into this folder." : {
 
     },
@@ -228,6 +231,9 @@
 
     },
     "Close" : {
+
+    },
+    "Configuration types" : {
 
     },
     "Controlled by" : {
@@ -420,6 +426,9 @@
     "Owner: %@" : {
 
     },
+    "Pages" : {
+
+    },
     "Plugins in this marketplace" : {
 
     },
@@ -499,6 +508,9 @@
 
     },
     "Search all change records…" : {
+
+    },
+    "Search change records" : {
 
     },
     "Select all" : {

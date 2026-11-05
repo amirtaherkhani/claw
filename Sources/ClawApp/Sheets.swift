@@ -222,7 +222,9 @@ struct HistoryView: View {
                 writesTo: "~/.claude.bak/")
             HStack {
                 Image(systemName: "magnifyingglass").foregroundStyle(Theme.muted)
-                TextField("Search all change records…", text: $query).textFieldStyle(.plain)
+                TextField("Search all change records…", text: $query)
+                    .textFieldStyle(.plain)
+                    .accessibilityLabel("Search change records")
             }
             .panel(padding: 10)
             HStack(spacing: 8) {
