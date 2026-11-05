@@ -64,7 +64,7 @@ final class AppModel {
     }
     var writeScope: WriteScope? { WriteScope.resolve(scope, environment: environment, activeProject: activeProject) }
     var writeScopeLabel: String {
-        writeScope.map { ItemPresentation.abbreviate($0.file, home: home) } ?? "choose an active project first"
+        writeScope.map { ItemPresentation.abbreviate($0.file, home: home) } ?? String(localized: "choose an active project first")
     }
 
     func items(concept: Concept?, bucket: Bucket?) -> [Item] {
@@ -139,7 +139,7 @@ final class AppModel {
         for item in selection where queue.effectiveEnabled(item) != enable {
             if queue.toggle(item, writeScope: writeScope, home: home) != nil { skipped += 1 }
         }
-        if skipped > 0 { show("Skipped \(ItemPresentation.counted(skipped, "read-only item"))") }
+        if skipped > 0 { show(String(localized: "Skipped \(ItemPresentation.counted(skipped, "read-only item"))")) }
     }
 
     func remove(_ selection: [Item]) {
@@ -147,7 +147,9 @@ final class AppModel {
         for item in selection where !queue.isQueuedForRemoval(item) {
             if queue.toggleRemoval(item, home: home) != nil { skipped += 1 }
         }
-        if skipped > 0 { show("Skipped \(ItemPresentation.counted(skipped, "item")) that cannot be removed here") }
+        if skipped > 0 {
+            show(String(localized: "Skipped \(ItemPresentation.counted(skipped, "item")) that cannot be removed here"))
+        }
     }
 
     // MARK: Projects
@@ -165,9 +167,9 @@ final class AppModel {
             try registry.save(updated)
             registered = updated
             if activeProject == nil { setActiveProject(path) }
-            show("Added \(URL(fileURLWithPath: path).lastPathComponent)")
+            show(String(localized: "Added \(URL(fileURLWithPath: path).lastPathComponent)"))
         } catch {
-            show("Could not save the project list: \(error.localizedDescription)")
+            show(String(localized: "Could not save the project list: \(error.localizedDescription)"))
         }
     }
 
@@ -177,9 +179,9 @@ final class AppModel {
             try registry.save(updated)
             registered = updated
             if activeProject == path { setActiveProject(nil) }
-            show("Stopped managing \(URL(fileURLWithPath: path).lastPathComponent). No files were touched.")
+            show(String(localized: "Stopped managing \(URL(fileURLWithPath: path).lastPathComponent). No files were touched."))
         } catch {
-            show("Could not save the project list: \(error.localizedDescription)")
+            show(String(localized: "Could not save the project list: \(error.localizedDescription)"))
         }
     }
 

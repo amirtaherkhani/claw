@@ -47,10 +47,10 @@ struct RootView: View {
 
     private var title: String {
         switch model.destination ?? .overview {
-        case .overview: "Overview"
-        case .scan: "Scan"
-        case .projects: "Projects"
-        case .history: "History"
+        case .overview: String(localized: "Overview")
+        case .scan: String(localized: "Scan")
+        case .projects: String(localized: "Projects")
+        case .history: String(localized: "History")
         case .concept(let concept): ItemPresentation.conceptTitle(concept)
         }
     }
@@ -58,10 +58,10 @@ struct RootView: View {
     /// Status pill text: "X of Y items enabled · N pending".
     private var subtitle: String {
         if let progress = model.progress { return progress.step.label + "…" }
-        guard model.result != nil else { return "Not scanned yet" }
+        guard model.result != nil else { return String(localized: "Not scanned yet") }
         let stats = model.stats
-        let pending = model.queue.isEmpty ? "" : " · \(model.queue.count) pending"
-        return "\(stats.enabled) of \(stats.total) items enabled\(pending)"
+        let enabled = String(localized: "\(stats.enabled) of \(stats.total) items enabled")
+        return model.queue.isEmpty ? enabled : String(localized: "\(enabled) · \(model.queue.count) pending")
     }
 }
 
@@ -82,9 +82,14 @@ struct RailEntry: Identifiable {
     static let all: [RailEntry] =
         [
             RailEntry(
-                title: "Overview", shortTitle: "Overview", symbol: "circle.hexagongrid", destination: .overview),
-            RailEntry(title: "Scan", shortTitle: "Scan", symbol: "dot.radiowaves.left.and.right", destination: .scan),
-            RailEntry(title: "Projects", shortTitle: "Projects", symbol: "folder", destination: .projects),
+                title: String(localized: "Overview"), shortTitle: String(localized: "Overview"), symbol: "circle.hexagongrid",
+                destination: .overview),
+            RailEntry(
+                title: String(localized: "Scan"), shortTitle: String(localized: "Scan"), symbol: "dot.radiowaves.left.and.right",
+                destination: .scan),
+            RailEntry(
+                title: String(localized: "Projects"), shortTitle: String(localized: "Projects"), symbol: "folder",
+                destination: .projects),
         ]
         + Concept.allCases.map { concept in
             let title = ItemPresentation.conceptTitle(concept)
@@ -94,7 +99,8 @@ struct RailEntry: Identifiable {
         }
         + [
             RailEntry(
-                title: "History", shortTitle: "History", symbol: "clock.arrow.circlepath", destination: .history)
+                title: String(localized: "History"), shortTitle: String(localized: "History"), symbol: "clock.arrow.circlepath",
+                destination: .history)
         ]
 }
 
@@ -195,7 +201,7 @@ struct StatusToolbar: ToolbarContent {
                 Button("Manage Projects…") { model.destination = .projects }
             } label: {
                 Label(
-                    model.activeProject.map { URL(fileURLWithPath: $0).lastPathComponent } ?? "No project",
+                    model.activeProject.map { URL(fileURLWithPath: $0).lastPathComponent } ?? String(localized: "No project"),
                     systemImage: "folder"
                 )
                 .labelStyle(.titleAndIcon)
@@ -224,7 +230,7 @@ struct StatusToolbar: ToolbarContent {
             get: { model.scope },
             set: { newValue in
                 if newValue != .user && model.activeProject == nil {
-                    model.show("Choose an active project first")
+                    model.show(String(localized: "Choose an active project first"))
                 } else {
                     model.scope = newValue
                 }

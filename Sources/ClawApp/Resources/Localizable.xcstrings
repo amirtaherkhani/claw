@@ -1,0 +1,608 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+
+    },
+    " (partial)" : {
+
+    },
+    "%@ · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "%@ · %@ so far" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@ so far"
+          }
+        }
+      }
+    },
+    "%@ · %lld pending" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$lld pending"
+          }
+        }
+      }
+    },
+    "%@, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$@"
+          }
+        }
+      }
+    },
+    "%@: %lld of %lld on" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@: %2$lld of %3$lld on"
+          }
+        }
+      }
+    },
+    "%lld" : {
+
+    },
+    "%lld / %lld on" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld / %2$lld on"
+          }
+        }
+      }
+    },
+    "%lld added by you, %lld found in ~/.claude.json. Claw reads every one on each scan." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld added by you, %2$lld found in ~/.claude.json. Claw reads every one on each scan."
+          }
+        }
+      }
+    },
+    "%lld items across 7 types" : {
+
+    },
+    "%lld of %lld items enabled" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld of %2$lld items enabled"
+          }
+        }
+      }
+    },
+    "%lld of %lld selected" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld of %2$lld selected"
+          }
+        }
+      }
+    },
+    "%lld · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld · %2$@"
+          }
+        }
+      }
+    },
+    "%lld%%" : {
+
+    },
+    "0" : {
+
+    },
+    "0 records" : {
+
+    },
+    "A backup is created first in ~/.claude.bak/‹timestamp›/" : {
+
+    },
+    "A project folder is any folder with .claude/, .mcp.json or CLAUDE.md. Claw only reads it until you change something." : {
+
+    },
+    "About" : {
+
+    },
+    "Active" : {
+
+    },
+    "Active project. Project and Local scope write into this folder." : {
+
+    },
+    "Add" : {
+
+    },
+    "Add folder" : {
+
+    },
+    "Add plugin" : {
+
+    },
+    "Add plugin…" : {
+
+    },
+    "Add project folder" : {
+
+    },
+    "Add this folder" : {
+
+    },
+    "Add this folder to Projects ›" : {
+
+    },
+    "Added %@" : {
+
+    },
+    "After a backup, Claw writes only to .claude/settings.json, .claude/settings.local.json and .mcp.json in this folder. Changes to .claude/settings.json reach everyone who shares the repository." : {
+
+    },
+    "All" : {
+
+    },
+    "Already managed" : {
+
+    },
+    "Always on" : {
+
+    },
+    "Apply %@" : {
+
+    },
+    "Applying arrives with the safe write pipeline (M2)." : {
+
+    },
+    "Applying changes arrives with the safe write pipeline (M2)." : {
+
+    },
+    "BACKUP" : {
+
+    },
+    "Backup before every apply" : {
+
+    },
+    "Backup first" : {
+
+    },
+    "Before every apply" : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Choose an active project first" : {
+
+    },
+    "Choose folder…" : {
+
+    },
+    "Choose where the plugin comes from. The source decides whether you can edit it." : {
+
+    },
+    "Choose…" : {
+
+    },
+    "Claw" : {
+
+    },
+    "Claw reads the folder first. Nothing is added until you confirm." : {
+
+    },
+    "Claw reads your Claude Code configuration and sorts every item by who owns it. Scanning never changes a file." : {
+
+    },
+    "Claw runs these with the claude CLI, then checks enabledPlugins afterwards and flags \"installed but not enabled\"." : {
+
+    },
+    "Click an owner group to see what you can edit" : {
+
+    },
+    "Click to see what you can edit" : {
+
+    },
+    "Close" : {
+
+    },
+    "Controlled by" : {
+
+    },
+    "Could not save the project list: %@" : {
+
+    },
+    "Details" : {
+
+    },
+    "Details for %@" : {
+
+    },
+    "Details…" : {
+
+    },
+    "Disable" : {
+
+    },
+    "Disable %lld" : {
+
+    },
+    "Discard" : {
+
+    },
+    "Discard %@" : {
+
+    },
+    "Discard All" : {
+
+    },
+    "Done" : {
+
+    },
+    "Drop a folder here" : {
+
+    },
+    "Drop a project folder here" : {
+
+    },
+    "ENABLED" : {
+
+    },
+    "Each apply will appear here with a Restore button. Applying arrives with the safe write pipeline (M2)." : {
+
+    },
+    "Edit Source…" : {
+
+    },
+    "Enable" : {
+
+    },
+    "Enable %@" : {
+
+    },
+    "Enable %lld" : {
+
+    },
+    "Enable in" : {
+
+    },
+    "Enabled" : {
+
+    },
+    "Every apply is recorded with its backup, so you can restore it." : {
+
+    },
+    "Every change is backed up first. Files are moved to the backup folder, never hard-deleted." : {
+
+    },
+    "Files are written atomically; keys Claw does not manage are kept." : {
+
+    },
+    "Filter %@" : {
+
+    },
+    "Found in this folder" : {
+
+    },
+    "GitHub repo" : {
+
+    },
+    "Go" : {
+
+    },
+    "History" : {
+
+    },
+    "Installing arrives in milestone M5." : {
+
+    },
+    "It needs .claude-plugin/marketplace.json at its root." : {
+
+    },
+    "Items found here are Yours: they live in a folder you own, so each one gets an Edit button." : {
+
+    },
+    "Keep" : {
+
+    },
+    "Kind" : {
+
+    },
+    "Last read" : {
+
+    },
+    "Last scan: %@ in %@ s" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Last scan: %1$@ in %2$@ s"
+          }
+        }
+      }
+    },
+    "Local" : {
+
+    },
+    "Local folder" : {
+
+    },
+    "Make active" : {
+
+    },
+    "Manage Projects…" : {
+
+    },
+    "Manage project folders" : {
+
+    },
+    "Marketplace" : {
+
+    },
+    "Modified" : {
+
+    },
+    "Name" : {
+
+    },
+    "Next" : {
+
+    },
+    "No %@ on this Mac or in your projects." : {
+
+    },
+    "No .claude/, .mcp.json or CLAUDE.md found" : {
+
+    },
+    "No backups yet" : {
+
+    },
+    "No changes applied yet" : {
+
+    },
+    "No changes queued" : {
+
+    },
+    "No project" : {
+
+    },
+    "No scan yet" : {
+
+    },
+    "None found" : {
+
+    },
+    "Not scanned yet" : {
+
+    },
+    "Nothing is written until you click Apply." : {
+
+    },
+    "On" : {
+
+    },
+    "On apply" : {
+
+    },
+    "One folder: %@" : {
+
+    },
+    "Open" : {
+
+    },
+    "Overview" : {
+
+    },
+    "Owner: %@" : {
+
+    },
+    "Plugins in this marketplace" : {
+
+    },
+    "Problems" : {
+
+    },
+    "Project" : {
+
+    },
+    "Projects" : {
+
+    },
+    "Queue a change for review" : {
+
+    },
+    "Reads all seven kinds of configuration and sorts every item into Yours, Read-only or Needs attention. Nothing is changed." : {
+
+    },
+    "Recent" : {
+
+    },
+    "Registered marketplace" : {
+
+    },
+    "Remove" : {
+
+    },
+    "Remove %lld" : {
+
+    },
+    "Reveal in Finder" : {
+
+    },
+    "Review %@" : {
+
+    },
+    "Review %@ →" : {
+
+    },
+    "Review %lld" : {
+
+    },
+    "Review Changes…" : {
+
+    },
+    "Review queued changes before anything is written" : {
+
+    },
+    "Run a scan to see your %@." : {
+
+    },
+    "Scan" : {
+
+    },
+    "Scan This Mac" : {
+
+    },
+    "Scan all" : {
+
+    },
+    "Scan all configuration" : {
+
+    },
+    "Scan all →" : {
+
+    },
+    "Scan this Mac and known projects (read-only)" : {
+
+    },
+    "Scan this folder" : {
+
+    },
+    "Scope" : {
+
+    },
+    "Scope: %@" : {
+
+    },
+    "Search all change records…" : {
+
+    },
+    "Select all" : {
+
+    },
+    "Select items" : {
+
+    },
+    "Show items that need attention" : {
+
+    },
+    "Skipped %@" : {
+
+    },
+    "Skipped %@ that cannot be removed here" : {
+
+    },
+    "Source" : {
+
+    },
+    "Sources" : {
+
+    },
+    "Still waiting to read %@" : {
+
+    },
+    "Stop" : {
+
+    },
+    "Stop Scan" : {
+
+    },
+    "Stop and keep what was found so far" : {
+
+    },
+    "Stop managing" : {
+
+    },
+    "Stop managing %@" : {
+
+    },
+    "Stopped managing %@. No files were touched." : {
+
+    },
+    "This Mac" : {
+
+    },
+    "This Mac: ~/.claude, managed settings and %@" : {
+
+    },
+    "Turn items on or off, or remove them, and they appear here for review." : {
+
+    },
+    "Undo %@" : {
+
+    },
+    "User" : {
+
+    },
+    "Where enable and disable changes are written: %@" : {
+
+    },
+    "Write scope" : {
+
+    },
+    "Writes only inside folders you add" : {
+
+    },
+    "Writes to" : {
+
+    },
+    "changes applied · 7 days" : {
+
+    },
+    "choose an active project first" : {
+
+    },
+    "items you own and can edit" : {
+
+    },
+    "macOS may be waiting for you to answer a permission prompt. Answer it, or press Stop." : {
+
+    },
+    "of %lld" : {
+
+    },
+    "or Browse…" : {
+
+    },
+    "owner/repo" : {
+
+    },
+    "writes %@" : {
+
+    },
+    "· %@ scope" : {
+
+    },
+    "—" : {
+
+    },
+    "›" : {
+
+    }
+  },
+  "version" : "1.0"
+}

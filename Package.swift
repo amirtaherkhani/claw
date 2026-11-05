@@ -16,11 +16,13 @@ var targets: [Target] = [
 
 #if os(macOS)
     products.append(.executable(name: "ClawApp", targets: ["ClawApp"]))
-    targets.append(.executableTarget(name: "ClawApp", dependencies: ["ClawCore"]))
+    targets.append(
+        .executableTarget(name: "ClawApp", dependencies: ["ClawCore"], resources: [.process("Resources")]))
 #endif
 
 let package = Package(
     name: "Claw",
+    defaultLocalization: "en",
     platforms: [.macOS(.v26)],
     products: products,
     targets: targets,
