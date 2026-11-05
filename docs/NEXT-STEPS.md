@@ -7,7 +7,7 @@ Status on 2026-11-05. Start here when you continue in Claude Code on the Mac. Re
 | Milestone | State |
 | :- | :- |
 | M0 Foundations | Done. Open: M0.6 (spikes S1 to S10), M0.8 (update [U] tags from spike results) |
-| M1 Core read-only | Done: all seven concepts, ownership rules, effective state, projects, progress and Stop, CLI. Open: the manifest path gap under Known gaps |
+| M1 Core read-only | Done: all seven concepts, ownership rules, effective state, projects, progress and Stop, CLI. Exit criteria reported in the M1 close-out |
 | M2 Safe write pipeline | **Next.** Nothing started |
 | M3 GUI read-only | Screens done and compared with `docs/design/` on the Mac. Open: XCUITest smoke tests, accessibility audit, String Catalog |
 | M4 to M7 | Not started |
@@ -16,8 +16,7 @@ Code: `amirtaherkhani/claw`, `main`, CI green on Linux and macOS.
 
 ## Open before M2
 
-1. The M1 gaps under Known gaps: custom manifest paths.
-2. The spikes below, each in a throwaway config directory, with the owner reviewing the results.
+1. The spikes below, each in a throwaway config directory, with the owner reviewing the results.
 
 ## Spikes to run before M2 writes anything
 
@@ -69,6 +68,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | M1.15 | Compared with Claude Code for the `claw` project (`docs/compare-m1.md`); plugin MCP servers at the top level of `.mcp.json` or in `plugin.json`, and a plugin root `SKILL.md`, are now read | #11 | 2026-11-05 |
 | FR-F02-5 | `ContainedFileSystem` keeps every scan read inside its root and reports refused links; a plugin with no install path is no longer read at the disk root | #12 | 2026-11-05 |
 | FR-F02-2 walk | A folder scan also reads nested `.claude/` folders: depth 4, ignored folders, 5,000 directories or 2 s, and a note when cut short | #13 | 2026-11-05 |
+| M1.5 manifest paths | Custom `skills`, `commands`, `agents`, `hooks` and `mcpServers` in `plugin.json`; absolute and `..` paths are refused with a problem | #14 | 2026-11-05 |
 
 ## Known gaps and decisions to revisit
 
@@ -85,7 +85,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 - A thread abandoned by Stop stays blocked until the dialog is answered, and scanning again blocks a new thread on the same file. One thread per press, ended by answering the dialog.
 - Disk calls outside a scan still run on the main actor: `ProjectInspection.inspect` in view bodies and `AppModel.loadProjects`. Listing a protected folder there could hang the window (F9).
 - Items in nested folders carry their own `projectPath`, so a queued change on one is never pruned by a scan of the parent folder (`ScanOutcome` gets only the scanned folder). It stays in Review until discarded.
-- Custom paths in `plugin.json` (`skills`, `commands`, `agents`, a path in `mcpServers`) are not read (M1.5); only the standard folders and inline `mcpServers` are.
+- Manifest paths add to the standard folders [A]: no plugin on the owner's Mac uses a non-standard path, so this comes from the docs and fixtures only.
 - Managed skills are not read (M1.6); the enterprise skills path waits for S10.
 - To accept a scan change on purpose: `CLAW_UPDATE_GOLDENS=1 swift test --filter GoldenTests`, then review the diff in `Tests/Goldens`.
 

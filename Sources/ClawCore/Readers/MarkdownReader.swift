@@ -27,6 +27,15 @@ public struct MarkdownReader: Sendable {
         walk(directory, prefix: "", depth: 0, naming: naming, maxDepth: maxDepth)
     }
 
+    /// A folder, or one `.md` file.
+    func read(path: String, naming: Naming) -> [MarkdownEntry] {
+        guard path.hasSuffix(".md"), !fs.isDirectory(path), let data = try? fs.readFile(path) else {
+            return read(in: path, naming: naming)
+        }
+        let name = URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent
+        return [Self.entry(text: String(decoding: data, as: UTF8.self), file: path, baseName: name, naming: naming)]
+    }
+
     private func walk(_ directory: String, prefix: String, depth: Int, naming: Naming, maxDepth: Int) -> [MarkdownEntry] {
         guard depth <= maxDepth, let entries = try? fs.contentsOfDirectory(directory) else { return [] }
         var result: [MarkdownEntry] = []

@@ -52,6 +52,18 @@ extension ConfigScanner {
 
     private func pluginRoot(_ record: PluginRecord) -> String { record.readFromFolder ?? record.installPath }
 
+    /// Markdown from the standard folder plus the manifest's paths, each a folder or one file.
+    private func pluginEntries(
+        _ reader: MarkdownReader, folder: String, record: PluginRecord, naming: MarkdownReader.Naming,
+        paths: (PluginManifest) -> [String]
+    ) -> [MarkdownEntry] {
+        let root = pluginRoot(record)
+        var seen = Set<String>()
+        return ([joinPath(root, folder)] + paths(PluginManifest(root: root, fileSystem: fs)))
+            .flatMap { reader.read(path: $0, naming: naming) }
+            .filter { seen.insert($0.file).inserted }
+    }
+
     private func personal(_ rule: String, _ file: String) -> Classification {
         Classification(ownership: .personal, rule: rule, evidence: ["file at \(file)"])
     }
@@ -107,7 +119,7 @@ extension ConfigScanner {
             }
         }
         for plugin in installed {
-            for entry in reader.read(in: joinPath(pluginRoot(plugin.record), "commands"), naming: .path) {
+            for entry in pluginEntries(reader, folder: "commands", record: plugin.record, naming: .path, paths: \.commands) {
                 scan.items.append(
                     pluginEntryItem(.commands, entry, name: "/\(plugin.record.name):\(entry.name)", plugin: plugin))
             }
@@ -145,7 +157,9 @@ extension ConfigScanner {
         }
         // Deny syntax for plugin subagents is unverified (spike S6): they follow the plugin.
         for plugin in installed {
-            for entry in reader.read(in: joinPath(pluginRoot(plugin.record), "agents"), naming: .frontmatterThenPath) {
+            let entries = pluginEntries(
+                reader, folder: "agents", record: plugin.record, naming: .frontmatterThenPath, paths: \.agents)
+            for entry in entries {
                 scan.items.append(
                     pluginEntryItem(.agents, entry, name: "\(plugin.record.name):\(entry.name)", plugin: plugin))
             }
@@ -263,10 +277,17 @@ extension ConfigScanner {
             let (listed, problems) = reader.readMcpJson(
                 file: joinPath(root, ".mcp.json"), scope: .plugin, projectPath: plugin.record.projectPath)
             scan.problems += problems
-            let names = Set(listed.map(\.name))
-            let declared = reader.readPluginManifest(
-                file: joinPath(root, ".claude-plugin", "plugin.json"), projectPath: plugin.record.projectPath)
-            for server in listed + declared.filter({ !names.contains($0.name) }) {
+            let manifest = PluginManifest(root: root, fileSystem: fs)
+            scan.problems += manifest.problems
+            var servers = listed + reader.readPluginManifest(file: manifest.file, projectPath: plugin.record.projectPath)
+            for file in manifest.mcpFiles {
+                let (found, problems) = reader.readMcpJson(
+                    file: file, scope: .plugin, projectPath: plugin.record.projectPath)
+                servers += found
+                scan.problems += problems
+            }
+            var names = Set<String>()
+            for server in servers where names.insert(server.name).inserted {
                 scan.items.append(
                     mcpItem(
                         server, enabled: plugin.item.enabled, enabledBy: plugin.item.enabledBy,
@@ -340,14 +361,24 @@ extension ConfigScanner {
         }
 
         for plugin in installed {
-            let file = joinPath(pluginRoot(plugin.record), "hooks", "hooks.json")
-            guard let data = try? fs.readFile(file) else { continue }
-            guard let value = try? JSONValue.parse(data) else {
-                scan.problems.append(Problem(.error, "Plugin hooks file is not valid JSON", file: file))
-                continue
+            let root = pluginRoot(plugin.record)
+            let manifest = PluginManifest(root: root, fileSystem: fs)
+            var hooks: [HookRecord] = []
+            for file in [joinPath(root, "hooks", "hooks.json")] + manifest.hookFiles {
+                guard let data = try? fs.readFile(file) else { continue }
+                guard let value = try? JSONValue.parse(data) else {
+                    scan.problems.append(Problem(.error, "Plugin hooks file is not valid JSON", file: file))
+                    continue
+                }
+                let (found, problems) = HookReader.parse(value["hooks"], file: file)
+                hooks += found
+                scan.problems += problems
             }
-            let (hooks, problems) = HookReader.parse(value["hooks"], file: file)
-            scan.problems += problems
+            if let inline = manifest.inlineHooks {
+                let (found, problems) = HookReader.parse(inline, file: manifest.file)
+                hooks += found
+                scan.problems += problems
+            }
             let disableAll =
                 effectiveValue("disableAllHooks", layers: layers, project: plugin.record.projectPath)?.boolValue == true
             for hook in hooks {

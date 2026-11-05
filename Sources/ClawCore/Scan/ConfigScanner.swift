@@ -384,7 +384,11 @@ public struct ConfigScanner: Sendable {
             guard let record = plugin.record else { continue }
             let root = record.readFromFolder ?? record.installPath
             guard !root.isEmpty else { continue }  // Listed by the CLI, but it has no files to read.
-            let skills = reader.readSkills(in: joinPath(root, "skills"))
+            var seen = Set<String>()
+            let declared = PluginManifest(root: root, fileSystem: fs).skills
+            let skills = ([joinPath(root, "skills")] + declared)
+                .flatMap { reader.readSkills(in: $0) + reader.readRootSkill(in: $0, name: record.name) }
+                .filter { seen.insert($0.file).inserted }
             for skill in skills.isEmpty ? reader.readRootSkill(in: root, name: record.name) : skills {
                 let classification = Classification(ownership: .plugin, rule: "L4", evidence: ["provided by \(record.id)"])
                 items.append(
