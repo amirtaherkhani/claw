@@ -124,7 +124,19 @@ final class SmokeTests: XCTestCase {
         scan()
         for page in Self.pages {
             open(page)
-            try app.performAccessibilityAudit { Self.isExplained($0) }
+            try app.performAccessibilityAudit { issue in
+                let explained = Self.isExplained(issue)
+                if !explained {
+                    // The audit's own failure message does not say which element it means.
+                    let element = issue.element
+                    print(
+                        "Audit on \(page): \(issue.compactDescription), \(issue.detailedDescription),",
+                        "\(element?.description ?? "no element"), frame \(element?.frame ?? .zero),",
+                        "identifier '\(element?.identifier ?? "")', label '\(element?.label ?? "")',",
+                        "children \(element?.children(matching: .any).count ?? -1)")
+                }
+                return explained
+            }
         }
     }
 }
