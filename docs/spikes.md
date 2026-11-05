@@ -90,6 +90,7 @@ The first-run approval dialog for a `.mcp.json` server writes to `.claude/settin
 | `deniedMcpServers: [{"serverCommand": ["/usr/bin/false"]}]` | `spike-b` gone |
 | `deniedMcpServers: ["spike-a"]` (bare string) | Ignored, with no message |
 | `disabledMcpjsonServers: ["spike-a"]` in `settings.local.json`, project `settings.json`, user settings, or the project entry of `.claude.json` | `spike-a` gone in all four |
+| `enabledMcpjsonServers: ["spike-a"]` in the project entry of `.claude.json` | Approved: "Pending approval" goes away |
 | The same name in both `enabledMcpjsonServers` and `disabledMcpjsonServers` | Disabled wins |
 
 Value shape: `disabledMcpjsonServers` is an array of server names; `deniedMcpServers` is an array of objects with `serverName`, `serverCommand` or a URL form [binary for the URL form]. A server off through these keys disappears from `claude mcp list`; one off through `disabledMcpServers` stays listed as disabled. OQ-2: the per-project answer stands, and `deniedMcpServers` is a working way to turn a server off everywhere.
@@ -189,6 +190,8 @@ The owner approved these results on 2026-11-05.
 | 4 | Item "Disable" for a plugin skill must never offer `skillOverrides` | Planner, M2.5 |
 | 5 | Deny rules need the full `plugin:agent` name | Planner, M2.5 |
 | 6 | Fill TD 3.4 and the after-apply text from S4 | M0.8, M4.7 |
+
+Status: 1 is in #19, 2 and 3 in #20, 4 and 5 are in the M2.5 row of `ROADMAP.md`, and TD 3.4 is filled. The after-apply text waits for M4.7. Controls still report `unknown` in code; M2.5 turns each one to verified with its planner and goldens.
 
 ## Findings during the spikes
 

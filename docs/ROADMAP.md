@@ -113,7 +113,7 @@ These follow your standing rules.
 | M2.2 | `AtomicWrite.swift` (TD 9.3) incl. symlink handling and the stale-hash check | Tests incl. symlinked target and concurrent change |
 | M2.3 | Backup store: folder 0700, files 0600, `manifest.json`, `removed/` | Permission test; manifest schema test |
 | M2.4 | History (`history.jsonl`) and recovery of `in-progress` manifests | Kill-mid-apply test recovers |
-| M2.5 | Planner for `setEnabled`: plugin (`enabledPlugins`), skill (`skillOverrides`), rule (`claudeMdExcludes`), subagent (`permissions.deny`), MCP (`disabledMcpjsonServers`, `disabledMcpServers` per S1 and S7) | Golden "before and after" files per concept |
+| M2.5 | Planner for `setEnabled`: plugin (`enabledPlugins`), skill (`skillOverrides`), rule (`claudeMdExcludes`), subagent (`permissions.deny`), MCP (`disabledMcpjsonServers`, `disabledMcpServers` per S1 and S7). A plugin skill is disabled through its plugin, never `skillOverrides`; deny rules use the full `plugin:agent` name (S2, S6) | Golden "before and after" files per concept |
 | M2.6 | Planner for `remove`: plugin uninstall (CLI step, `--keep-data`), file concepts move to backup, MCP via CLI or `.mcp.json` edit, hook remove | Tests; warnings for OAuth deletion, plugin data deletion, guard hook |
 | M2.7 | Hook stash: put and take, original position, recreate matcher group, identical-handler no-op | Round-trip test |
 | M2.8 | Override detection: a higher-precedence source defeats the change (FR-F07-2); managed and org-required refusal (FR-F07-3) | Tests with fixtures |

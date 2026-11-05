@@ -85,7 +85,7 @@ Rule: **when ownership cannot be proven, the item is Read-only.** The app never 
 | Personal / Project | Yes | Yes (opens your editor) | Yes | Yes (moved to backup; plugin: uninstall) |
 | Marketplace | Yes | No | Yes | Uninstall |
 | Synced | Yes | No | Plugin: yes [V]. Skill: all-or-nothing only (`syncClaudeAiSkills: false`) [V]. A plugin your organisation requires cannot be disabled [V] | Not from the app (manage on claude.ai) |
-| From plugin | Yes | No | Via the parent plugin; per component only where a native switch exists (MCP yes [V]; skills: `skillOverrides` does **not** apply to plugin skills [V]; subagents: deny syntax [U] S6) | Via the parent plugin |
+| From plugin | Yes | No | Via the parent plugin; per component only where a native switch exists (MCP yes [V]; skills: `skillOverrides` does **not** apply to plugin skills [V]; subagents: `Agent(<plugin>:<agent>)` [V S6]) | Via the parent plugin |
 | Managed | Yes | No | No | No |
 | Orphaned | Yes | No | n/a | Remove the record, or re-add the marketplace |
 
@@ -119,7 +119,7 @@ Requirement IDs: `FR-F<nn>-<n>`. **MUST** = required for the feature's priority;
 | ID | Requirement |
 | :- | :- |
 | FR-F02-1 | MUST NOT write, move, delete or execute anything. The engine receives a read-only filesystem handle; a test asserts no write call is possible |
-| FR-F02-2 | MUST support two targets. **This Mac:** user scope, managed scope (if present), plugin cache, registered projects, and projects listed in `~/.claude.json` [A] (key `projects` exists [V]; shape [U] S1). **One project folder:** that folder's project and local scope plus a bounded walk for nested `.claude/` folders |
+| FR-F02-2 | MUST support two targets. **This Mac:** user scope, managed scope (if present), plugin cache, registered projects, and projects listed in `~/.claude.json` [A] (key `projects` exists [V]; shape [V S1]). **One project folder:** that folder's project and local scope plus a bounded walk for nested `.claude/` folders |
 | FR-F02-3 | MUST be cancellable. **Stop** returns within 500 ms [A] and keeps results found so far, labelled "partial" |
 | FR-F02-4 | MUST show real progress from the engine (concepts finished, files read). The prototype's 4-second timer is a stub |
 | FR-F02-5 | MUST NOT follow a symlink that leaves the scan root, and MUST NOT run hook commands, MCP servers or scripts found in a scanned folder |
@@ -194,13 +194,13 @@ Requirement IDs: `FR-F<nn>-<n>`. **MUST** = required for the feature's priority;
 | Concept | Disable writes | Status |
 | :- | :- | :- |
 | Plugin | `enabledPlugins["name@origin"] = false` in the chosen scope file | [V] |
-| Skill (own) | `skillOverrides["name"] = "off"` (other values `on`, `name-only`, `user-invocable-only`) | [V]; command-file coverage and merge semantics [U] S2 |
-| Skill (from plugin) | Not possible with `skillOverrides` ("Plugin skills are not affected") | [V]; alternative deny rule `Skill(<namespaced name>)` [U] S2 |
-| Command | Same switch as skills if it applies to command files | [U] S2 |
+| Skill (own) | `skillOverrides["name"] = "off"` (other values `on`, `name-only`, `user-invocable-only`) | [V]; covers command files; merged per name, higher scope wins [V S2] |
+| Skill (from plugin) | Not possible with `skillOverrides` ("Plugin skills are not affected") | [V]; alternative deny rule `Skill(<namespaced name>)` blocks the call, the name stays listed [V S2] |
+| Command | Same switch as skills | [V S2] |
 | Rule / CLAUDE.md | Add the absolute path (glob allowed) to `claudeMdExcludes` | [V] `memory`; managed CLAUDE.md cannot be excluded [V] |
-| Subagent | `permissions.deny` entry `Agent(<name>)` | [V]; plugin subagents [U] S6 |
-| MCP in `.mcp.json` | name in `disabledMcpjsonServers` (settings) | key [V], value shape [U] S7 |
-| MCP (user, local, plugin, claude.ai connector) | name in `disabledMcpServers` in `~/.claude.json`, **stored per project** | [V] `mcp`; JSON path [U] S1 |
+| Subagent | `permissions.deny` entry `Agent(<name>)` | [V]; plugin subagents use `Agent(<plugin>:<agent>)` [V S6] |
+| MCP in `.mcp.json` | name in `disabledMcpjsonServers` (settings) | key [V], array of names [V S7] |
+| MCP (user, local, plugin, claude.ai connector) | name in `disabledMcpServers` in `~/.claude.json`, **stored per project** | [V] `mcp`; path `projects[<real path>].disabledMcpServers` [V S1] |
 | Hook | Remove the entry and keep a stash copy (no per-hook switch exists) | [V] `hooks`; see F15 |
 
 | ID | Requirement |
@@ -246,7 +246,7 @@ Requirement IDs: `FR-F<nn>-<n>`. **MUST** = required for the feature's priority;
 | FR-F09-3 | MUST show before adding what the result will be: **Personal** (editable, loaded in place) only for a local directory marketplace whose entry uses a relative path [V loading]; otherwise **Marketplace** (copied to cache, read-only) |
 | FR-F09-4 | MUST add via `claude plugin marketplace add <source> [--scope user\|project\|local]` (default `user`) then `claude plugin install <name>@<marketplace> [--scope …]` (`-s` short form works for `install`, not for `marketplace add`) [V] |
 | FR-F09-5 | MUST offer **Enable in** User / Project / Local and show the file the choice writes |
-| FR-F09-6 | MUST verify afterwards with `claude plugin list --json` and report a mismatch (a bug report says directory-marketplace installs may not appear in `enabledPlugins` [U] S3) |
+| FR-F09-6 | MUST verify afterwards with `claude plugin list --json` and report a mismatch (a bug report said directory-marketplace installs may not appear in `enabledPlugins`; on 2.1.316 they do [V S3]) |
 | FR-F09-7 | MUST show that `claude plugin marketplace add` with a GitHub shorthand rejects `owner/*` [V] |
 
 **Add other concepts**
@@ -362,7 +362,7 @@ Requirement IDs: `FR-F<nn>-<n>`. **MUST** = required for the feature's priority;
 
 | ID | Requirement |
 | :- | :- |
-| FR-F18-1 | MAY list MCP servers from `~/Library/Application Support/Claude/claude_desktop_config.json` [A: path from third-party sources; official desktop page references the file name, path [U] S5] |
+| FR-F18-1 | MAY list MCP servers from `~/Library/Application Support/Claude/claude_desktop_config.json` [V S5 for the path on macOS; format of a server entry [U] S5] |
 | FR-F18-2 | MUST NOT write until S5 verifies the format; disable would be remove-with-stash (no per-server switch known) |
 
 ---
@@ -413,7 +413,7 @@ Requirement IDs: `FR-F<nn>-<n>`. **MUST** = required for the feature's priority;
 | ID | Question | Default if not decided | Decide by |
 | :- | :- | :- | :- |
 | OQ-1 | GUI technology | **Closed:** Swift + SwiftUI (ADR-0001) | Done |
-| OQ-2 | MCP disable scope: one project, all registered projects, or global via `deniedMcpServers` [U S7] | One project, with "all registered" option | M0 spike S7 |
+| OQ-2 | MCP disable scope: one project, all registered projects, or global via `deniedMcpServers` [V S7] | One project, with "all registered" option | M0 spike S7 |
 | OQ-3 | Which rule files count: the prototype lists `CLAUDE.md (user)` and `.claude/rules/*.md` | User and project `CLAUDE.md`, `CLAUDE.local.md`, rules; ancestors only inside the project root | M1 |
 | OQ-4 | Minimum Claude Code version | v2.1.289 [A] | M0 |
 | OQ-5 | Minimum macOS | macOS 26 proposed (ADR-0005) | M0 |

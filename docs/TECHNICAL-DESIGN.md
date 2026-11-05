@@ -7,7 +7,7 @@ Version 0.1 · 2026-11-04 · Status: draft for implementation
 Companion files: [`OVERVIEW.md`](OVERVIEW.md) · [`PRD.md`](PRD.md) · [`ROADMAP.md`](ROADMAP.md)
 
 Tags: **[V]** verified in the official Claude Code docs on 2026-11-04 (page named; Claude Code version given where the docs give one) · **[A]** assumption or recommendation · **[U]** unknown, closed by spike `S*` (section 15).
-The installed Claude Code version on the target Mac was **not** inspected. Check `claude --version` and `claude plugin <subcommand> --help` before relying on any flag.
+Spike results verified on Claude Code 2.1.316, macOS 27.2 (`docs/spikes.md`); **[V S*]** marks them. Other rows: the installed version was **not** inspected. Check `claude --version` and `claude plugin <subcommand> --help` before relying on any flag.
 
 ---
 
@@ -110,9 +110,9 @@ The scan may read **only** these locations. Everything else is out of bounds (`F
 | `<project>/.claude/settings.json` | Project (shared) | Team | same keys | [V] |
 | `<project>/.claude/settings.local.json` | Local | You. Claude Code adds `**/.claude/settings.local.json` to global git excludes when it writes the file; it sits at the git repo root (v2.1.211 or later) | same keys | [V] |
 | `/Library/Application Support/ClaudeCode/managed-settings.json` and `managed-settings.d/*.json` | Managed | IT | read-only | [V] `managed-settings` |
-| macOS configuration profile, preference domain `com.anthropic.claudecode` | Managed | MDM | read-only; how to read it from the app [U] S10 | domain [V] |
+| macOS configuration profile, preference domain `com.anthropic.claudecode` | Managed | MDM | read-only; the CLI reads `/Library/Managed Preferences/<user>/com.anthropic.claudecode.plist`, then the device-level file, with `plutil` [V S10 from the binary]; reading it from the app [U] S10 | domain [V] |
 | `/Library/Application Support/ClaudeCode/managed-mcp.json`, `CLAUDE.md` | Managed | IT | read-only | [V] |
-| `~/.claude.json` | App state | **Claude Code** | MCP servers (local and user scope), per-project state (`projects` key), `disabledMcpServers`; backups go to `~/.claude/backups/` (five newest kept) | purpose [V] `claude-directory`, `mcp`; **structure [U] S1** |
+| `~/.claude.json` | App state | **Claude Code** | MCP servers (local and user scope), per-project state (`projects` key), `disabledMcpServers`; backups go to `~/.claude/backups/` (five newest kept) | purpose [V] `claude-directory`, `mcp`; structure [V S1] |
 | `~/.claude/plugins/installed_plugins.json` | n/a | Claude Code | per install: `scope`, `installPath`, `version` | [V] `plugins/loading` |
 | `~/.claude/plugins/known_marketplaces.json` | n/a | Claude Code | per marketplace: `source`, `installLocation`, `lastUpdated`, `autoUpdate` | [V] |
 | `~/.claude/plugins/known_marketplaces_claudeai.json`, `flagged-plugins.json` | n/a | Claude Code | claude.ai marketplaces; delisted plugins | [V] |
@@ -127,7 +127,7 @@ The scan may read **only** these locations. Everything else is out of bounds (`F
 | `<project>/CLAUDE.md` or `<project>/.claude/CLAUDE.md`, `<project>/CLAUDE.local.md`, `<project>/.claude/rules/**/*.md` | Project, Local | Team, You | rules | [V] |
 | `<project>/.mcp.json` | Project | Team | MCP servers | [V] `mcp` |
 
-Relocation: `CLAUDE_CODE_PLUGIN_CACHE_DIR` moves the plugins root [V]; `CLAUDE_CONFIG_DIR` relocates the config directory [V per `settings`; effect on `~/.claude.json` [U] S8]. The app must honour both when set in its own environment or in preferences.
+Relocation: `CLAUDE_CODE_PLUGIN_CACHE_DIR` moves the plugins root [V]; `CLAUDE_CONFIG_DIR` relocates the config directory [V per `settings`; it moves `.claude.json` and `backups/` too, even when it names `~/.claude` [V S8]]. The app must honour both when set in its own environment or in preferences.
 
 **Never write to:** `~/.claude/backups/`, `~/.claude/plugins/` (use the CLI), `~/.claude/plugins/.trash/`, managed locations.
 
@@ -157,7 +157,7 @@ Consequences for the app:
 | In place or copied | Relative-path plugins of a marketplace added from a **local path** load **in place** (edits apply at next session or `/reload-plugins`, no version bump). Every other marketplace plugin is copied to `cache/<marketplace>/<plugin>/<version>/`. `--plugin-dir` and skills-directory plugins also load in place [V `plugins/loading`] |
 | Components | Standard layout: `.claude-plugin/plugin.json` (optional), `skills/`, `commands/`, `agents/`, `hooks/hooks.json`, `.mcp.json`; the manifest may declare other paths (`skills`, `commands`, `agents`, `hooks`, `mcpServers`, …) [V `plugins/manifest-reference`] |
 | Apply timing | `/reload-plugins` or a new session [V] |
-| Unknowns | A bug report suggests directory-marketplace installs may not be written to `enabledPlugins` [U] S3 |
+| Directory marketplace | Installs do write `enabledPlugins` [V S3]; a bug report had said otherwise |
 
 #### Skills
 
@@ -166,13 +166,13 @@ Consequences for the app:
 | Locations | Enterprise (managed directory), `~/.claude/skills/<name>/SKILL.md`, `<project>/.claude/skills/<name>/SKILL.md`, nested `<subdir>/.claude/skills/`, `--add-dir` directories, plugin `skills/`, claude.ai synced (`~/.claude/skills/synced/`). The macOS path of the enterprise skills directory is [U] S10 (Linux example: `/etc/claude-code/.claude/skills/`) |
 | Frontmatter | All optional; `name`, `description`, `when_to_use`, `argument-hint`, `arguments`, `disable-model-invocation`, `user-invocable`, `allowed-tools`, `disallowed-tools`, `model`, `effort`, `context`, `agent`, `background`, `hooks`, `paths`, `shell`, plus informational `metadata`, `license`, `compatibility` [V `skills`] |
 | Precedence | Enterprise > personal > project for the same name; plugin skills are namespaced `plugin-name:skill-name` and both load; nested skills load alongside root skills [V] |
-| Disable | `skillOverrides: { "<name>": "on" \| "name-only" \| "user-invocable-only" \| "off" }` in settings; the `/skills` menu writes it to `.claude/settings.local.json`; **plugin skills are not affected** [V]. Also `permissions.deny` with `Skill`, `Skill(name)` (exact) or `Skill(name *)` (prefix). Namespaced plugin names in deny rules [U] S2. Frontmatter `disable-model-invocation: true` and `user-invocable: false` are edits to the file, not toggles |
+| Disable | `skillOverrides: { "<name>": "on" \| "name-only" \| "user-invocable-only" \| "off" }` in settings; the `/skills` menu writes it to `.claude/settings.local.json`; **plugin skills are not affected** [V]. Also `permissions.deny` with `Skill`, `Skill(name)` (exact) or `Skill(name *)` (prefix). Namespaced plugin names work in deny rules, and the deny blocks the call while the name stays listed [V S2]. Frontmatter `disable-model-invocation: true` and `user-invocable: false` are edits to the file, not toggles |
 | Synced | Download only; local edits are overwritten; opt out with `syncClaudeAiSkills: false` (moves them to `~/.claude/skills/.trash/`) [V] |
 | Apply timing | Watched; add, edit, remove apply live. A **new** top-level skills directory needs `/reload-skills` [V] |
 
 #### Commands
 
-[V] `claude-directory`, `skills`: `commands/deploy.md` creates `/deploy` the same way `skills/deploy/SKILL.md` does; commands are merged into skills; a skill wins over a same-name command; command files accept the same frontmatter except `name` and `paths`. Whether `skillOverrides` accepts a command name [U] S2. Plugin `commands/` follow the same rules.
+[V] `claude-directory`, `skills`: `commands/deploy.md` creates `/deploy` the same way `skills/deploy/SKILL.md` does; commands are merged into skills; a skill wins over a same-name command; command files accept the same frontmatter except `name` and `paths`. `skillOverrides` accepts a command name [V S2]. Plugin `commands/` follow the same rules.
 
 #### Rules
 
@@ -181,7 +181,7 @@ Consequences for the app:
 | Load order | CLAUDE.md and CLAUDE.local.md from the working directory **and every directory above it**, concatenated from filesystem root down; `CLAUDE.local.md` after `CLAUDE.md` in each directory; subdirectory files load on demand [V `memory`] |
 | Rules files | `.claude/rules/**/*.md` and `~/.claude/rules/**/*.md`; no `paths:` frontmatter means loaded at session start, with `paths:` (glob list) loaded when Claude reads a matching file [V] |
 | Disable | `claudeMdExcludes`: array of glob patterns matched against **absolute** paths, any settings layer, arrays merge; managed CLAUDE.md cannot be excluded; for a symlinked rules file a pattern matching either the link path or the target excludes it (v2.1.239 or later) [V] |
-| Apply timing | [U] S4 |
+| Apply timing | `claudeMdExcludes` applied after `/clear` [V S4]; without `/clear` not known |
 
 #### Subagents
 
@@ -189,7 +189,7 @@ Consequences for the app:
 | :- | :- |
 | Priority | Managed settings, `--agents` flag, `.claude/agents/`, `~/.claude/agents/`, plugin `agents/`; same name: higher priority wins [V `sub-agents`] |
 | Frontmatter | `name` (required, up to 256 chars, no `:`), `description` (required), `tools`, `disallowedTools`, `model`, `permissionMode`, `skills`, `mcpServers`, `hooks`, `memory`, `maxTurns`, `effort`, `isolation`, `background`, `omitClaudeMd`, `color`, `initialPrompt`, `autoCompactWindow`, `experimental`; unknown fields ignored; plugin subagents ignore `permissionMode`, `mcpServers`, `hooks` [V] |
-| Disable | `permissions.deny: ["Agent(<name>)"]`; `Task(...)` is an alias since v2.1.63 [V]. Plugin subagent names [U] S6 |
+| Disable | `permissions.deny: ["Agent(<name>)"]`; `Task(...)` is an alias since v2.1.63 [V]. Plugin subagents use `Agent(<plugin>:<agent>)`; the short name does not match [V S6] |
 | `/agents` | In current versions it only prints a reminder to edit the folders; the interactive library existed up to v2.1.197 [V]. This is part of the app's value |
 
 #### MCP servers
@@ -199,7 +199,7 @@ Consequences for the app:
 | Scopes | `local` (default; current project only; stored in `~/.claude.json` under the project path), `project` (`.mcp.json`, shared), `user` (all projects; `~/.claude.json`). Local-scope MCP is **not** in `.claude/settings.local.json` [V `mcp`]. Precedence: local, project, user, plugin, then claude.ai connectors [V] |
 | CLI | `claude mcp add --transport http\|sse <name> <url>`; `claude mcp add [options] <name> -- <command> [args…]` (stdio); `add-json <name> '<json>'`; `list`; `get <name>`; `remove <name> [--scope …]`; `reset-project-choices`; `login`, `logout`; flags `--scope\|-s local\|project\|user`, `--env\|-e KEY=value`, `--header\|-H`. `claude mcp list` has no documented `--json` [V] |
 | `.mcp.json` | Top key `mcpServers`; `type` is `http`, `streamable-http`, `sse`, `ws` or `sdk` (skipped in `.mcp.json`); no `type` means stdio; stdio fields `command`, `args`, `env`; remote fields `url`, `headers`, `headersHelper`; also `timeout`, `alwaysLoad`, `oauth`; `${VAR}` and `${VAR:-default}` expansion in `command`, `args`, `env`, `url`, `headers` [V] |
-| Disable | **`.mcp.json` servers:** settings keys `enabledMcpjsonServers`, `disabledMcpjsonServers` (a disabled entry rejects the server in every permission mode), `enableAllProjectMcpServers`; value shapes [U] S7. **All other servers:** the `/mcp` toggle stores `disabledMcpServers` (opt-out list) and `enabledMcpServers` (opt-in for default-off built-ins) **per project in `~/.claude.json`**; these are unrelated to the `…Mcpjson…` keys [V]. `deniedMcpServers` and `allowedMcpServers` exist as settings keys (block or allow by URL, command or name) [V one-line meaning only; semantics [U] S7] |
+| Disable | **`.mcp.json` servers:** settings keys `enabledMcpjsonServers`, `disabledMcpjsonServers` (a disabled entry rejects the server in every permission mode), `enableAllProjectMcpServers`; arrays of names, honoured in any settings file and in the project entry of `.claude.json`, disabled wins [V S7]. **All other servers:** the `/mcp` toggle stores `disabledMcpServers` (opt-out list) and `enabledMcpServers` (opt-in for default-off built-ins) **per project in `~/.claude.json`**; these are unrelated to the `…Mcpjson…` keys [V]. `deniedMcpServers` and `allowedMcpServers` exist as settings keys (block or allow by URL, command or name) [V S7: array of objects with `serverName` or `serverCommand`; a bare string is ignored; works in user and project settings] |
 | Plugin MCP | Defined in the plugin's `.mcp.json` or inline in `plugin.json`; start with the plugin; registered as `plugin:<plugin-name>:<server-name>`; toggled in `/mcp` or by the plugin [V] |
 | Secrets | `env`, `headers`, `oauth` and URLs may hold secrets. `claude mcp remove` of a remote server deletes stored OAuth tokens and client registration [V] |
 
@@ -223,8 +223,10 @@ Consequences for the app:
 | New top-level skills directory | `/reload-skills` | [V] |
 | Change to a plugin's hooks, `.mcp.json`, agents | `/reload-plugins` | [V] |
 | Settings file edit | Files are watched and reloaded; a `ConfigChange` hook fires | [V] `settings` |
-| `skillOverrides`, `claudeMdExcludes`, `permissions.deny`, hook removal | Expected live via settings reload; verify | [A] S4, S9 |
-| MCP changes | Expected via `/mcp` reconnect or restart; verify | [A] S4 |
+| `skillOverrides`, `permissions.deny`, hook add and removal | Live | [V S4, S9] |
+| `claudeMdExcludes` | After `/clear` or a new session; without `/clear` not known | [V S4] |
+| `disabledMcpjsonServers`, or `disabledMcpServers` edited on disk | New session; a connected server keeps working, even after `/reload-plugins` | [V S4] |
+| `/mcp disable` typed in a session | Live | [V S4] |
 
 ---
 
@@ -556,7 +558,7 @@ export interface PlannedChange {
 
 | Target | Roots read |
 | :- | :- |
-| **This Mac** | User scope (`~/.claude/**` per allowlist, `~/.claude.json`), managed locations if present, plugin cache and in-place plugin folders (from `plugin list --json`), every **registered project**, every project path found under `projects` in `~/.claude.json` [A, shape U S1] |
+| **This Mac** | User scope (`~/.claude/**` per allowlist, `~/.claude.json`), managed locations if present, plugin cache and in-place plugin folders (from `plugin list --json`), every **registered project**, every project path found under `projects` in `~/.claude.json` [V S1] |
 | **One folder** | That folder's `.claude/` (settings, skills, commands, rules, agents), `.mcp.json`, `CLAUDE.md`, `CLAUDE.local.md`, plus a bounded walk for nested `.claude/` directories |
 
 Bounded walk: depth at most 4 [A], ignore `node_modules`, `.git`, `dist`, `build`, `.next`, `target`; stop after 5 000 directories or 2 s [A]; report "walk truncated" as a note.
@@ -922,7 +924,7 @@ export function redact(value: unknown, parentKey = ''): unknown {
 | Read-only guarantee | `ReadonlyFileSystem` has no write methods; the scanner only gets that type | The scan cannot write |
 | Processes | Real `ProcessRunner` against `/bin/echo` and `/bin/sleep` | No shell, timeout and cancel are bounded |
 | Pipeline (M2) | Fault injection at each step; kill mid-apply | Atomicity, rollback, recovery (`NFR-SAFE-1`) |
-| Contract | Real `claude` CLI with a temporary config directory (`CLAUDE_CONFIG_DIR` [U S8]) on a macOS runner | After a write, `claude plugin list --json` agrees with Claw |
+| Contract | Real `claude` CLI with a temporary config directory (`CLAUDE_CONFIG_DIR` and a fake `HOME` [V S8]) on a macOS runner | After a write, `claude plugin list --json` agrees with Claw |
 | UI / E2E (M3+) | XCUITest, `performAccessibilityAudit()` [A, verify availability for macOS in M3] | Review flow, restore, keyboard path, accessibility |
 | Visual | Screenshots compared with the prototype boards | Style parity (owner approves) |
 | Mutation checks | Break a line on purpose, the suite must fail | Tests are not vacuous |

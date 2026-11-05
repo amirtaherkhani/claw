@@ -1,6 +1,6 @@
 # ADR-0004: How Claw enables, disables, installs and removes
 
-- **Status:** Accepted for M2, revisit after spike S3
+- **Status:** Accepted; S3 confirmed the direct `enabledPlugins` edit on Claude Code 2.1.316
 - **Source:** `TECHNICAL-DESIGN.md` section 9.8
 
 | Operation | Mechanism |

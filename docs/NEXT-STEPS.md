@@ -6,7 +6,7 @@ Status on 2026-11-05. Start here when you continue in Claude Code on the Mac. Re
 
 | Milestone | State |
 | :- | :- |
-| M0 Foundations | Done except spikes. M0.6: S1 to S4 and S6 to S9 verified and reviewed; S5 and S10 partial. Open: M0.8 (update [U] tags from spike results) |
+| M0 Foundations | Done. S1 to S4 and S6 to S9 verified and reviewed. S5 and S10 partial: they need a Mac with a managed profile and a fresh user account |
 | M1 Core read-only | Done: all seven concepts, ownership rules, effective state, projects, progress and Stop, CLI. Exit criteria reported in the M1 close-out |
 | M2 Safe write pipeline | **Next.** Nothing started |
 | M3 GUI read-only | Screens done and compared with `docs/design/` on the Mac; text in a String Catalog, XCUITest smoke tests and accessibility audit added. Open: your review of the M3 exit criteria |
@@ -16,8 +16,7 @@ Code: `amirtaherkhani/claw`, `main`, CI green on Linux and macOS.
 
 ## Open before M2
 
-1. The six changes listed at the end of the spike results in `docs/spikes.md`.
-2. S5 and S10 need a Mac with a managed profile and a fresh user account; decide whether they block M2.
+1. Owner decision: do S5 and S10 block M2? They touch F18, managed skills and privacy prompts, none of which M2 writes.
 
 ## Spikes to run before M2 writes anything
 
@@ -74,6 +73,9 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | Scan target | The Scan page follows the real target, so a scan started from a project row no longer says This Mac | #16 | 2026-11-05 |
 | M3.10 | Xcode project from `project.yml` (ADR-0006), XCUITest smoke tests on a fake HOME, audit on every page, CI job; two controls and two groups got accessibility labels | #17 | 2026-11-05 |
 | M0.6 | Spikes S1 to S4 and S6 to S9 verified in throwaway folders; S5 and S10 partial; six follow-up changes listed | #18 | 2026-11-05 |
+| S8, F11 | `.claude.json` follows `CLAUDE_CONFIG_DIR` even when it names `~/.claude`; missing files under `/private` no longer look like links leaving the root | #19 | 2026-11-05 |
+| S1, S7 | `.mcp.json` servers read every disable source, including `/mcp disable` and the project entry of `.claude.json` | #20 | 2026-11-05 |
+| M0.8 | [U] tags, TD 3.4, the M2.5 row and ADR-0004 updated from the spike results | #21 | 2026-11-05 |
 
 ## Known gaps and decisions to revisit
 
@@ -83,7 +85,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 - The scan runs only on demand; there is no file watching yet.
 - `swift run ClawApp` has no bundle ID, so UI automation cannot target it, and a rebuilt ad-hoc bundle counts as a new app for privacy prompts. For visual checks, wrap the binary in a scratch `.app` and set `HOME` to a temporary folder with sample config.
 - Name risk: "Claw" vs the OpenClaw project (ADR-0002). Check before a public release.
-- `known_marketplaces.json` nesting and `~/.claude.json` paths are assumptions until S1 and S3.
+- Project keys in `.claude.json` are real paths (S1), but Claw looks them up as written, so a project registered through a symlink misses its entry.
 - Stop keeps finished steps only. A stopped scan that found items replaces the list (FR-F02-3), so later concepts disappear and every Modified date goes blank until the next full scan. One that found nothing leaves the previous scan on screen (`ScanOutcome`).
 - Only a complete scan prunes the queue (`ScanOutcome`). Without the `claude` CLI every scan is partial, so a change whose item was deleted stays in Review until it is discarded. M2's stale check must refuse such a change at Apply.
 - A complete scan prunes only changes on items it covers (`ScanOutcome`): a project item needs that project read, anything else needs a Mac scan. So a change stays in Review until it is discarded when its folder is no longer scanned (deleted, unregistered, or reached by another path spelling, since paths are compared as written). A folder scan also ignores the plugins and user-level hooks it lists, so a change on a deleted one waits for a Mac scan. M2's stale check must refuse these at Apply too.

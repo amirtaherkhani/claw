@@ -35,7 +35,9 @@ Reading order: this file, `PRD.md` sections 4 and 5, `TECHNICAL-DESIGN.md` secti
 
 The installed Claude Code version on your Mac was **not** inspected. Several CLI flags are gated by version in the docs (for example `claude plugin list --json` field `readFromFolder` needs v2.1.289 or later). Check with `claude --version` and `claude plugin <subcommand> --help` before relying on a flag.
 
-## What is still unknown (closed in M0)
+## What was unknown in M0
+
+Results are in `docs/spikes.md`. S1 to S4 and S6 to S9 are closed for Claude Code 2.1.316. S5 and S10 are partial.
 
 | Spike | Question | Why it matters |
 | :- | :- | :- |
