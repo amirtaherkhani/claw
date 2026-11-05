@@ -8,7 +8,7 @@ Status on 2026-11-05. Start here when you continue in Claude Code on the Mac. Re
 | :- | :- |
 | M0 Foundations | Done. S1 to S4 and S6 to S9 verified and reviewed. S5 and S10 partial: they need a Mac with a managed profile and a fresh user account |
 | M1 Core read-only | Done: all seven concepts, ownership rules, effective state, projects, progress and Stop, CLI. Exit criteria reported in the M1 close-out |
-| M2 Safe write pipeline | **In progress.** M2.1 to M2.3 done; M2.4 next |
+| M2 Safe write pipeline | **In progress.** M2.1 to M2.4 done; M2.5 next |
 | M3 GUI read-only | Screens done and compared with `docs/design/` on the Mac; text in a String Catalog, XCUITest smoke tests and accessibility audit added. Open: your review of the M3 exit criteria |
 | M4 to M7 | Not started |
 
@@ -79,6 +79,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | M2.1 | `JSONEdit`: set, remove and array insert as one byte-range edit; 600-seed property tests | #22 | 2026-11-05 |
 | M2.2 | `AtomicWrite` with the stale-hash check, link and mode handling; SHA-256 in pure Swift, no dependency | #23 | 2026-11-05 |
 | M2.3 | Backup store: private folders, `manifest.json` saved at each step, originals under `files/`, moves under `removed/` with their modes | #24 | 2026-11-05 |
+| M2.4 | `history.jsonl`; recovery of an `in-progress` backup from every step of an Apply, leaving anything someone else changed | #25 | 2026-11-05 |
 
 ## Known gaps and decisions to revisit
 
@@ -97,6 +98,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 - Items in nested folders carry their own `projectPath`, so a queued change on one is never pruned by a scan of the parent folder (`ScanOutcome` gets only the scanned folder). It stays in Review until discarded.
 - Manifest paths add to the standard folders [A]: no plugin on the owner's Mac uses a non-standard path, so this comes from the docs and fixtures only.
 - Managed skills are not read (M1.6); the enterprise skills path waits for S10.
+- `BlockedReadTests` "Reads run on a dedicated thread" failed once on Linux CI (#24) and passed on rerun, in code that PR did not touch. Cause not found; the test logs `Thread.current.name`.
 - To accept a scan change on purpose: `CLAW_UPDATE_GOLDENS=1 swift test --filter GoldenTests`, then review the diff in `Tests/Goldens`.
 - SwiftUI looks up text in `Bundle.main`, but SwiftPM puts the catalog in a separate resource bundle, so `swift run ClawApp` shows the English keys and never reads the catalog. A bundled app does read it: checked by placing strings in the scratch `.app`. The Xcode app target includes it.
 - Text from `ClawCore` stays English, outside the catalog: concept and owner names, `counted(_:_:)` plurals, headlines, problem messages. Translating it needs a key-based API (M6.6).

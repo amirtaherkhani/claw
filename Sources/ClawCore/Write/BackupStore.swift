@@ -33,6 +33,8 @@ public struct BackupManifest: Codable, Sendable, Equatable {
         public let to: String
         /// Original permission bits by path inside the moved item; `""` is the item itself.
         public let modes: [String: Int]
+        /// The Apply made this file, and rollback moved it aside. Undoing the rollback is never wanted.
+        public var created: Bool?
     }
 
     public var schema = 1
@@ -90,6 +92,13 @@ public struct BackupStore: Sendable {
         throw BackupError(reason: "too many backups in one second")
     }
 
+    /// Opens a backup again, for recovery.
+    public func resume(id: String) throws -> BackupSession {
+        var session = BackupSession(folder: joinPath(root, id), manifest: try manifest(id: id))
+        session.adoptSavedManifest()
+        return session
+    }
+
     /// Backups with a manifest, oldest first.
     public func ids() throws -> [String] {
         guard FileManager.default.fileExists(atPath: root) else { return [] }
@@ -111,7 +120,7 @@ public struct BackupStore: Sendable {
         }
     }
 
-    private static func timestamp(_ date: Date) -> String {
+    static func timestamp(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = TimeZone(identifier: "UTC")
@@ -167,6 +176,8 @@ public struct BackupSession: Sendable {
         return data
     }
 
+    /// Records the hash a file is about to get. The pipeline calls this **before** the write: after a crash, recovery
+    /// treats any hash it cannot name as someone else's change.
     public mutating func recordResult(of path: String, sha256After: String) throws {
         guard let index = manifest.files.firstIndex(where: { $0.path == path }) else {
             throw BackupError(reason: "not in this backup: \(path)")
@@ -177,15 +188,8 @@ public struct BackupSession: Sendable {
 
     /// Moves a file or folder under `removed/`: removal never deletes (`NFR-SAFE-3`). The manifest is saved first,
     /// so a crash between the two steps leaves a record, not a lost item.
-    public mutating func moveAway(_ path: String) throws {
-        try Self.check(path)
-        var info = stat()
-        guard lstat(path, &info) == 0 else { throw BackupError(reason: "nothing to remove at \(path)") }
-        let relative = "removed" + path
-        let destination = joinPath(folder, relative)
-        try PrivateFiles.makeFolder((destination as NSString).deletingLastPathComponent)
-        manifest.moves.append(.init(from: path, to: relative, modes: PrivateFiles.modes(under: path)))
-        try save()
+    public mutating func moveAway(_ path: String, created: Bool = false) throws {
+        let destination = try recordMove(of: path, created: created)
         guard rename(path, destination) == 0 else {
             let reason = String(cString: strerror(errno))
             manifest.moves.removeLast()
@@ -195,9 +199,30 @@ public struct BackupSession: Sendable {
         PrivateFiles.tighten(destination)
     }
 
+    /// The first half of `moveAway`. Separate so a test can stop between the two steps.
+    @discardableResult
+    mutating func recordMove(of path: String, created: Bool = false) throws -> String {
+        try Self.check(path)
+        var info = stat()
+        guard lstat(path, &info) == 0 else { throw BackupError(reason: "nothing to remove at \(path)") }
+        let relative = "removed" + path
+        let destination = joinPath(folder, relative)
+        var taken = stat()
+        guard lstat(destination, &taken) != 0 else { throw BackupError(reason: "already removed once: \(path)") }
+        try PrivateFiles.makeFolder((destination as NSString).deletingLastPathComponent)
+        manifest.moves.append(
+            .init(from: path, to: relative, modes: PrivateFiles.modes(under: path), created: created ? true : nil))
+        try save()
+        return destination
+    }
+
     public mutating func finish(_ status: BackupManifest.Status) throws {
         manifest.status = status
         try save()
+    }
+
+    mutating func adoptSavedManifest() {
+        savedHash = try? AtomicWrite.sha256(ofFile: joinPath(folder, "manifest.json"))
     }
 
     mutating func save() throws {
@@ -217,7 +242,7 @@ public struct BackupSession: Sendable {
     }
 }
 
-private enum PrivateFiles {
+enum PrivateFiles {
     /// Creates a folder and its parents with mode 0700. The last folder is made private even if it already existed.
     static func makeFolder(_ path: String) throws {
         do {
@@ -236,6 +261,12 @@ private enum PrivateFiles {
             result[relative] = Int(info.st_mode & 0o777)
         }
         return result
+    }
+
+    static func restore(_ modes: [String: Int], under path: String) {
+        for (relative, mode) in modes {
+            chmod(relative.isEmpty ? path : joinPath(path, relative), mode_t(mode))
+        }
     }
 
     static func tighten(_ path: String) {
