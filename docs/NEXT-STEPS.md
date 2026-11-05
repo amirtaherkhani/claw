@@ -66,6 +66,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | M0.2, M3 visual check | First Mac session: versions recorded, icon rail and Go menu, layout fix, button hierarchy, plurals | #3 | 2026-11-04 |
 | Close-out | `roadmap-loop` step 10: merge finished branches and remove merged ones after each section | #6 | 2026-11-05 |
 | F9 | Stop returns during a blocked read; reads leave the concurrency pool; `ScanView` says when macOS may be waiting for a prompt | this PR | 2026-11-04 |
+| Stop keeps the queue | `ScanOutcome` in `ClawCore`: only a complete scan prunes the queue, and a stopped scan that found nothing leaves the previous scan on screen | #5 | 2026-11-04 |
 
 ## Known gaps and decisions to revisit
 
@@ -76,8 +77,9 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 - `swift run ClawApp` has no bundle ID, so UI automation cannot target it, and a rebuilt ad-hoc bundle counts as a new app for privacy prompts. For visual checks, wrap the binary in a scratch `.app` and set `HOME` to a temporary folder with sample config.
 - Name risk: "Claw" vs the OpenClaw project (ADR-0002). Check before a public release.
 - `known_marketplaces.json` nesting and `~/.claude.json` paths are assumptions until S1 and S3.
-- Stop keeps finished steps only. Stopping during the settings step, where F9 happened, gives an empty partial result that replaces the previous scan on screen.
-- Stop can lose queued changes: `AppModel.startScan` prunes the queue against the items of a partial result, so a change whose item was not reached is dropped.
+- Stop keeps finished steps only. A stopped scan that found items replaces the list (FR-F02-3), so later concepts disappear and every Modified date goes blank until the next full scan. One that found nothing leaves the previous scan on screen (`ScanOutcome`).
+- Only a complete scan prunes the queue (`ScanOutcome`). Without the `claude` CLI every scan is partial, so a change whose item was deleted stays in Review until it is discarded. M2's stale check must refuse such a change at Apply.
+- A complete scan of one folder lists no user-level items, so it prunes changes queued on them. `ScanOutcome` looks at `partial`, not at what the target covers.
 - A thread abandoned by Stop stays blocked until the dialog is answered, and scanning again blocks a new thread on the same file. One thread per press, ended by answering the dialog.
 - Disk calls outside a scan still run on the main actor: `ProjectInspection.inspect` in view bodies and `AppModel.loadProjects`. Listing a protected folder there could hang the window (F9).
 
