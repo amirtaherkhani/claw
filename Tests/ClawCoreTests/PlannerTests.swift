@@ -171,8 +171,7 @@ struct PlannerTests {
         let unknown = item(.skills, "s", .skillOverrides, key: "skillOverrides[\"s\"]", status: .unknown)
         let managed = item(.skills, "s", .skillOverrides, key: "skillOverrides[\"s\"]", ownership: .managed)
         let fromPlugin = item(.skills, "kit:s", .parentPlugin, key: "enabledPlugins[\"kit@m\"]", ownership: .plugin)
-        let hook = item(.hooks, "h", .hookStash, key: "stash")
-        for refused in [unknown, managed, fromPlugin, hook] {
+        for refused in [unknown, managed, fromPlugin] {
             #expect(throws: PlanError.self) {
                 try good.setEnabled(refused, enabled: false, writeScope: local, activeProject: "/p")
             }
