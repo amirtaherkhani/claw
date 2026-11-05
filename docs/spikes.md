@@ -191,6 +191,8 @@ The owner approved these results on 2026-11-05.
 | 5 | Deny rules need the full `plugin:agent` name | Planner, M2.5 |
 | 6 | Fill TD 3.4 and the after-apply text from S4 | M0.8, M4.7 |
 
+Status: 1 is in #19, 2 and 3 in #20, 4 and 5 are in the M2.5 row of `ROADMAP.md`, and TD 3.4 is filled. The after-apply text waits for M4.7. Controls still report `unknown` in code; M2.5 turns each one to verified with its planner and goldens.
+
 ## Findings during the spikes
 
 | # | Finding | Evidence | Action |
