@@ -99,9 +99,7 @@ func parseScanOptions(_ args: ArraySlice<String>) -> ScanOptions {
 func scan(_ options: ScanOptions) async -> ScanResult {
     var projects = options.projects
     if options.allProjects { projects += knownProjects() }
-    let environment = ClaudeEnvironment(
-        home: base.home, configDir: base.configDir, pluginsDir: base.pluginsDir, managedDir: base.managedDir,
-        projects: options.folder.map { [$0] } ?? ProjectRegistry.deduplicated(projects, fileSystem: fs))
+    let environment = base.with(projects: options.folder.map { [$0] } ?? ProjectRegistry.deduplicated(projects, fileSystem: fs))
     var cli: ClaudeCLI?
     if options.useCLI,
         let path = ClaudeCLI.locate(environment: ProcessInfo.processInfo.environment, home: base.home, fileSystem: fs)
