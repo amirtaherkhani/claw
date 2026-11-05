@@ -29,6 +29,13 @@ public struct SkillReader: Sendable {
         }
     }
 
+    /// A plugin that is one skill: `SKILL.md` at its root, with no `skills/` folder [V `docs/compare-m1.md`].
+    public func readRootSkill(in folder: String, name: String) -> [SkillRecord] {
+        let file = joinPath(folder, "SKILL.md")
+        guard let data = try? fs.readFile(file) else { return [] }
+        return [record(folderName: name, folder: folder, file: file, text: String(decoding: data, as: UTF8.self))]
+    }
+
     func record(folderName: String, folder: String, file: String, text: String) -> SkillRecord {
         var problems: [Problem] = []
         let frontmatter = Frontmatter.parse(text)

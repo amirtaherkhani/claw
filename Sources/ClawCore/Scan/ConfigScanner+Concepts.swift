@@ -257,11 +257,14 @@ extension ConfigScanner {
         }
 
         for plugin in installed {
-            let (servers, problems) = reader.readMcpJson(
-                file: joinPath(pluginRoot(plugin.record), ".mcp.json"), scope: .plugin,
-                projectPath: plugin.record.projectPath)
+            let root = pluginRoot(plugin.record)
+            let (listed, problems) = reader.readMcpJson(
+                file: joinPath(root, ".mcp.json"), scope: .plugin, projectPath: plugin.record.projectPath)
             scan.problems += problems
-            for server in servers {
+            let names = Set(listed.map(\.name))
+            let declared = reader.readPluginManifest(
+                file: joinPath(root, ".claude-plugin", "plugin.json"), projectPath: plugin.record.projectPath)
+            for server in listed + declared.filter({ !names.contains($0.name) }) {
                 scan.items.append(
                     mcpItem(
                         server, enabled: plugin.item.enabled, enabledBy: plugin.item.enabledBy,

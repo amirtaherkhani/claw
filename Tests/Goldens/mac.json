@@ -533,6 +533,70 @@
       },
       "classification" : {
         "evidence" : [
+          "provided by declared@gh"
+        ],
+        "ownership" : "plugin",
+        "rule" : "L4"
+      },
+      "concept" : "mcp",
+      "control" : {
+        "key" : "enabledPlugins[\"declared@gh\"]",
+        "mechanism" : "parentPlugin",
+        "status" : "verified"
+      },
+      "description" : "stdio · node",
+      "enabled" : true,
+      "id" : "mcp:plugin:~:declared@gh:declared-server",
+      "location" : "$ROOT/home/.claude/plugins/cache/declared/.claude-plugin/plugin.json",
+      "name" : "plugin:declared:declared-server",
+      "problems" : [
+
+      ],
+      "providedBy" : "declared@gh",
+      "scope" : "plugin"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Provided by a plugin: enable, disable or remove the plugin",
+        "remove" : false,
+        "toggle" : false
+      },
+      "classification" : {
+        "evidence" : [
+          "provided by flat@gh"
+        ],
+        "ownership" : "plugin",
+        "rule" : "L4"
+      },
+      "concept" : "mcp",
+      "control" : {
+        "key" : "enabledPlugins[\"flat@gh\"]",
+        "mechanism" : "parentPlugin",
+        "status" : "verified"
+      },
+      "description" : "http · flat.example.com",
+      "enabled" : true,
+      "id" : "mcp:plugin:~:flat@gh:flat-server",
+      "location" : "$ROOT/home/.claude/plugins/cache/flat/.mcp.json",
+      "name" : "plugin:flat:flat-server",
+      "problems" : [
+
+      ],
+      "providedBy" : "flat@gh",
+      "scope" : "plugin"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Provided by a plugin: enable, disable or remove the plugin",
+        "remove" : false,
+        "toggle" : false
+      },
+      "classification" : {
+        "evidence" : [
           "provided by kit@gh"
         ],
         "ownership" : "plugin",
@@ -687,6 +751,70 @@
 
       ],
       "scope" : "synced"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Installed from a marketplace: edit the source upstream",
+        "remove" : true,
+        "removeLabel" : "Uninstall",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "marketplace \"gh\": github marketplace"
+        ],
+        "ownership" : "market",
+        "rule" : "P7"
+      },
+      "concept" : "plugins",
+      "control" : {
+        "key" : "enabledPlugins[\"declared@gh\"]",
+        "mechanism" : "enabledPlugins",
+        "status" : "verified"
+      },
+      "description" : "declared@gh",
+      "enabled" : true,
+      "id" : "plugins:user:declared@gh",
+      "location" : "$ROOT/home/.claude/plugins/cache/declared",
+      "name" : "declared",
+      "problems" : [
+
+      ],
+      "scope" : "user"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Installed from a marketplace: edit the source upstream",
+        "remove" : true,
+        "removeLabel" : "Uninstall",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "marketplace \"gh\": github marketplace"
+        ],
+        "ownership" : "market",
+        "rule" : "P7"
+      },
+      "concept" : "plugins",
+      "control" : {
+        "key" : "enabledPlugins[\"flat@gh\"]",
+        "mechanism" : "enabledPlugins",
+        "status" : "verified"
+      },
+      "description" : "flat@gh",
+      "enabled" : true,
+      "id" : "plugins:user:flat@gh",
+      "location" : "$ROOT/home/.claude/plugins/cache/flat",
+      "name" : "flat",
+      "problems" : [
+
+      ],
+      "scope" : "user"
     },
     {
       "bucket" : "attention",
@@ -853,6 +981,38 @@
       "id" : "plugins:user:nest@local-dev",
       "location" : "$ROOT/dev/market/nest",
       "name" : "nest",
+      "problems" : [
+
+      ],
+      "scope" : "user"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Installed from a marketplace: edit the source upstream",
+        "remove" : true,
+        "removeLabel" : "Uninstall",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "marketplace \"gh\": github marketplace"
+        ],
+        "ownership" : "market",
+        "rule" : "P7"
+      },
+      "concept" : "plugins",
+      "control" : {
+        "key" : "enabledPlugins[\"rooted@gh\"]",
+        "mechanism" : "enabledPlugins",
+        "status" : "verified"
+      },
+      "description" : "rooted@gh",
+      "enabled" : true,
+      "id" : "plugins:user:rooted@gh",
+      "location" : "$ROOT/home/.claude/plugins/cache/rooted",
+      "name" : "rooted",
       "problems" : [
 
       ],
@@ -1121,6 +1281,38 @@
 
       ],
       "scope" : "user"
+    },
+    {
+      "bucket" : "readonly",
+      "capabilities" : {
+        "edit" : false,
+        "reason" : "Provided by a plugin: enable, disable or remove the plugin",
+        "remove" : false,
+        "toggle" : false
+      },
+      "classification" : {
+        "evidence" : [
+          "provided by rooted@gh"
+        ],
+        "ownership" : "plugin",
+        "rule" : "L4"
+      },
+      "concept" : "skills",
+      "control" : {
+        "key" : "enabledPlugins[\"rooted@gh\"]",
+        "mechanism" : "parentPlugin",
+        "status" : "verified"
+      },
+      "description" : "At the plugin root",
+      "enabled" : true,
+      "id" : "skills:plugin:rooted@gh:rooted-skill",
+      "location" : "$ROOT/home/.claude/plugins/cache/rooted",
+      "name" : "rooted:rooted-skill",
+      "problems" : [
+
+      ],
+      "providedBy" : "rooted@gh",
+      "scope" : "plugin"
     },
     {
       "bucket" : "readonly",

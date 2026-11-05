@@ -28,17 +28,31 @@ public struct MCPReader: Sendable {
         self.fs = fileSystem
     }
 
-    /// `.mcp.json` (project scope) or a plugin's `.mcp.json`: top key `mcpServers` [V `mcp`].
+    /// `.mcp.json` (project scope) or a plugin's `.mcp.json`: top key `mcpServers` [V `mcp`]. A plugin's file may
+    /// also list the servers at the top level [V `docs/compare-m1.md`].
     public func readMcpJson(file: String, scope: ItemScope, projectPath: String?) -> ([MCPServerRecord], [Problem]) {
         guard let data = try? fs.readFile(file) else { return ([], []) }
         guard let value = try? JSONValue.parse(data), value.objectValue != nil else {
             return ([], [Problem(.error, "MCP file is not a valid JSON object; it was skipped", file: file)])
         }
-        guard let servers = value["mcpServers"] else { return ([], []) }
+        guard let servers = value["mcpServers"] else {
+            guard scope == .plugin, let flat = value.objectValue, flat.values.allSatisfy({ $0.objectValue != nil }) else {
+                return ([], [])
+            }
+            return (Self.records(flat, file: file, scope: scope, projectPath: projectPath), [])
+        }
         guard let object = servers.objectValue else {
             return ([], [Problem(.warning, "`mcpServers` is not an object; it was ignored", file: file)])
         }
         return (Self.records(object, file: file, scope: scope, projectPath: projectPath), [])
+    }
+
+    /// Servers declared inline in a plugin's `plugin.json` [V `docs/compare-m1.md`]. A path there is not read yet.
+    public func readPluginManifest(file: String, projectPath: String?) -> [MCPServerRecord] {
+        guard let data = try? fs.readFile(file), let value = try? JSONValue.parse(data),
+            let object = value["mcpServers"]?.objectValue
+        else { return [] }
+        return Self.records(object, file: file, scope: .plugin, projectPath: projectPath)
     }
 
     /// `~/.claude.json`: user servers at the top level, local servers and `disabledMcpServers` under
