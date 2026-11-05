@@ -122,6 +122,33 @@ struct ConceptTests {
         }
     }
 
+    @Test("MCP: a .mcp.json server turned off with /mcp disable shows as off (S1)")
+    func mcpJsonServerOffThroughProjectEntry() async throws {
+        let result = await scan(extra: ["/h/.claude.json": #"{"projects":{"/p":{"disabledMcpServers":["db"]}}}"#])
+        let server = try item(result, .mcp, "db")
+        #expect(!server.enabled)
+        #expect(server.problems.contains { $0.message.contains("/mcp disable") })
+    }
+
+    @Test("MCP: the approval lists in the project entry of .claude.json count (S7)")
+    func mcpJsonListsInProjectEntry() async throws {
+        let result = await scan(extra: [
+            "/h/.claude.json": #"{"projects":{"/p":{"disabledMcpjsonServers":["db"],"enabledMcpjsonServers":["new-one"]}}}"#
+        ])
+        #expect(try !item(result, .mcp, "db").enabled)
+        let approved = try item(result, .mcp, "new-one")
+        #expect(approved.enabled)
+        #expect(approved.problems.isEmpty)
+    }
+
+    @Test("MCP: disabled wins when a server is in both lists (S7)")
+    func mcpJsonDisabledWins() async throws {
+        let result = await scan(extra: [
+            "/h/.claude.json": #"{"projects":{"/p":{"disabledMcpjsonServers":["new-one"],"enabledMcpjsonServers":["new-one"]}}}"#
+        ])
+        #expect(try !item(result, .mcp, "new-one").enabled)
+    }
+
     @Test("Hooks: one item per handler, guard flag, no command arguments or env values")
     func hooks() async throws {
         let result = await scan()
