@@ -44,6 +44,38 @@
       },
       "classification" : {
         "evidence" : [
+          "file at $ROOT/work/app/.claude/commands/shared.md"
+        ],
+        "ownership" : "personal",
+        "rule" : "L2"
+      },
+      "concept" : "commands",
+      "control" : {
+        "key" : "skillOverrides[\"shared\"]",
+        "mechanism" : "skillOverrides",
+        "status" : "unknown"
+      },
+      "description" : "Inside the project",
+      "enabled" : true,
+      "id" : "commands:project:$ROOT/work/app:shared",
+      "location" : "$ROOT/work/app/.claude/commands/shared.md",
+      "name" : "/shared",
+      "problems" : [
+
+      ],
+      "projectPath" : "$ROOT/work/app",
+      "scope" : "project"
+    },
+    {
+      "bucket" : "yours",
+      "capabilities" : {
+        "edit" : true,
+        "remove" : true,
+        "removeLabel" : "Move to backup",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
           "file at $ROOT/work/app/.claude/commands/test.md"
         ],
         "ownership" : "personal",
@@ -335,6 +367,21 @@
   "problems" : [
     {
       "message" : "plugin list entry 6 has an unsafe id; skipped",
+      "severity" : "warning"
+    },
+    {
+      "file" : "$ROOT/work/app/.claude/commands/home-leak.md",
+      "message" : "Skipped a symlink that leaves the scan root",
+      "severity" : "warning"
+    },
+    {
+      "file" : "$ROOT/work/app/.claude/commands/leak.md",
+      "message" : "Skipped a symlink that leaves the scan root",
+      "severity" : "warning"
+    },
+    {
+      "file" : "$ROOT/work/app/.claude/skills/escaped",
+      "message" : "Skipped a symlink that leaves the scan root",
       "severity" : "warning"
     }
   ],

@@ -68,8 +68,11 @@ public struct ConfigScanner: Sendable {
         var partial = false
         var items: [Item] = []
         var version: String?
+        let disk = StoppableFileSystem(fs)
+        let contained = ContainedFileSystem(disk, environment: environment)
 
         func finish() -> ScanResult {
+            problems += contained.problems
             items.sort { ($0.concept.rawValue, $0.name, $0.id) < ($1.concept.rawValue, $1.name, $1.id) }
             progress?(ScanProgress(step: .done, itemCount: items.count))
             return ScanResult(
@@ -82,8 +85,7 @@ public struct ConfigScanner: Sendable {
             return finish()
         }
 
-        let disk = StoppableFileSystem(fs)
-        let scanner = reading(through: disk)
+        let scanner = reading(through: contained)
         /// Runs one step's disk work off the concurrency pool. `nil` means the scan was stopped.
         func read<T: Sendable>(_ step: ScanProgress.Step, _ work: @escaping @Sendable () -> T) async -> T? {
             let update = ScanProgress(step: step, itemCount: items.count)
@@ -96,8 +98,8 @@ public struct ConfigScanner: Sendable {
         }
 
         let loaded = await read(.settings) {
-            let settings = SettingsLoader(fileSystem: disk).loadAll(environment: scanner.environment)
-            let known = MarketplaceReader(fileSystem: disk).readKnown(file: scanner.environment.knownMarketplacesFile)
+            let settings = SettingsLoader(fileSystem: contained).loadAll(environment: scanner.environment)
+            let known = MarketplaceReader(fileSystem: contained).readKnown(file: scanner.environment.knownMarketplacesFile)
             return (settings: settings, markets: known.0, marketProblems: known.1)
         }
         guard let loaded else { return stop() }
@@ -129,8 +131,11 @@ public struct ConfigScanner: Sendable {
 
         let records = installed
         let found = await read(.plugins) {
-            scanner.pluginItems(
-                installed: records, layers: settings.layers, markets: markets, reader: MarketplaceReader(fileSystem: disk))
+            contained.addRoots(
+                markets.values.compactMap(\.path).map { $0.hasSuffix(".json") ? parentDirectory($0) : $0 }
+                    + (records ?? []).flatMap { [$0.installPath, $0.readFromFolder].compactMap { $0 } })
+            return scanner.pluginItems(
+                installed: records, layers: settings.layers, markets: markets, reader: MarketplaceReader(fileSystem: contained))
         }
         guard let found else { return stop() }
         let plugins = inTarget(found)
@@ -163,9 +168,9 @@ public struct ConfigScanner: Sendable {
         return dates ?? [:]
     }
 
-    private func reading(through disk: StoppableFileSystem) -> ConfigScanner {
+    private func reading(through contained: ContainedFileSystem) -> ConfigScanner {
         var copy = self
-        copy.fs = disk
+        copy.fs = contained
         return copy
     }
 
@@ -365,6 +370,7 @@ public struct ConfigScanner: Sendable {
         for plugin in plugins {
             guard let record = plugin.record else { continue }
             let root = record.readFromFolder ?? record.installPath
+            guard !root.isEmpty else { continue }  // Listed by the CLI, but it has no files to read.
             let skills = reader.readSkills(in: joinPath(root, "skills"))
             for skill in skills.isEmpty ? reader.readRootSkill(in: root, name: record.name) : skills {
                 let classification = Classification(ownership: .plugin, rule: "L4", evidence: ["provided by \(record.id)"])

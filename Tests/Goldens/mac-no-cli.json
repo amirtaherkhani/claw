@@ -43,6 +43,37 @@
       },
       "classification" : {
         "evidence" : [
+          "file at $ROOT/home/.claude/agents/dot-agent.md"
+        ],
+        "ownership" : "personal",
+        "rule" : "L1"
+      },
+      "concept" : "agents",
+      "control" : {
+        "key" : "permissions.deny: Agent(dot-agent)",
+        "mechanism" : "permissionsDeny",
+        "status" : "verified"
+      },
+      "description" : "Kept by a dotfile manager",
+      "enabled" : true,
+      "id" : "agents:user:dot-agent",
+      "location" : "$ROOT/home/.claude/agents/dot-agent.md",
+      "name" : "dot-agent",
+      "problems" : [
+
+      ],
+      "scope" : "user"
+    },
+    {
+      "bucket" : "yours",
+      "capabilities" : {
+        "edit" : true,
+        "remove" : true,
+        "removeLabel" : "Move to backup",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
           "file at $ROOT/work/app/.claude/agents/planner.md"
         ],
         "ownership" : "personal",
@@ -126,6 +157,38 @@
 
       ],
       "scope" : "user"
+    },
+    {
+      "bucket" : "yours",
+      "capabilities" : {
+        "edit" : true,
+        "remove" : true,
+        "removeLabel" : "Move to backup",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
+          "file at $ROOT/work/app/.claude/commands/shared.md"
+        ],
+        "ownership" : "personal",
+        "rule" : "L2"
+      },
+      "concept" : "commands",
+      "control" : {
+        "key" : "skillOverrides[\"shared\"]",
+        "mechanism" : "skillOverrides",
+        "status" : "unknown"
+      },
+      "description" : "Inside the project",
+      "enabled" : true,
+      "id" : "commands:project:$ROOT/work/app:shared",
+      "location" : "$ROOT/work/app/.claude/commands/shared.md",
+      "name" : "/shared",
+      "problems" : [
+
+      ],
+      "projectPath" : "$ROOT/work/app",
+      "scope" : "project"
     },
     {
       "bucket" : "yours",
@@ -838,6 +901,37 @@
       },
       "classification" : {
         "evidence" : [
+          "file at $ROOT/home/.claude/skills/tool-skill/SKILL.md"
+        ],
+        "ownership" : "personal",
+        "rule" : "L1"
+      },
+      "concept" : "skills",
+      "control" : {
+        "key" : "skillOverrides[\"tool-skill\"]",
+        "mechanism" : "skillOverrides",
+        "status" : "verified"
+      },
+      "description" : "Linked in by a skill manager",
+      "enabled" : true,
+      "id" : "skills:user:tool-skill",
+      "location" : "$ROOT/home/.claude/skills/tool-skill",
+      "name" : "tool-skill",
+      "problems" : [
+
+      ],
+      "scope" : "user"
+    },
+    {
+      "bucket" : "yours",
+      "capabilities" : {
+        "edit" : true,
+        "remove" : true,
+        "removeLabel" : "Move to backup",
+        "toggle" : true
+      },
+      "classification" : {
+        "evidence" : [
           "file at $ROOT/home/.claude/skills/writer/SKILL.md"
         ],
         "ownership" : "personal",
@@ -865,6 +959,31 @@
     {
       "message" : "claude CLI not used; plugins come from settings only",
       "severity" : "note"
+    },
+    {
+      "file" : "$ROOT/home/.claude/commands/leak.md",
+      "message" : "Skipped a symlink that leaves the scan root",
+      "severity" : "warning"
+    },
+    {
+      "file" : "$ROOT/home/.claude/skills/outside-skill",
+      "message" : "Skipped a symlink that leaves the scan root",
+      "severity" : "warning"
+    },
+    {
+      "file" : "$ROOT/work/app/.claude/commands/home-leak.md",
+      "message" : "Skipped a symlink that leaves the scan root",
+      "severity" : "warning"
+    },
+    {
+      "file" : "$ROOT/work/app/.claude/commands/leak.md",
+      "message" : "Skipped a symlink that leaves the scan root",
+      "severity" : "warning"
+    },
+    {
+      "file" : "$ROOT/work/app/.claude/skills/escaped",
+      "message" : "Skipped a symlink that leaves the scan root",
+      "severity" : "warning"
     }
   ],
   "startedAt" : "1970-01-01T00:00:00Z",

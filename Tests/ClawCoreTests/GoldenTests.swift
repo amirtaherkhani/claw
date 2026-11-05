@@ -65,10 +65,26 @@ private enum Fixture {
         "managed/managed-settings.json":
             #"{"hooks":{"PreToolUse":[{"matcher":"Write","hooks":[{"type":"command","command":"/opt/audit.sh"}]}]}}"#,
         "victim/keep.txt": "must survive the scan",
+        // Symlink destinations: see `links`.
+        "outside/skill/SKILL.md": "---\nname: escaped-skill\ndescription: Outside every root\n---\n",
+        "outside/leak.md": "Outside every root",
+        "work/app/docs/shared.md": "Inside the project",
+        "home/.skills-store/tool-skill/SKILL.md": "---\nname: tool-skill\ndescription: Linked in by a skill manager\n---\n",
+        "home/dotfiles/dot-agent.md": "---\nname: dot-agent\ndescription: Kept by a dotfile manager\n---\n",
     ]
 
     /// Link to its destination, both relative to the root.
-    static let links = ["home/.claude/settings.json": "home/dotfiles/claude-settings.json"]
+    static let links = [
+        "home/.claude/settings.json": "home/dotfiles/claude-settings.json",
+        "home/.claude/agents/dot-agent.md": "home/dotfiles/dot-agent.md",
+        "home/.claude/commands/leak.md": "outside/leak.md",
+        "home/.claude/skills/tool-skill": "home/.skills-store/tool-skill",
+        "home/.claude/skills/outside-skill": "outside/skill",
+        "work/app/.claude/commands/shared.md": "work/app/docs/shared.md",
+        "work/app/.claude/commands/leak.md": "outside/leak.md",
+        "work/app/.claude/commands/home-leak.md": "home/dotfiles/dot-agent.md",
+        "work/app/.claude/skills/escaped": "outside/skill",
+    ]
 
     static let pluginList = """
         notice: a line the parser must skip
@@ -81,7 +97,8 @@ private enum Fixture {
         {"id":"evil;rm -rf ~@gh","scope":"user","enabled":true,"installPath":"$ROOT/victim"},\
         {"id":"flat@gh","scope":"user","enabled":true,"installPath":"$ROOT/home/.claude/plugins/cache/flat"},\
         {"id":"declared@gh","scope":"user","enabled":true,"installPath":"$ROOT/home/.claude/plugins/cache/declared"},\
-        {"id":"rooted@gh","scope":"user","enabled":true,"installPath":"$ROOT/home/.claude/plugins/cache/rooted"}]
+        {"id":"rooted@gh","scope":"user","enabled":true,"installPath":"$ROOT/home/.claude/plugins/cache/rooted"},\
+        {"id":"pathless@synced","scope":"synced","enabled":false,"installPath":""}]
         """
 
     static func create() throws -> String {
@@ -218,6 +235,43 @@ struct GoldenTests {
         #expect(provided("flat@gh", .mcp) == ["plugin:flat:flat-server"])
         #expect(provided("declared@gh", .mcp) == ["plugin:declared:declared-server"])
         #expect(provided("rooted@gh", .skills) == ["rooted:rooted-skill"])
+    }
+
+    @Test("A symlink out of its root is refused and reported (FR-F02-5)", arguments: Variant.allCases)
+    func symlinkEscape(_ variant: Variant) async throws {
+        let root = try Fixture.create()
+        defer { try? FileManager.default.removeItem(atPath: root) }
+        let result = await scan(variant, root: root)
+        let names = Set(result.items.map(\.name))
+
+        #expect(!names.contains("escaped-skill"))
+        #expect(!names.contains("/leak"))
+        #expect(!names.contains("/home-leak"))
+        #expect(names.contains("/shared"), "a link inside the project stays readable")
+        let refused = result.problems.filter { $0.message.contains("leaves the scan root") }.compactMap(\.file)
+        #expect(refused.contains(joinPath(root, "work/app/.claude/skills/escaped")))
+        #expect(refused.contains(joinPath(root, "work/app/.claude/commands/leak.md")))
+        #expect(refused == refused.sorted())
+    }
+
+    @Test("A link under the config folder may point into the home folder only")
+    func dotfileException() async throws {
+        let root = try Fixture.create()
+        defer { try? FileManager.default.removeItem(atPath: root) }
+        let names = Set(await scan(.mac, root: root).items.map(\.name))
+        #expect(names.contains("dot-agent"), "a file link from a dotfile manager")
+        #expect(names.contains("tool-skill"), "a folder link from a skill manager")
+        #expect(!names.contains("/leak"))
+        #expect(!names.contains("escaped-skill"))
+    }
+
+    @Test("A plugin with no install path is listed, and nothing is read from the disk root")
+    func pluginWithoutPath() async throws {
+        let root = try Fixture.create()
+        defer { try? FileManager.default.removeItem(atPath: root) }
+        let result = await scan(.mac, root: root)
+        #expect(result.items.contains { $0.concept == .plugins && $0.name == "pathless" })
+        #expect(!result.problems.contains { $0.file?.hasPrefix(root) == false })
     }
 
     @Test("Only items proven Personal offer Edit")
