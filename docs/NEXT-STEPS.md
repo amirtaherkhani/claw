@@ -98,6 +98,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 - Items in nested folders carry their own `projectPath`, so a queued change on one is never pruned by a scan of the parent folder (`ScanOutcome` gets only the scanned folder). It stays in Review until discarded.
 - Manifest paths add to the standard folders [A]: no plugin on the owner's Mac uses a non-standard path, so this comes from the docs and fixtures only.
 - Managed skills are not read (M1.6); the enterprise skills path waits for S10.
+- `BlockedReadTests` "Reads run on a dedicated thread" failed once on Linux CI (#24) and passed on rerun, in code that PR did not touch. Cause not found; the test logs `Thread.current.name`.
 - To accept a scan change on purpose: `CLAW_UPDATE_GOLDENS=1 swift test --filter GoldenTests`, then review the diff in `Tests/Goldens`.
 - SwiftUI looks up text in `Bundle.main`, but SwiftPM puts the catalog in a separate resource bundle, so `swift run ClawApp` shows the English keys and never reads the catalog. A bundled app does read it: checked by placing strings in the scratch `.app`. The Xcode app target includes it.
 - Text from `ClawCore` stays English, outside the catalog: concept and owner names, `counted(_:_:)` plurals, headlines, problem messages. Translating it needs a key-based API (M6.6).
