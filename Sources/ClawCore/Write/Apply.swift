@@ -91,6 +91,7 @@ public struct ApplyPipeline: Sendable {
         let file: String
         let before: Data?
         var after: Data
+        var mode: Int?
     }
 
     private func once(_ changes: [PlannedChange], title: String, date: Date, lastTry: Bool) async throws -> ApplyResult {
@@ -161,8 +162,14 @@ public struct ApplyPipeline: Sendable {
             try stash.put(entry)
         }
         try fault(.stashed)
+        for folder in changes.flatMap(\.folders) {
+            try FileManager.default.createDirectory(atPath: folder.path, withIntermediateDirectories: true)
+            chmod(folder.path, mode_t(folder.mode))
+        }
         for target in targets {
-            try AtomicWrite.write(target.after, to: target.file, expectedSHA256: target.before.map(SHA256.hex))
+            try AtomicWrite.write(
+                target.after, to: target.file, expectedSHA256: target.before.map(SHA256.hex),
+                newFileMode: target.mode.map { mode_t($0) }, beforeRename: {})
             run.written.insert(target.file)
         }
         try fault(.filesWritten)
@@ -175,6 +182,7 @@ public struct ApplyPipeline: Sendable {
             guard try AtomicWrite.sha256(ofFile: target.file) == SHA256.hex(target.after) else {
                 throw StaleFileError(file: target.file)
             }
+            guard target.file.hasSuffix(".json") else { continue }
             do {
                 _ = try JSONValue.parse(target.after)
             } catch {
@@ -237,7 +245,7 @@ public struct ApplyPipeline: Sendable {
             if let index = targets.firstIndex(where: { $0.file == edit.file }) {
                 targets[index].after = edit.after
             } else {
-                targets.append(Target(file: edit.file, before: edit.before, after: edit.after))
+                targets.append(Target(file: edit.file, before: edit.before, after: edit.after, mode: edit.mode))
             }
         }
         return targets
