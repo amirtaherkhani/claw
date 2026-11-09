@@ -1,6 +1,14 @@
 import ClawCore
 import SwiftUI
 
+extension View {
+    /// Centres an empty state in the space its parent offers. `ContentUnavailableView` sizes to its content here,
+    /// so a leading stack or the top-leading page frame would otherwise pin it to the corner.
+    func centeredEmptyState() -> some View {
+        frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
 /// Page title with the "Writes to" box on the right (prototype header).
 struct PageHeader<Trailing: View>: View {
     let title: String

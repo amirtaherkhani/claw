@@ -147,7 +147,9 @@ struct ReviewSheet: View {
             if model.queue.isEmpty {
                 ContentUnavailableView(
                     "No changes queued", systemImage: "checklist",
-                    description: Text("Turn items on or off, or remove them, and they appear here for review."))
+                    description: Text("Turn items on or off, or remove them, and they appear here for review.")
+                )
+                .centeredEmptyState()
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 14) {
@@ -240,8 +242,9 @@ struct HistoryView: View {
                 "No changes applied yet", systemImage: "clock.arrow.circlepath",
                 description: Text(
                     "Each apply will appear here with a Restore button. Applying arrives with the safe write pipeline (M2)."
-                ))
-            Spacer()
+                )
+            )
+            .centeredEmptyState()
         }
         .padding(28)
     }

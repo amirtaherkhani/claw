@@ -22,32 +22,42 @@ struct ConceptView: View {
                 title: ItemPresentation.conceptTitle(concept), subtitle: ItemPresentation.conceptSummary(concept),
                 writesTo: model.writeScopeLabel)
             if items.isEmpty {
-                ContentUnavailableView(
-                    model.result == nil ? "Not scanned yet" : "None found",
-                    systemImage: Theme.symbol(concept),
-                    description: Text(
+                // The actions sit inside the empty state: a row pinned to the page bottom can end up under the Dock
+                // on a small display, where clicks on it never reach the app.
+                ContentUnavailableView {
+                    Label(model.result == nil ? "Not scanned yet" : "None found", systemImage: Theme.symbol(concept))
+                } description: {
+                    Text(
                         model.result == nil
                             ? "Run a scan to see your \(ItemPresentation.conceptTitle(concept).lowercased())."
-                            : "No \(ItemPresentation.conceptTitle(concept).lowercased()) on this Mac or in your projects."))
+                            : "No \(ItemPresentation.conceptTitle(concept).lowercased()) on this Mac or in your projects.")
+                } actions: {
+                    actions
+                }
+                .centeredEmptyState()
             } else {
                 FlowView(flow: SourceFlow.sources(of: items)) { node in bucket = node.bucket }
                     .panel()
                     .overlay(alignment: .topLeading) {
                         Text("Click to see what you can edit").font(.caption).foregroundStyle(Theme.muted).padding(14)
                     }
+                actions
             }
-            HStack {
-                Button("Scan all") { model.startScan() }.disabled(model.isScanning)
-                if concept == .plugins {
-                    Button("Add plugin…") { model.showAddPlugin = true }
-                }
-                Button("History", systemImage: "clock.arrow.circlepath") { model.destination = .history }
-                    .labelStyle(.iconOnly)
-            }
-            .controlSize(.large)
-            .tint(Theme.text)
         }
         .padding(28)
+    }
+
+    private var actions: some View {
+        HStack {
+            Button("Scan all") { model.startScan() }.disabled(model.isScanning)
+            if concept == .plugins {
+                Button("Add plugin…") { model.showAddPlugin = true }
+            }
+            Button("History", systemImage: "clock.arrow.circlepath") { model.destination = .history }
+                .labelStyle(.iconOnly)
+        }
+        .controlSize(.large)
+        .tint(Theme.text)
     }
 }
 
