@@ -33,6 +33,17 @@ public enum CommandError: Error, Equatable, CustomStringConvertible {
 /// Runs a program without a shell. Tests use a fake.
 public protocol CommandRunner: Sendable {
     func run(executable: String, arguments: [String], timeoutSeconds: Int) async throws -> CommandResult
+    func run(
+        executable: String, arguments: [String], timeoutSeconds: Int, workingDirectory: String?
+    ) async throws -> CommandResult
+}
+
+extension CommandRunner {
+    public func run(
+        executable: String, arguments: [String], timeoutSeconds: Int, workingDirectory: String?
+    ) async throws -> CommandResult {
+        try await run(executable: executable, arguments: arguments, timeoutSeconds: timeoutSeconds)
+    }
 }
 
 /// `Foundation.Process` runner: argument vector only (no shell), stdin closed, hard timeout.
@@ -40,7 +51,13 @@ public struct ProcessRunner: CommandRunner {
     public init() {}
 
     public func run(executable: String, arguments: [String], timeoutSeconds: Int) async throws -> CommandResult {
-        let box = ProcessBox(executable: executable, arguments: arguments)
+        try await run(executable: executable, arguments: arguments, timeoutSeconds: timeoutSeconds, workingDirectory: nil)
+    }
+
+    public func run(
+        executable: String, arguments: [String], timeoutSeconds: Int, workingDirectory: String?
+    ) async throws -> CommandResult {
+        let box = ProcessBox(executable: executable, arguments: arguments, workingDirectory: workingDirectory)
         try await box.start()
         // Race the exit against the deadline and against cancellation (Stop). On Linux, `waitUntilExit` also
         // waits for the pipes, which a grandchild may keep open, so neither path depends on it. Bound: + 3 s.
@@ -119,8 +136,9 @@ private final class ProcessBox: @unchecked Sendable {
     private var stdout = Data()
     private var stderr = Data()
 
-    init(executable: String, arguments: [String]) {
+    init(executable: String, arguments: [String], workingDirectory: String?) {
         process.executableURL = URL(fileURLWithPath: executable)
+        if let workingDirectory { process.currentDirectoryURL = URL(fileURLWithPath: workingDirectory) }
         process.arguments = arguments
         process.standardOutput = outPipe
         process.standardError = errPipe
@@ -191,7 +209,7 @@ private struct HandleBox: @unchecked Sendable {
 
 /// Runs blocking work on its own thread. Blocking `DispatchQueue.global()` workers instead can starve
 /// the Swift concurrency pool on small machines (seen on a 2-core Linux runner: the timeout never fired).
-private func onDedicatedThread<T: Sendable>(_ work: @escaping @Sendable () throws -> T) async throws -> T {
+func onDedicatedThread<T: Sendable>(_ work: @escaping @Sendable () throws -> T) async throws -> T {
     try await withCheckedThrowingContinuation { continuation in
         Thread.detachNewThread { continuation.resume(with: Result { try work() }) }
     }
@@ -237,6 +255,13 @@ public struct ClaudeCLI: Sendable {
             throw CommandError.badOutput("empty version")
         }
         return line
+    }
+
+    /// One planned step. The output stays here: it may quote a secret, so only the exit code leaves.
+    public func run(_ step: CliStep) async throws {
+        let result = try await runner.run(
+            executable: executable, arguments: step.argv, timeoutSeconds: 120, workingDirectory: step.workingDirectory)
+        guard result.exitCode == 0 else { throw CommandError.failed(exitCode: result.exitCode) }
     }
 
     /// `claude plugin list --json` [V `plugins/cli-reference`].

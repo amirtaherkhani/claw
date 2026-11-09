@@ -26,6 +26,13 @@ public enum StashAction: Sendable, Equatable {
     case take(String)
 }
 
+/// What `claude plugin list --json` must say afterwards. `enabled` is `nil` for an uninstall.
+public struct PluginCheck: Sendable, Equatable {
+    public let id: String
+    public let enabled: Bool?
+    public let scope: String?
+}
+
 public struct PlannedChange: Sendable, Equatable {
     public let itemId: String
     /// `nil` for a removal.
@@ -40,6 +47,7 @@ public struct PlannedChange: Sendable, Equatable {
     public let effect: PlanEffect
     public let warnings: [String]
     public var stash: StashAction?
+    public var pluginCheck: PluginCheck?
 }
 
 public struct PlanError: Error, Equatable, CustomStringConvertible {
@@ -173,7 +181,8 @@ public struct Planner: Sendable {
                     workingDirectory: inProject ? item.projectPath : nil)
             ],
             cliTouches: [settings, environment.installedPluginsFile], effect: .reloadPlugins,
-            warnings: keepData ? [] : ["Claude Code deletes this plugin's data folder when it leaves its last scope."])
+            warnings: keepData ? [] : ["Claude Code deletes this plugin's data folder when it leaves its last scope."],
+            pluginCheck: PluginCheck(id: id, enabled: nil, scope: scope))
     }
 
     private func removeServer(_ item: Item, pending: inout [String: Data]) throws -> PlannedChange {
@@ -304,10 +313,14 @@ public struct Planner: Sendable {
         }
         pending[step.file] = after
         let reason = "\(enabled ? "Enable" : "Disable") \(item.name)"
+        // With a warning, another scope decides, so the CLI is expected to disagree.
+        let check =
+            item.control.mechanism == .enabledPlugins && step.warnings.isEmpty
+            ? PluginCheck(id: ChangeQueue.idOf(item), enabled: enabled, scope: nil) : nil
         return PlannedChange(
             itemId: item.id, enabled: enabled,
             edits: [FileEdit(file: step.file, before: base, after: after, reason: reason)], effect: step.effect,
-            warnings: step.warnings)
+            warnings: step.warnings, pluginCheck: check)
     }
 
     private struct Layer {
