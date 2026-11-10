@@ -8,7 +8,7 @@ Status on 2026-11-05. Start here when you continue in Claude Code on the Mac. Re
 | :- | :- |
 | M0 Foundations | Done. S1 to S4 and S6 to S9 verified and reviewed. S5 and S10 partial: they need a Mac with a managed profile and a fresh user account |
 | M1 Core read-only | Done: all seven concepts, ownership rules, effective state, projects, progress and Stop, CLI. Exit criteria reported in the M1 close-out |
-| M2 Safe write pipeline | **In progress.** M2.1 to M2.13 merged (#22 to #36); the owner added M2.14 to M2.16 (decisions in the M2 close-out below) |
+| M2 Safe write pipeline | **Done, waiting for owner review.** M2.1 to M2.16 merged (#22 to #42). The app's start-up recovery notification (#41) waits for your visual review. Exit criteria in the M2 close-out below |
 | M3 GUI read-only | Screens done and compared with `docs/design/` on the Mac; text in a String Catalog, XCUITest smoke tests and accessibility audit added. Open: your review of the M3 exit criteria |
 | M4 to M7 | Not started |
 
@@ -26,7 +26,7 @@ Code: `amirtaherkhani/claw`, `main`, CI green on Linux and macOS.
 | `FR-F15-*` round trip | `HookStashTests`, `RestoreTests`, `NoHardDeleteTests`, `StashedHookListTests` | **Partial**: FR-F15-4 done in M2.14; FR-F15-6 (detect the reload) is not built |
 | Dry-run output equals the real diff | `WriteCommandsTests` (one renderer) | Met |
 
-Owner decisions (2026-11-10): M2 stays open for three more tasks, in this order.
+Owner decisions (2026-11-10): M2 stayed open for three more tasks, now merged: M2.14 (#38), M2.15 (#39), M2.16 (#42; app notification in #41).
 
 - **M2.14, stashed hooks:** a hook Claw turned off stays in the Hooks list as "Off (turned off by Claw)", with a switch to turn it back on.
 - **M2.15, hook health check:** each hook is checked without running it (event name, type, matcher, script found, script runnable, timeout) and shows OK, ⚠️ or ❌ with a short reason. Hooks turned off by Claw are checked too. Whether the Claude desktop app shows a hook status, and how, is [U]: a spike compares the two.
@@ -48,6 +48,10 @@ Open after M2, for the owner to order:
 3. A restore does not undo CLI steps (`plugin uninstall`, `mcp remove`); the manifest does not record them yet.
 4. ~~Start-up recovery: nothing calls `BackupStore.interrupted()` and `rollBack(id:stash:)` at launch yet.~~ M2.16.
 5. TECHNICAL-DESIGN 9.5 needs the stash entry fields and the kept original settings file.
+6. FR-F15-6 (SHOULD): detect that Claude Code reloaded settings and mark the change live. Not built.
+7. Hook health in the app list: a green, yellow or red mark per hook. Today the messages show in the detail sheet only; the mark is a visual change for M4.
+8. Spike S15: does the Claude desktop app show a hook status, and do its rules match `HookHealth`?
+9. Review #41 (start-up recovery notification), then merge it.
 
 ## Open before M2
 
