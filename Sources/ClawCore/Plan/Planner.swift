@@ -11,6 +11,14 @@ public struct FileEdit: Sendable, Equatable {
     public let before: Data?
     public let after: Data
     public let reason: String
+    /// Permission bits for a file that does not exist yet. An existing file keeps its own.
+    public var mode: Int?
+}
+
+/// A folder to create before files are written into it, with the mode it had.
+public struct FolderSpec: Sendable, Equatable {
+    public let path: String
+    public let mode: Int
 }
 
 /// One `claude` call, as an argument vector: no shell ever sees it (`NFR-SEC-2`).
@@ -48,6 +56,7 @@ public struct PlannedChange: Sendable, Equatable {
     public let warnings: [String]
     public var stash: StashAction?
     public var pluginCheck: PluginCheck?
+    public var folders: [FolderSpec] = []
 }
 
 public struct PlanError: Error, Equatable, CustomStringConvertible {

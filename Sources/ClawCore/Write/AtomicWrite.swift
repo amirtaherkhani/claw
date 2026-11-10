@@ -35,7 +35,9 @@ public enum AtomicWrite {
         try write(data, to: target, expectedSHA256: expectedSHA256, beforeRename: {})
     }
 
-    static func write(_ data: Data, to target: String, expectedSHA256: String?, beforeRename: () -> Void) throws {
+    static func write(
+        _ data: Data, to target: String, expectedSHA256: String?, newFileMode: mode_t? = nil, beforeRename: () -> Void
+    ) throws {
         let real = try resolved(target)
         func checkUnchanged() throws {
             guard try sha256(ofFile: real) == expectedSHA256 else { throw StaleFileError(file: target) }
@@ -43,7 +45,7 @@ public enum AtomicWrite {
         try checkUnchanged()
 
         var info = stat()
-        let mode = stat(real, &info) == 0 ? mode_t(info.st_mode) & 0o777 : 0o600
+        let mode = stat(real, &info) == 0 ? mode_t(info.st_mode) & 0o777 : (newFileMode ?? 0o600)
         let folder = (real as NSString).deletingLastPathComponent
         let name = (real as NSString).lastPathComponent
         let temporary = joinPath(folder, ".\(name).\(UUID().uuidString).tmp")
