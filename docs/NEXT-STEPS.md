@@ -8,7 +8,7 @@ Status on 2026-11-05. Start here when you continue in Claude Code on the Mac. Re
 | :- | :- |
 | M0 Foundations | Done. S1 to S4 and S6 to S9 verified and reviewed. S5 and S10 partial: they need a Mac with a managed profile and a fresh user account |
 | M1 Core read-only | Done: all seven concepts, ownership rules, effective state, projects, progress and Stop, CLI. Exit criteria reported in the M1 close-out |
-| M2 Safe write pipeline | **In progress.** M2.1 to M2.12 done; M2.13 next |
+| M2 Safe write pipeline | **In progress.** M2.1 to M2.13 done; waiting for owner review of the milestone |
 | M3 GUI read-only | Screens done and compared with `docs/design/` on the Mac; text in a String Catalog, XCUITest smoke tests and accessibility audit added. Open: your review of the M3 exit criteria |
 | M4 to M7 | Not started |
 
@@ -88,6 +88,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | M2.10 | Restore: `Restorer.plan` returns the changes that put a backup back, with conflicts for anything changed since; apply then restore is byte-identical, modes included | #33 | 2026-11-09 |
 | M2.11 | CLI `claw plan`, `apply [--dry-run]`, `restore [--accept]`, `history` on `WriteCommands`; the dry run prints what plan prints; diffs are masked JSON or sizes only; a restore with changed files is refused until `--accept` | #34 | 2026-11-10 |
 | M2.12 | Contract tests against real `claude` (2.1.319) in a temp `HOME` and `CLAUDE_CONFIG_DIR`: disable, enable, restore, dry run and remove agree with `plugin list --json`; nightly macOS job `contract.yml`. Fix: `claude` now gets `HOME`, `CLAUDE_CONFIG_DIR` and the plugin cache from the environment Claw reads (`ClaudeCLI(executable:environment:)`), before it inherited the parent process's | #35 | 2026-11-10 |
+| M2.13 | No hard delete: `Disk` is the only `rename`/`unlink` in the write layer; a guard watches apply, restore, failure and crash recovery at every step (also on the pipeline's own threads) and flags any delete or overwrite of a user file; a source check stops calls around `Disk` | #36 | 2026-11-10 |
 
 ## Known gaps and decisions to revisit
 

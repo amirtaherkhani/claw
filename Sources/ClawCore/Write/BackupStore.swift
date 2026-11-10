@@ -190,7 +190,7 @@ public struct BackupSession: Sendable {
     /// so a crash between the two steps leaves a record, not a lost item.
     public mutating func moveAway(_ path: String, created: Bool = false) throws {
         let destination = try recordMove(of: path, created: created)
-        guard rename(path, destination) == 0 else {
+        guard Disk.rename(path, destination) == 0 else {
             let reason = String(cString: strerror(errno))
             manifest.moves.removeLast()
             try save()

@@ -53,7 +53,7 @@ public struct HookStash: Sendable {
         let source = try file(id)
         let folder = joinPath(root, "taken")
         try PrivateFiles.makeFolder(folder)
-        guard rename(source, joinPath(folder, "\(id).json")) == 0 else {
+        guard Disk.rename(source, joinPath(folder, "\(id).json")) == 0 else {
             throw BackupError(reason: "cannot take \(id) from the stash")
         }
     }

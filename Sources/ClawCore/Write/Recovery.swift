@@ -86,7 +86,7 @@ extension BackupStore {
         guard !FileManager.default.fileExists(atPath: move.from) else { return false }
         try? FileManager.default.createDirectory(
             atPath: (move.from as NSString).deletingLastPathComponent, withIntermediateDirectories: true)
-        guard rename(source, move.from) == 0 else { throw BackupError(reason: "cannot put back \(move.from)") }
+        guard Disk.rename(source, move.from) == 0 else { throw BackupError(reason: "cannot put back \(move.from)") }
         PrivateFiles.restore(move.modes, under: move.from)
         return true
     }

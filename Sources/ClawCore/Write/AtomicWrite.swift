@@ -54,9 +54,9 @@ public enum AtomicWrite {
         do {
             beforeRename()
             try checkUnchanged()
-            guard rename(temporary, real) == 0 else { throw failure(target, "cannot be replaced") }
+            guard Disk.rename(temporary, real) == 0 else { throw failure(target, "cannot be replaced") }
         } catch {
-            unlink(temporary)  // Our own temporary file, never user content.
+            Disk.unlink(temporary)  // Our own temporary file, never user content.
             throw error
         }
         syncFolder(folder)
@@ -90,7 +90,7 @@ public enum AtomicWrite {
             }
             guard flush(descriptor) else { throw failure(target, "cannot flush to disk") }
         } catch {
-            unlink(path)
+            Disk.unlink(path)
             throw error
         }
     }
