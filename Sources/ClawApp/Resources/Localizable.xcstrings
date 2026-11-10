@@ -200,6 +200,9 @@
     "Cancel" : {
 
     },
+    "Cancel puts the files back as they were." : {
+
+    },
     "Choose an active project first" : {
 
     },
@@ -215,6 +218,9 @@
     "Claw" : {
 
     },
+    "Claw could not read its backups to check for an unfinished change." : {
+
+    },
     "Claw reads the folder first. Nothing is added until you confirm." : {
 
     },
@@ -222,6 +228,12 @@
 
     },
     "Claw runs these with the claude CLI, then checks enabledPlugins afterwards and flags \"installed but not enabled\"." : {
+
+    },
+    "Claw stopped after a change" : {
+
+    },
+    "Claw stopped during a change" : {
 
     },
     "Click an owner group to see what you can edit" : {
@@ -234,6 +246,18 @@
 
     },
     "Configuration types" : {
+
+    },
+    "Continue" : {
+
+    },
+    "Continue finishes the change." : {
+
+    },
+    "Continue isn't possible for this older backup." : {
+
+    },
+    "Continue isn't possible: another program changed the files since." : {
 
     },
     "Controlled by" : {
@@ -408,6 +432,9 @@
     "Nothing is written until you click Apply." : {
 
     },
+    "OK" : {
+
+    },
     "On" : {
 
     },
@@ -553,6 +580,18 @@
 
     },
     "Stopped managing %@. No files were touched." : {
+
+    },
+    "The last change didn't finish. Nothing was changed yet." : {
+
+    },
+    "The last change didn't finish. Some files may already be changed." : {
+
+    },
+    "The last change was done." : {
+
+    },
+    "The last change wasn't checked." : {
 
     },
     "This Mac" : {
