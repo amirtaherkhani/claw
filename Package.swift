@@ -11,7 +11,7 @@ var products: [Product] = [
 var targets: [Target] = [
     .target(name: "ClawCore"),
     .executableTarget(name: "claw", dependencies: ["ClawCore"]),
-    .testTarget(name: "ClawCoreTests", dependencies: ["ClawCore"]),
+    .testTarget(name: "ClawCoreTests", dependencies: ["ClawCore", "claw"]),
 ]
 
 #if os(macOS)

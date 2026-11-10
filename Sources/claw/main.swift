@@ -17,6 +17,8 @@ let usage = """
       claw restore <backup-id> [--accept <path>]... [--dry-run]
                                           Put a backup's files back (a new backup is taken first)
       claw history                        List applied and restored changes
+      claw recover [<backup-id> --cancel|--continue|--ok]
+                                          List changes a crash left unfinished, or Cancel, Continue or OK one
       claw version | help
 
     Scan options:
@@ -254,14 +256,16 @@ func writeCommands(project: String?) -> WriteCommands {
     do {
         var cli: ClaudeCLI?
         if let path = ClaudeCLI.locate(environment: ProcessInfo.processInfo.environment, home: base.home, fileSystem: fs) {
-            cli = ClaudeCLI(executable: path)
+            cli = ClaudeCLI(executable: path, environment: base)
         }
         var options = ScanOptions()
         options.projects = project.map { [$0] } ?? []
         let scanOptions = options
         return WriteCommands(
             environment: base, fileSystem: fs, store: try BackupStore(environment: base), stash: HookStash(environment: base),
-            cli: cli, appVersion: ClawVersion.string, claudeVersion: nil, scan: { await scan(scanOptions) })
+            cli: cli, appVersion: ClawVersion.string, claudeVersion: nil,
+            killAt: ProcessInfo.processInfo.environment["CLAW_TEST_KILL_AT"].flatMap(CrashPoint.init(rawValue:)),
+            scan: { await scan(scanOptions) })
     } catch {
         fail("cannot open the backup folder: \(error)")
     }
@@ -313,6 +317,29 @@ case "restore":
         await writeCommands(project: nil).restore(id: parsed.backupId!, accept: parsed.accept, dryRun: parsed.dryRun))
 case "history":
     finish(writeCommands(project: nil).history())
+case "recover":
+    let commands = writeCommands(project: nil)
+    let rest = Array(arguments.dropFirst())
+    if rest.isEmpty {
+        do {
+            let found = try commands.interrupted()
+            if found.isEmpty { print("Nothing to recover.") }
+            for change in found {
+                let choices =
+                    change.step == .finish
+                    ? "--ok" : (change.canContinue ? "--cancel or --continue" : "--cancel (Continue is not possible)")
+                print("\(change.id)  \(change.step.rawValue)  \(change.message)  Choose: \(choices)")
+                for path in change.changedElsewhere { print("  changed elsewhere: \(path)") }
+            }
+        } catch {
+            fail("cannot read the backups: \(error)")
+        }
+        exit(0)
+    }
+    guard rest.count == 2, let choice = WriteCommands.RecoveryChoice(rawValue: String(rest[1].dropFirst(2))),
+        rest[1].hasPrefix("--")
+    else { fail("expected: recover <backup-id> --cancel|--continue|--ok") }
+    finish(await commands.recover(id: rest[0], choice: choice))
 case "version", "--version":
     print("claw \(ClawVersion.string)")
 case "help", "--help", "-h", nil:
