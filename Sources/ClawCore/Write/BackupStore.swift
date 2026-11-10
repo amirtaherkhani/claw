@@ -47,6 +47,9 @@ public struct BackupManifest: Codable, Sendable, Equatable {
     public var moves: [Move] = []
     public var cli: [JSONValue] = []
     public var stash: [JSONValue] = []
+    /// The request that made this change, so an interrupted change can be done again (M2.16). Absent in older
+    /// backups and for changes that cannot be repeated.
+    public var intent: JSONValue?
 }
 
 /// Where backups live: `~/.claude.bak/<time>/`, folders 0700 and files 0600 because they may hold secrets
@@ -71,7 +74,8 @@ public struct BackupStore: Sendable {
 
     /// Creates the folder and writes an `in-progress` manifest, before anything is changed.
     public func start(
-        date: Date = Date(), appVersion: String, claudeVersion: String?, operations: [JSONValue]
+        date: Date = Date(), appVersion: String, claudeVersion: String?, operations: [JSONValue],
+        intent: JSONValue? = nil
     ) throws -> BackupSession {
         try PrivateFiles.makeFolder(root)
         let name = Self.timestamp(date)
@@ -82,9 +86,10 @@ public struct BackupStore: Sendable {
                 if errno == EEXIST { continue }
                 throw BackupError(reason: "cannot create \(folder): \(String(cString: strerror(errno)))")
             }
-            let manifest = BackupManifest(
+            var manifest = BackupManifest(
                 id: id, status: .inProgress, app: .init(version: appVersion), claudeCode: .init(version: claudeVersion),
                 operations: operations)
+            manifest.intent = intent
             var session = BackupSession(folder: folder, manifest: manifest)
             try session.save()
             return session

@@ -5,6 +5,26 @@ public enum ApplyStep: String, CaseIterable, Sendable {
     case backupStarted, originalsKept, moved, stashed, filesWritten, cliRan, verified
 }
 
+/// Where a crash test kills the process for real (`CLAW_TEST_KILL_AT`, M2.16): in the backup, in the write, before
+/// the check, and after the change is marked done but before History has it.
+public enum CrashPoint: String, CaseIterable, Sendable {
+    case backup, write, verify, finish
+
+    var step: ApplyStep? {
+        switch self {
+        case .backup: .originalsKept
+        case .write: .stashed
+        case .verify: .filesWritten
+        case .finish: nil
+        }
+    }
+
+    func kill() -> Never {
+        _ = raise(SIGKILL)
+        fatalError("SIGKILL did not stop the process")
+    }
+}
+
 /// Thrown by a test's fault to stop the way a kill does: no rollback runs.
 public struct ApplyCrash: Error, Equatable {
     public init() {}
@@ -33,14 +53,18 @@ public struct ApplyPipeline: Sendable {
     private let claudeVersion: String?
     private let fault: @Sendable (ApplyStep) throws -> Void
 
+    /// `killAt` is for crash tests only: the process kills itself there.
     public init(
         environment: ClaudeEnvironment, store: BackupStore, stash: HookStash, cli: ClaudeCLI?, appVersion: String,
-        claudeVersion: String?
+        claudeVersion: String?, killAt: CrashPoint? = nil
     ) {
         self.init(
             environment: environment, store: store, stash: stash, cli: cli, appVersion: appVersion,
-            claudeVersion: claudeVersion, fault: { _ in })
+            claudeVersion: claudeVersion, fault: { step in if let killAt, killAt.step == step { killAt.kill() } })
+        self.killAtFinish = killAt == .finish
     }
+
+    private var killAtFinish = false
 
     init(
         environment: ClaudeEnvironment, store: BackupStore, stash: HookStash, cli: ClaudeCLI?, appVersion: String,
@@ -58,14 +82,15 @@ public struct ApplyPipeline: Sendable {
     /// `replan` rebuilds the changes from the files as they are now. A running Claude Code rewrites `.claude.json`
     /// often, so a stale `.claude.json` is planned again, up to three tries (section 9.3).
     public func apply(
-        _ changes: [PlannedChange], title: String, date: Date = Date(),
+        _ changes: [PlannedChange], title: String, date: Date = Date(), intent: JSONValue? = nil,
         replan: (@Sendable () throws -> [PlannedChange])? = nil
     ) async throws -> ApplyResult {
         var current = changes
         var attempt = 1
         while true {
             do {
-                return try await once(current, title: title, date: date, lastTry: attempt == 3 || replan == nil)
+                return try await once(
+                    current, title: title, date: date, intent: intent, lastTry: attempt == 3 || replan == nil)
             } catch let error as StaleFileError where error.file == environment.claudeJsonFile {
                 guard attempt < 3, let replan else { throw error }
                 current = try replan()
@@ -94,7 +119,9 @@ public struct ApplyPipeline: Sendable {
         var mode: Int?
     }
 
-    private func once(_ changes: [PlannedChange], title: String, date: Date, lastTry: Bool) async throws -> ApplyResult {
+    private func once(
+        _ changes: [PlannedChange], title: String, date: Date, intent: JSONValue?, lastTry: Bool
+    ) async throws -> ApplyResult {
         let targets = Self.merged(changes)
         let steps = changes.flatMap(\.cli)
         guard steps.isEmpty || cli != nil else { throw PlanError(reason: "The claude CLI is needed for this change") }
@@ -112,7 +139,9 @@ public struct ApplyPipeline: Sendable {
                 return .object(fields)
             }
             return Run(
-                try store.start(date: date, appVersion: appVersion, claudeVersion: claudeVersion, operations: operations))
+                try store.start(
+                    date: date, appVersion: appVersion, claudeVersion: claudeVersion, operations: operations,
+                    intent: intent))
         }
         do {
             try await onDedicatedThread { [self] in try prepare(run, changes, targets) }
@@ -126,6 +155,7 @@ public struct ApplyPipeline: Sendable {
             try fault(.verified)
             try await onDedicatedThread { [self] in
                 try run.session.finish(.applied)
+                if killAtFinish { CrashPoint.finish.kill() }
                 try store.history.append(entry(run, title: title, date: date, result: .applied))
                 for case .take(let id) in changes.compactMap(\.stash) { try stash.take(id) }
             }

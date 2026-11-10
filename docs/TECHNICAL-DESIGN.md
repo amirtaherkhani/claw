@@ -757,7 +757,16 @@ The hash check just before `rename` narrows, but cannot close, the race with a r
 }
 ```
 
-`status` is `in-progress`, `applied`, `rolled-back` or `failed`. On start-up, any `in-progress` manifest triggers **recovery**: compare current hashes with `sha256Before` and `sha256After`, and offer to finish the rollback.
+`status` is `in-progress`, `applied`, `rolled-back` or `failed`. On start-up, any `in-progress` manifest triggers **recovery** (M2.16): current hashes are compared with `sha256Before` and `sha256After` to find the step the change reached, and the user chooses.
+
+| Step reached | How it is told | Cancel | Continue |
+| :- | :- | :- | :- |
+| Backup | every file untouched, nothing moved or stashed | roll back (nothing to undo) | roll back, then make the request in `intent` again |
+| Write | anything else | roll back | roll back, then make the request in `intent` again |
+| Verify | every planned file holds `sha256After`, every move done | roll back | check again (hashes, JSON); mark `applied` and add to History |
+| Finish | `applied`, but History has no entry | not offered | OK adds the History entry |
+
+Continue is refused when a file is `changedElsewhere`, and for steps 1 and 2 when the manifest has no `intent` (older backups). `intent` is `{"kind":"change","action","selector","scope","project"}` or `{"kind":"restore","id","accept"}`. Continue for steps 1 and 2 undoes and repeats instead of resuming mid-step: the end state is the same, and a fresh plan cannot build on bytes that are half old and half new. Crash tests kill the real `claw` binary with `CLAW_TEST_KILL_AT=backup|write|verify|finish` (`RecoveryKillTests`).
 
 History: append-only `history.jsonl`, one object per Apply or Restore (`id`, `time`, `title`, `files`, `backupId`, `result`). No file contents, no secret values.
 
