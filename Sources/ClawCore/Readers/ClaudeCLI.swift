@@ -48,7 +48,10 @@ extension CommandRunner {
 
 /// `Foundation.Process` runner: argument vector only (no shell), stdin closed, hard timeout.
 public struct ProcessRunner: CommandRunner {
-    public init() {}
+    /// The child's whole environment; nil inherits this process's.
+    public let environment: [String: String]?
+
+    public init(environment: [String: String]? = nil) { self.environment = environment }
 
     public func run(executable: String, arguments: [String], timeoutSeconds: Int) async throws -> CommandResult {
         try await run(executable: executable, arguments: arguments, timeoutSeconds: timeoutSeconds, workingDirectory: nil)
@@ -57,7 +60,8 @@ public struct ProcessRunner: CommandRunner {
     public func run(
         executable: String, arguments: [String], timeoutSeconds: Int, workingDirectory: String?
     ) async throws -> CommandResult {
-        let box = ProcessBox(executable: executable, arguments: arguments, workingDirectory: workingDirectory)
+        let box = ProcessBox(
+            executable: executable, arguments: arguments, workingDirectory: workingDirectory, environment: environment)
         try await box.start()
         // Race the exit against the deadline and against cancellation (Stop). On Linux, `waitUntilExit` also
         // waits for the pipes, which a grandchild may keep open, so neither path depends on it. Bound: + 3 s.
@@ -136,8 +140,9 @@ private final class ProcessBox: @unchecked Sendable {
     private var stdout = Data()
     private var stderr = Data()
 
-    init(executable: String, arguments: [String], workingDirectory: String?) {
+    init(executable: String, arguments: [String], workingDirectory: String?, environment: [String: String]?) {
         process.executableURL = URL(fileURLWithPath: executable)
+        if let environment { process.environment = environment }
         if let workingDirectory { process.currentDirectoryURL = URL(fileURLWithPath: workingDirectory) }
         process.arguments = arguments
         process.standardOutput = outPipe
@@ -218,13 +223,33 @@ func onDedicatedThread<T: Sendable>(_ work: @escaping @Sendable () throws -> T) 
 /// Adapter for the `claude` CLI (TECHNICAL-DESIGN section 4).
 public struct ClaudeCLI: Sendable {
     public let executable: String
-    private let runner: any CommandRunner
+    let runner: any CommandRunner
     private let timeoutSeconds: Int
 
     public init(executable: String, runner: any CommandRunner = ProcessRunner(), timeoutSeconds: Int = 30) {
         self.executable = executable
         self.runner = runner
         self.timeoutSeconds = timeoutSeconds
+    }
+
+    /// Runs `claude` against the configuration `environment` describes, whatever this process's own `HOME` is.
+    public init(executable: String, environment: ClaudeEnvironment, timeoutSeconds: Int = 30) {
+        self.init(
+            executable: executable,
+            runner: ProcessRunner(
+                environment: Self.childEnvironment(for: environment, parent: ProcessInfo.processInfo.environment)),
+            timeoutSeconds: timeoutSeconds)
+    }
+
+    /// The parent's variables with `HOME`, `CLAUDE_CONFIG_DIR` and `CLAUDE_CODE_PLUGIN_CACHE_DIR` set to what Claw
+    /// reads. A variable Claw does not use is removed, so `claude` cannot fall back to another folder.
+    public static func childEnvironment(for environment: ClaudeEnvironment, parent: [String: String]) -> [String: String] {
+        var child = parent
+        child["HOME"] = environment.home
+        child["CLAUDE_CONFIG_DIR"] = environment.configDirWasSet ? environment.configDir : nil
+        let defaultPlugins = joinPath(environment.configDir, "plugins")
+        child["CLAUDE_CODE_PLUGIN_CACHE_DIR"] = environment.pluginsDir == defaultPlugins ? nil : environment.pluginsDir
+        return child
     }
 
     /// Finds `claude` on `PATH` and in common install locations. GUI apps get a minimal `PATH`,
