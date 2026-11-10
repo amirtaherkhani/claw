@@ -14,6 +14,7 @@ Each spike turns an **[U]** in the docs into **[V]** or **[A]**. Plans are in `T
 | S8 | `CLAUDE_CONFIG_DIR` effect on `~/.claude.json` | Verified | It moves the file. See [S8](#s8-claude_config_dir) |
 | S9 | Hook removal live; matcher required | Verified | Live; matcher optional. See [S4 and S9](#s4-and-s9-live-changes-and-hooks) |
 | S10 | macOS: TCC prompts, minimum macOS, managed profile, enterprise skills path | Partial | Paths read from the CLI; no profile and no fresh account here. See [S5 and S10](#s5-and-s10-what-this-mac-can-show) |
+| S15 | Does the Claude desktop app show a hook status, and with which rules? Compare with Claw's hook health check (M2.15) | Open | Claw's checks are its own [U] until compared; see `HookHealth` |
 
 ## Findings during M1 (cloud, Swift 6.4.2 on Linux)
 

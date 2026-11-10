@@ -71,4 +71,6 @@ final class ContainedFileSystem: ReadonlyFileSystem, @unchecked Sendable {
     func resolvingSymlinks(_ path: String) -> String { base.resolvingSymlinks(path) }
 
     func modificationDate(_ path: String) -> Date? { allows(path) ? base.modificationDate(path) : nil }
+
+    func isExecutable(_ path: String) -> Bool { allows(path) && base.isExecutable(path) }
 }

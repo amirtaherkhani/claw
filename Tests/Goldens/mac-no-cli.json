@@ -316,6 +316,10 @@
       "name" : "PreToolUse [Write] · audit.sh",
       "problems" : [
         {
+          "message" : "Script not found: /opt/audit.sh",
+          "severity" : "error"
+        },
+        {
           "message" : "Guard hook: it can block or approve tool use; removing it changes safety behaviour",
           "severity" : "note"
         }

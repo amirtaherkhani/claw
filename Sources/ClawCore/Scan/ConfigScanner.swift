@@ -43,6 +43,8 @@ public struct ConfigScanner: Sendable {
     public private(set) var environment: ClaudeEnvironment
     public let target: ScanTarget
     private(set) var fs: any ReadonlyFileSystem
+    /// Asks only whether a file exists or can run, outside the scan roots too (hook health check, M2.15).
+    private(set) var probe: (any ReadonlyFileSystem)?
     private let cli: ClaudeCLI?
     private let stallThreshold: Duration
 
@@ -105,7 +107,7 @@ public struct ConfigScanner: Sendable {
                 problems.append(Problem(.note, "Walk truncated: some nested .claude folders may be missing", file: folder))
             }
         }
-        let scanner = reading(through: contained, adding: nested)
+        let scanner = reading(through: contained, adding: nested, probe: disk)
 
         let loaded = await read(.settings) {
             let settings = SettingsLoader(fileSystem: contained).loadAll(environment: scanner.environment)
@@ -178,9 +180,12 @@ public struct ConfigScanner: Sendable {
         return dates ?? [:]
     }
 
-    private func reading(through contained: ContainedFileSystem, adding projects: [String]) -> ConfigScanner {
+    private func reading(
+        through contained: ContainedFileSystem, adding projects: [String], probe: any ReadonlyFileSystem
+    ) -> ConfigScanner {
         var copy = self
         copy.fs = contained
+        copy.probe = probe
         copy.environment = environment.with(projects: environment.projects + projects)
         return copy
     }

@@ -312,8 +312,10 @@ extension ConfigScanner {
     ) -> Item {
         let matcher = hook.matcher.map { $0.isEmpty ? "" : " [\($0)]" } ?? ""
         let problems =
-            hook.isGuard
-            ? [Problem(.note, "Guard hook: it can block or approve tool use; removing it changes safety behaviour")] : []
+            hook.health
+            + (hook.isGuard
+                ? [Problem(.note, "Guard hook: it can block or approve tool use; removing it changes safety behaviour")]
+                : [])
         let stash = classification.ownership == .personal
         let control: ControlRef
         if stash {
@@ -335,6 +337,11 @@ extension ConfigScanner {
             providedBy: providedBy, problems: problems)
     }
 
+    /// What the hook health check needs. Scripts are probed outside the scan roots, for metadata only.
+    private func health(project: String?, pluginRoot: String?) -> HookHealth.Context {
+        HookHealth.Context(home: environment.home, projectDir: project, pluginRoot: pluginRoot, probe: probe ?? fs)
+    }
+
     private func hookItems(
         layers: [SettingsLayer], installed: [InstalledPlugin], includeUser: Bool, into scan: inout ConceptScan
     ) {
@@ -346,7 +353,8 @@ extension ConfigScanner {
 
         // A folder scan lists its own layers only; the others still decide state above.
         for layer in layers where includeUser || layer.projectPath != nil {
-            let (hooks, problems) = HookReader.parse(layer.values["hooks"], file: layer.file)
+            let (hooks, problems) = HookReader.parse(
+                layer.values["hooks"], file: layer.file, health: health(project: layer.projectPath, pluginRoot: nil))
             scan.problems += problems
             let isManaged = layer.scope == .managed
             let disableAll =
@@ -377,12 +385,14 @@ extension ConfigScanner {
                     scan.problems.append(Problem(.error, "Plugin hooks file is not valid JSON", file: file))
                     continue
                 }
-                let (found, problems) = HookReader.parse(value["hooks"], file: file)
+                let (found, problems) = HookReader.parse(
+                    value["hooks"], file: file, health: health(project: plugin.record.projectPath, pluginRoot: root))
                 hooks += found
                 scan.problems += problems
             }
             if let inline = manifest.inlineHooks {
-                let (found, problems) = HookReader.parse(inline, file: manifest.file)
+                let (found, problems) = HookReader.parse(
+                    inline, file: manifest.file, health: health(project: plugin.record.projectPath, pluginRoot: root))
                 hooks += found
                 scan.problems += problems
             }
@@ -417,8 +427,12 @@ extension ConfigScanner {
             let project = layer?.projectPath
             guard includeUser || project != nil else { continue }
             let scope = layer.flatMap { ItemScope(rawValue: $0.scope.rawValue) } ?? .user
+            let group: [String: JSONValue] = ["hooks": .array([entry.handler])].merging(
+                entry.matcher.map { ["matcher": .string($0)] } ?? [:]
+            ) { $1 }
             let (records, _) = HookReader.parse(
-                .object([entry.event: .array([.object(["hooks": .array([entry.handler])])])]), file: entry.sourceFile)
+                .object([entry.event: .array([.object(group)])]), file: entry.sourceFile,
+                health: health(project: project, pluginRoot: nil))
             guard let record = records.first else { continue }
             let matcher = entry.matcher.map { $0.isEmpty ? "" : " [\($0)]" } ?? ""
             scan.items.append(
@@ -430,7 +444,8 @@ extension ConfigScanner {
                     control: ControlRef(mechanism: .hookStash, key: "restore from Claw's stash", status: .verified),
                     capabilities: Capabilities(
                         edit: false, toggle: true, remove: false, removeLabel: nil,
-                        reason: "Turned off by Claw: turn it on to put it back")))
+                        reason: "Turned off by Claw: turn it on to put it back"),
+                    problems: record.health))
         }
     }
 }

@@ -125,6 +125,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | M2.12 | Contract tests against real `claude` (2.1.319) in a temp `HOME` and `CLAUDE_CONFIG_DIR`: disable, enable, restore, dry run and remove agree with `plugin list --json`; nightly macOS job `contract.yml`. Fix: `claude` now gets `HOME`, `CLAUDE_CONFIG_DIR` and the plugin cache from the environment Claw reads (`ClaudeCLI(executable:environment:)`), before it inherited the parent process's | #35 | 2026-11-10 |
 | M2.13 | No hard delete: `Disk` is the only `rename`/`unlink` in the write layer; a guard watches apply, restore, failure and crash recovery at every step (also on the pipeline's own threads) and flags any delete or overwrite of a user file; a source check stops calls around `Disk` | #36 | 2026-11-10 |
 | M2.14 | Stashed hooks in the list: the scanner reads Claw's stash and lists each hook Off, "turned off by Claw", Personal, with a switch; turning it on plans the restore (FR-F15-4) | #38 | 2026-11-10 |
+| M2.15 | Hook health check: each hook is checked without running it (event, type and its field, matcher pattern, script found, script runnable unless given to an interpreter, timeout); errors and warnings name the script, never its arguments; the app's detail shows them. Spike S15 (desktop app) open | #39 | 2026-11-10 |
 
 ## Known gaps and decisions to revisit
 

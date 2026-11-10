@@ -11,6 +11,8 @@ public struct HookRecord: Sendable, Equatable {
     public let file: String
     public let groupIndex: Int
     public let handlerIndex: Int
+    /// What `HookHealth` found; empty when it was not asked for or found nothing (M2.15).
+    public var health: [Problem] = []
 
     /// Events that can block or approve tool use. Removing such a hook changes safety behaviour.
     public var isGuard: Bool { event == "PreToolUse" || event == "PermissionRequest" }
@@ -18,7 +20,10 @@ public struct HookRecord: Sendable, Equatable {
 
 public enum HookReader {
     /// Parses `{ "<Event>": [ { "matcher": "…", "hooks": [ { "type": "command", … } ] } ] }`.
-    public static func parse(_ hooks: JSONValue?, file: String) -> ([HookRecord], [Problem]) {
+    /// With `health`, each record also carries the result of `HookHealth.check`.
+    public static func parse(
+        _ hooks: JSONValue?, file: String, health: HookHealth.Context? = nil
+    ) -> ([HookRecord], [Problem]) {
         guard let hooks else { return ([], []) }
         guard let events = hooks.objectValue else {
             return ([], [Problem(.warning, "`hooks` is not an object; it was ignored", file: file)])
@@ -43,10 +48,14 @@ public enum HookReader {
                     default:
                         summary = type
                     }
-                    records.append(
-                        HookRecord(
-                            event: event, matcher: group["matcher"]?.stringValue, handlerType: type, summary: summary,
-                            file: file, groupIndex: groupIndex, handlerIndex: handlerIndex))
+                    var record = HookRecord(
+                        event: event, matcher: group["matcher"]?.stringValue, handlerType: type, summary: summary,
+                        file: file, groupIndex: groupIndex, handlerIndex: handlerIndex)
+                    if let health {
+                        record.health = HookHealth.check(
+                            event: event, matcher: record.matcher, handler: handler, context: health)
+                    }
+                    records.append(record)
                 }
             }
         }

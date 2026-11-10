@@ -5,10 +5,14 @@ import Foundation
 /// In-memory, read-only file system for tests. Directories are implied by file paths.
 struct MemoryFileSystem: ReadonlyFileSystem {
     let files: [String: Data]
+    let notExecutable: Set<String>
 
-    init(_ files: [String: String]) {
+    init(_ files: [String: String], notExecutable: Set<String> = []) {
         self.files = files.mapValues { Data($0.utf8) }
+        self.notExecutable = notExecutable
     }
+
+    func isExecutable(_ path: String) -> Bool { files[path] != nil && !notExecutable.contains(path) }
 
     func readFile(_ path: String) throws -> Data? { files[path] }
 
