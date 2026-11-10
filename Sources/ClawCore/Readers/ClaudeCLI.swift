@@ -216,7 +216,11 @@ private struct HandleBox: @unchecked Sendable {
 /// the Swift concurrency pool on small machines (seen on a 2-core Linux runner: the timeout never fired).
 func onDedicatedThread<T: Sendable>(_ work: @escaping @Sendable () throws -> T) async throws -> T {
     try await withCheckedThrowingContinuation { continuation in
-        Thread.detachNewThread { continuation.resume(with: Result { try work() }) }
+        // Thread-local values do not cross to a new thread; the write layer's observer must (Disk).
+        let observer = Disk.observer
+        Thread.detachNewThread {
+            continuation.resume(with: Result { try Disk.$observer.withValue(observer) { try work() } })
+        }
     }
 }
 
