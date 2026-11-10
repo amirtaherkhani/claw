@@ -10,6 +10,13 @@ let usage = """
       claw projects [list]                Projects Claw knows (registered and found in ~/.claude.json)
       claw projects add <path>            Register a project folder (stored by Claw, not by Claude Code)
       claw projects remove <path>         Unregister a project folder
+      claw plan <enable|disable|remove> <item> [--scope user|project|local] [--project <path>]
+                                          Show what a change would write; writes nothing
+      claw apply <enable|disable|remove> <item> [same options] [--dry-run]
+                                          Make the change (backup first). --dry-run prints the plan only
+      claw restore <backup-id> [--accept <path>]... [--dry-run]
+                                          Put a backup's files back (a new backup is taken first)
+      claw history                        List applied and restored changes
       claw version | help
 
     Scan options:
@@ -198,6 +205,73 @@ func runProjects(_ args: ArraySlice<String>) throws {
     }
 }
 
+// MARK: plan, apply, restore, history
+
+struct WriteArguments {
+    var request: ChangeRequest?
+    var backupId: String?
+    var accept: Set<String> = []
+    var dryRun = false
+    var project: String?
+}
+
+func parseWriteArguments(_ args: ArraySlice<String>, restore: Bool) -> WriteArguments {
+    var parsed = WriteArguments()
+    var rest = args
+    func value(_ flag: String) -> String {
+        guard let value = rest.popFirst() else { fail("\(flag) needs a value") }
+        return value
+    }
+    var scope = SettingsScope.user
+    var positional: [String] = []
+    while let arg = rest.popFirst() {
+        switch arg {
+        case "--dry-run": parsed.dryRun = true
+        case "--project": parsed.project = absolute(value(arg))
+        case "--accept" where restore: parsed.accept.insert(absolute(value(arg)))
+        case "--scope":
+            let raw = value(arg)
+            guard let found = SettingsScope(rawValue: raw), found != .managed else { fail("unknown scope \(raw)") }
+            scope = found
+        default:
+            if arg.hasPrefix("--") { fail("unknown option \(arg)") }
+            positional.append(arg)
+        }
+    }
+    if restore {
+        guard positional.count == 1 else { fail("restore needs one backup id") }
+        parsed.backupId = positional[0]
+    } else {
+        guard positional.count == 2, let action = ChangeAction(rawValue: positional[0]) else {
+            fail("expected: <enable|disable|remove> <item>")
+        }
+        parsed.request = ChangeRequest(action: action, selector: positional[1], scope: scope, project: parsed.project)
+    }
+    return parsed
+}
+
+func writeCommands(project: String?) -> WriteCommands {
+    do {
+        var cli: ClaudeCLI?
+        if let path = ClaudeCLI.locate(environment: ProcessInfo.processInfo.environment, home: base.home, fileSystem: fs) {
+            cli = ClaudeCLI(executable: path)
+        }
+        var options = ScanOptions()
+        options.projects = project.map { [$0] } ?? []
+        let scanOptions = options
+        return WriteCommands(
+            environment: base, fileSystem: fs, store: try BackupStore(environment: base), stash: HookStash(environment: base),
+            cli: cli, appVersion: ClawVersion.string, claudeVersion: nil, scan: { await scan(scanOptions) })
+    } catch {
+        fail("cannot open the backup folder: \(error)")
+    }
+}
+
+func finish(_ result: WriteCommandResult) -> Never {
+    FileHandle.standardOutput.write(Data(result.output.utf8))
+    exit(result.exitCode)
+}
+
 // MARK: main
 
 let arguments = CommandLine.arguments.dropFirst()
@@ -226,6 +300,19 @@ case "projects":
         FileHandle.standardError.write(Data("claw: \(error.localizedDescription)\n".utf8))
         exit(1)
     }
+case "plan", "apply":
+    let parsed = parseWriteArguments(arguments.dropFirst(), restore: false)
+    let commands = writeCommands(project: parsed.project)
+    let request = parsed.request!
+    finish(
+        arguments.first == "plan"
+            ? await commands.plan(request) : await commands.apply(request, dryRun: parsed.dryRun))
+case "restore":
+    let parsed = parseWriteArguments(arguments.dropFirst(), restore: true)
+    finish(
+        await writeCommands(project: nil).restore(id: parsed.backupId!, accept: parsed.accept, dryRun: parsed.dryRun))
+case "history":
+    finish(writeCommands(project: nil).history())
 case "version", "--version":
     print("claw \(ClawVersion.string)")
 case "help", "--help", "-h", nil:

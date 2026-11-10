@@ -8,7 +8,7 @@ Status on 2026-11-05. Start here when you continue in Claude Code on the Mac. Re
 | :- | :- |
 | M0 Foundations | Done. S1 to S4 and S6 to S9 verified and reviewed. S5 and S10 partial: they need a Mac with a managed profile and a fresh user account |
 | M1 Core read-only | Done: all seven concepts, ownership rules, effective state, projects, progress and Stop, CLI. Exit criteria reported in the M1 close-out |
-| M2 Safe write pipeline | **In progress.** M2.1 to M2.10 done; M2.11 next |
+| M2 Safe write pipeline | **In progress.** M2.1 to M2.11 done; M2.12 next |
 | M3 GUI read-only | Screens done and compared with `docs/design/` on the Mac; text in a String Catalog, XCUITest smoke tests and accessibility audit added. Open: your review of the M3 exit criteria |
 | M4 to M7 | Not started |
 
@@ -86,6 +86,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | M2.8 | Override detection: a higher scope that defeats a change warns in Claude Code's words; a list in another file keeps an item off; managed settings refuse | #30 | 2026-11-05 |
 | M2.9 | Apply: stale check, backup, moves, writes, CLI, verify, rollback; a fault or a crash at each of 7 steps leaves the old files; `.claude.json` is planned again up to three times | #31 | 2026-11-05 |
 | M2.10 | Restore: `Restorer.plan` returns the changes that put a backup back, with conflicts for anything changed since; apply then restore is byte-identical, modes included | #33 | 2026-11-09 |
+| M2.11 | CLI `claw plan`, `apply [--dry-run]`, `restore [--accept]`, `history` on `WriteCommands`; the dry run prints what plan prints; diffs are masked JSON or sizes only; a restore with changed files is refused until `--accept` | (this PR) | 2026-11-10 |
 
 ## Known gaps and decisions to revisit
 
