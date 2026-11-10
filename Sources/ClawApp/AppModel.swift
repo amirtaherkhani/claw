@@ -91,7 +91,7 @@ final class AppModel {
         // GUI apps get a minimal PATH; `locate` also checks the usual install folders.
         let cli = ClaudeCLI.locate(
             environment: ProcessInfo.processInfo.environment, home: environment.home, fileSystem: fileSystem
-        ).map { ClaudeCLI(executable: $0) }
+        ).map { ClaudeCLI(executable: $0, environment: env) }
         let scanner = ConfigScanner(environment: env, target: target, fileSystem: fileSystem, cli: cli)
 
         progress = ScanProgress(step: .settings, itemCount: 0)

@@ -18,7 +18,7 @@ Code: `amirtaherkhani/claw`, `main`, CI green on Linux and macOS.
 
 | Exit criterion | Shown by | State |
 | :- | :- | :- |
-| NFR-SAFE-1: a failed or interrupted Apply leaves each file fully old or fully new | `ApplyTests` crash and fault at every step, `AtomicWriteTests` | Met |
+| NFR-SAFE-1: a failed or interrupted Apply leaves each file fully old or fully new | `ApplyTests` crash and fault at every step, `AtomicWriteTests`, `RecoveryKillTests` (real SIGKILL of `claw` at each step, M2.16) | Met |
 | NFR-SAFE-2: unknown keys, order, indentation and trailing newline kept | `JSONEditTests` (600 seeds), plan goldens | Met |
 | NFR-SAFE-3: no hard delete | `NoHardDeleteTests` (M2.13) | Met |
 | NFR-SAFE-4: backup before every write, verify after | `ApplyTests` | Met |
@@ -44,7 +44,7 @@ Owner decisions (2026-11-10): M2 stays open for three more tasks, in this order.
 Open after M2, for the owner to order:
 
 1. ~~FR-F15-4: the scanner should read the hook stash and list its entries as Disabled (app-managed).~~ M2.14.
-2. The app and `claw` still build `ClaudeCLI` without an environment; switch them to `ClaudeCLI(executable:environment:)` (M2.12).
+2. ~~The app and `claw` still build `ClaudeCLI` without an environment; switch them to `ClaudeCLI(executable:environment:)` (M2.12).~~ Done in M2.16.
 3. A restore does not undo CLI steps (`plugin uninstall`, `mcp remove`); the manifest does not record them yet.
 4. ~~Start-up recovery: nothing calls `BackupStore.interrupted()` and `rollBack(id:stash:)` at launch yet.~~ M2.16.
 5. TECHNICAL-DESIGN 9.5 needs the stash entry fields and the kept original settings file.
@@ -126,6 +126,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | M2.13 | No hard delete: `Disk` is the only `rename`/`unlink` in the write layer; a guard watches apply, restore, failure and crash recovery at every step (also on the pipeline's own threads) and flags any delete or overwrite of a user file; a source check stops calls around `Disk` | #36 | 2026-11-10 |
 | M2.14 | Stashed hooks in the list: the scanner reads Claw's stash and lists each hook Off, "turned off by Claw", Personal, with a switch; turning it on plans the restore (FR-F15-4) | #38 | 2026-11-10 |
 | M2.15 | Hook health check: each hook is checked without running it (event, type and its field, matcher pattern, script found, script runnable unless given to an interpreter, timeout); errors and warnings name the script, never its arguments; the app's detail shows them. Spike S15 (desktop app) open | #39 | 2026-11-10 |
+| M2.16 | Recovery with Cancel and Continue: an interrupted change is reported by the step it reached (backup, write, verify, finish); Cancel rolls back, Continue checks again (verify) or undoes and repeats the request saved as `intent` (backup, write), OK records a finished one; Continue is refused for files changed elsewhere; `claw recover`; the real `claw` binary is killed with SIGKILL at each step in tests. `claw` and the app pass the environment to `claude` | #40 | 2026-11-10 |
 
 ## Known gaps and decisions to revisit
 

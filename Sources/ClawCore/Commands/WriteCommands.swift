@@ -38,7 +38,8 @@ public struct WriteCommands: Sendable {
 
     public init(
         environment: ClaudeEnvironment, fileSystem: any ReadonlyFileSystem, store: BackupStore, stash: HookStash,
-        cli: ClaudeCLI?, appVersion: String, claudeVersion: String?, scan: @escaping @Sendable () async -> ScanResult
+        cli: ClaudeCLI?, appVersion: String, claudeVersion: String?, killAt: CrashPoint? = nil,
+        scan: @escaping @Sendable () async -> ScanResult
     ) {
         self.environment = environment
         self.planner = Planner(environment: environment, fileSystem: fileSystem)
@@ -46,7 +47,7 @@ public struct WriteCommands: Sendable {
         self.stash = stash
         self.pipeline = ApplyPipeline(
             environment: environment, store: store, stash: stash, cli: cli, appVersion: appVersion,
-            claudeVersion: claudeVersion)
+            claudeVersion: claudeVersion, killAt: killAt)
         self.scan = scan
     }
 
@@ -68,7 +69,8 @@ public struct WriteCommands: Sendable {
             if dryRun { return WriteCommandResult(output: text, exitCode: 0) }
             let title = "\(request.action.rawValue.capitalized) \(item.name)"
             let result = try await pipeline.apply(
-                [change], title: title, replan: { [try Self.plan(request, item: item, with: self.planner, self.environment)] })
+                [change], title: title, intent: Self.intent(request, itemId: item.id),
+                replan: { [try Self.plan(request, item: item, with: self.planner, self.environment)] })
             return Self.finish(text: text, result: result)
         } catch {
             return Self.refused(error)
@@ -88,7 +90,10 @@ public struct WriteCommands: Sendable {
             }
             let text = Self.render(plan.changes)
             if dryRun { return WriteCommandResult(output: text, exitCode: 0) }
-            let result = try await pipeline.apply(plan.changes, title: "Restore \(id)")
+            let intent = JSONValue.object([
+                "kind": .string("restore"), "id": .string(id), "accept": .array(accept.sorted().map(JSONValue.string)),
+            ])
+            let result = try await pipeline.apply(plan.changes, title: "Restore \(id)", intent: intent)
             return Self.finish(text: text, result: result)
         } catch {
             return Self.refused(error)
@@ -105,6 +110,114 @@ public struct WriteCommands: Sendable {
         } catch {
             return Self.refused(error)
         }
+    }
+
+    // MARK: recovery (M2.16)
+
+    public enum RecoveryChoice: String, Sendable, CaseIterable {
+        /// Undo what the interrupted change did.
+        case cancel
+        /// Finish it: check again (step 3), or undo and make the same request again (steps 1 and 2).
+        case `continue`
+        /// Only for a change that was done: History gets its entry.
+        case ok
+    }
+
+    /// Changes a crash left behind. Show each at start-up.
+    public func interrupted() throws -> [InterruptedChange] { try store.interruptedChanges() }
+
+    public func recover(id: String, choice: RecoveryChoice) async -> WriteCommandResult {
+        do {
+            guard let change = try store.interruptedChanges().first(where: { $0.id == id }) else {
+                throw PlanError(reason: "\(id) is not an interrupted change")
+            }
+            switch choice {
+            case .ok:
+                guard change.step == .finish else { throw PlanError(reason: "\(id) did not finish: Cancel or Continue") }
+                try store.acknowledge(id: id)
+                return WriteCommandResult(output: "Recorded in History. Backup \(id)\n", exitCode: 0)
+            case .cancel:
+                guard change.canCancel else { throw PlanError(reason: "\(id) was done: there is nothing to cancel") }
+                return Self.undone(try store.rollBack(id: id, stash: stash), title: "Undone.")
+            case .continue:
+                guard change.canContinue else { throw PlanError(reason: Self.whyNotContinue(change)) }
+                return try await finish(change)
+            }
+        } catch {
+            return Self.refused(error)
+        }
+    }
+
+    private func finish(_ change: InterruptedChange) async throws -> WriteCommandResult {
+        if change.step == .verify {
+            let failures = try store.recheck(id: change.id)
+            guard failures.isEmpty else {
+                let lines = ["The check failed again; nothing was changed. Cancel undoes the change."] + failures
+                return WriteCommandResult(output: lines.joined(separator: "\n") + "\n", exitCode: 1)
+            }
+            try store.markDone(id: change.id, title: "Checked and finished a change after Claw stopped")
+            var lines = ["Checked and finished. Backup \(change.id)"]
+            if try store.manifest(id: change.id).operations.contains(where: Self.isPluginOperation) {
+                lines.append("Not checked: what Claude Code reports for the plugin; run claw scan to see it.")
+            }
+            return WriteCommandResult(output: lines.joined(separator: "\n") + "\n", exitCode: 0)
+        }
+        let intent = try store.manifest(id: change.id).intent
+        let undone = try store.rollBack(
+            id: change.id, title: "Undid an interrupted change, to make it again", stash: stash)
+        guard undone.kept.isEmpty else {
+            return Self.undone(undone, title: "Undone, but not made again: some files were changed elsewhere.")
+        }
+        let again: WriteCommandResult
+        switch intent?["kind"]?.stringValue {
+        case "restore":
+            let accept = Set((intent?["accept"]?.arrayValue ?? []).compactMap(\.stringValue))
+            again = await restore(id: intent?["id"]?.stringValue ?? "", accept: accept, dryRun: false)
+        default:
+            guard let request = Self.request(from: intent) else {
+                throw PlanError(reason: "the change in \(change.id) cannot be made again")
+            }
+            again = await apply(request, dryRun: false)
+        }
+        return WriteCommandResult(
+            output: "Undid the unfinished change \(change.id), then made it again:\n" + again.output,
+            exitCode: again.exitCode)
+    }
+
+    private static func whyNotContinue(_ change: InterruptedChange) -> String {
+        if change.step == .finish { return "\(change.id) was done: choose OK" }
+        if !change.changedElsewhere.isEmpty {
+            return "changed by another program since: \(change.changedElsewhere.joined(separator: ", ")). Cancel only"
+        }
+        return "\(change.id) does not record its request, so it cannot be made again. Cancel only"
+    }
+
+    private static func undone(_ result: RollbackResult, title: String) -> WriteCommandResult {
+        var lines = ["\(title) Backup \(result.id)"]
+        for path in result.kept { lines.append("Left alone, changed by someone else: \(path)") }
+        return WriteCommandResult(output: lines.joined(separator: "\n") + "\n", exitCode: result.kept.isEmpty ? 0 : 1)
+    }
+
+    private static func isPluginOperation(_ operation: JSONValue) -> Bool {
+        operation["itemId"]?.stringValue?.hasPrefix("\(Concept.plugins.rawValue):") == true
+    }
+
+    static func intent(_ request: ChangeRequest, itemId: String) -> JSONValue {
+        var fields: [String: JSONValue] = [
+            "kind": .string("change"), "action": .string(request.action.rawValue), "selector": .string(itemId),
+            "scope": .string(request.scope.rawValue),
+        ]
+        if let project = request.project { fields["project"] = .string(project) }
+        return .object(fields)
+    }
+
+    static func request(from intent: JSONValue?) -> ChangeRequest? {
+        guard let intent, intent["kind"]?.stringValue == "change",
+            let action = intent["action"]?.stringValue.flatMap(ChangeAction.init(rawValue:)),
+            let selector = intent["selector"]?.stringValue,
+            let scope = intent["scope"]?.stringValue.flatMap(SettingsScope.init(rawValue:))
+        else { return nil }
+        return ChangeRequest(action: action, selector: selector, scope: scope, project: intent["project"]?.stringValue)
     }
 
     // MARK: building the change
