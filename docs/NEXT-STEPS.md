@@ -87,7 +87,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | M2.9 | Apply: stale check, backup, moves, writes, CLI, verify, rollback; a fault or a crash at each of 7 steps leaves the old files; `.claude.json` is planned again up to three times | #31 | 2026-11-05 |
 | M2.10 | Restore: `Restorer.plan` returns the changes that put a backup back, with conflicts for anything changed since; apply then restore is byte-identical, modes included | #33 | 2026-11-09 |
 | M2.11 | CLI `claw plan`, `apply [--dry-run]`, `restore [--accept]`, `history` on `WriteCommands`; the dry run prints what plan prints; diffs are masked JSON or sizes only; a restore with changed files is refused until `--accept` | #34 | 2026-11-10 |
-| M2.12 | Contract tests against real `claude` (2.1.319) in a temp `HOME` and `CLAUDE_CONFIG_DIR`: disable, enable, restore, dry run and remove agree with `plugin list --json`; nightly macOS job `contract.yml`. Fix: `claude` now gets `HOME`, `CLAUDE_CONFIG_DIR` and the plugin cache from the environment Claw reads (`ClaudeCLI(executable:environment:)`), before it inherited the parent process's | (this PR) | 2026-11-10 |
+| M2.12 | Contract tests against real `claude` (2.1.319) in a temp `HOME` and `CLAUDE_CONFIG_DIR`: disable, enable, restore, dry run and remove agree with `plugin list --json`; nightly macOS job `contract.yml`. Fix: `claude` now gets `HOME`, `CLAUDE_CONFIG_DIR` and the plugin cache from the environment Claw reads (`ClaudeCLI(executable:environment:)`), before it inherited the parent process's | #35 | 2026-11-10 |
 
 ## Known gaps and decisions to revisit
 
