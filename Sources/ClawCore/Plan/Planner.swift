@@ -95,6 +95,20 @@ public struct Planner: Sendable {
         }
     }
 
+    /// The stash entry behind a hook listed from Claw's stash (FR-F15-4). Only files directly in the stash folder.
+    private func stashEntry(at path: String) throws -> HookStashEntry {
+        let root = environment.hookStashDir
+        guard (path as NSString).deletingLastPathComponent == root, path.hasSuffix(".json"),
+            let data = try fileSystem.readFile(path)
+        else { throw PlanError(reason: "This hook is not in Claw's stash; restore it from History") }
+        do {
+            try StrictJSON.validate(data)
+            return try JSONDecoder().decode(HookStashEntry.self, from: data)
+        } catch {
+            throw PlanError(reason: "The hook in Claw's stash could not be read")
+        }
+    }
+
     /// Puts a stashed hook back: in its place when it can, in a group with its matcher otherwise, or in a new group.
     /// An identical handler already there means nothing to write, and the stash is still taken.
     public func restore(_ entry: HookStashEntry) throws -> PlannedChange {
@@ -303,7 +317,7 @@ public struct Planner: Sendable {
             throw PlanError(reason: "The control for \(item.name) is not verified")
         }
         if item.control.mechanism == .hookStash {
-            guard !enabled else { throw PlanError(reason: "A stashed hook comes back through restore") }
+            guard !enabled else { return try restore(try stashEntry(at: item.location)) }
             return try stashHook(item, date: date, pending: &pending)
         }
         var step = try self.step(for: item, enabled: enabled, writeScope: writeScope, activeProject: activeProject)

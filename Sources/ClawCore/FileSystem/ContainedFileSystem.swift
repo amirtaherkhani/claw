@@ -23,7 +23,10 @@ final class ContainedFileSystem: ReadonlyFileSystem, @unchecked Sendable {
         configDir = environment.configDir
         realHome = base.resolvingSymlinks(environment.home)
         addRoots(
-            [environment.configDir, environment.pluginsDir, environment.managedDir, environment.claudeJsonFile]
+            [
+                environment.configDir, environment.pluginsDir, environment.managedDir, environment.claudeJsonFile,
+                environment.hookStashDir,
+            ]
                 + environment.projects)
     }
 

@@ -8,7 +8,7 @@ Status on 2026-11-05. Start here when you continue in Claude Code on the Mac. Re
 | :- | :- |
 | M0 Foundations | Done. S1 to S4 and S6 to S9 verified and reviewed. S5 and S10 partial: they need a Mac with a managed profile and a fresh user account |
 | M1 Core read-only | Done: all seven concepts, ownership rules, effective state, projects, progress and Stop, CLI. Exit criteria reported in the M1 close-out |
-| M2 Safe write pipeline | **Done, waiting for owner review.** M2.1 to M2.13 merged (#22 to #36). Exit criteria in the M2 close-out below; one is partial (FR-F15-4) |
+| M2 Safe write pipeline | **In progress.** M2.1 to M2.13 merged (#22 to #36); the owner added M2.14 to M2.16 (decisions in the M2 close-out below) |
 | M3 GUI read-only | Screens done and compared with `docs/design/` on the Mac; text in a String Catalog, XCUITest smoke tests and accessibility audit added. Open: your review of the M3 exit criteria |
 | M4 to M7 | Not started |
 
@@ -23,15 +23,30 @@ Code: `amirtaherkhani/claw`, `main`, CI green on Linux and macOS.
 | NFR-SAFE-3: no hard delete | `NoHardDeleteTests` (M2.13) | Met |
 | NFR-SAFE-4: backup before every write, verify after | `ApplyTests` | Met |
 | Contract tests green | `ContractTests` on the owner's Mac (Claude Code 2.1.319) and on CI (`contract.yml`, nightly) | Met |
-| `FR-F15-*` round trip | `HookStashTests`, `RestoreTests`, `NoHardDeleteTests` | **Partial**: stash and restore work; FR-F15-4 (stashed hooks listed as Disabled after a restart) and FR-F15-6 (detect the reload) are not built |
+| `FR-F15-*` round trip | `HookStashTests`, `RestoreTests`, `NoHardDeleteTests`, `StashedHookListTests` | **Partial**: FR-F15-4 done in M2.14; FR-F15-6 (detect the reload) is not built |
 | Dry-run output equals the real diff | `WriteCommandsTests` (one renderer) | Met |
+
+Owner decisions (2026-11-10): M2 stays open for three more tasks, in this order.
+
+- **M2.14, stashed hooks:** a hook Claw turned off stays in the Hooks list as "Off (turned off by Claw)", with a switch to turn it back on.
+- **M2.15, hook health check:** each hook is checked without running it (event name, type, matcher, script found, script runnable, timeout) and shows OK, ⚠️ or ❌ with a short reason. Hooks turned off by Claw are checked too. Whether the Claude desktop app shows a hook status, and how, is [U]: a spike compares the two.
+- **M2.16, recovery:** at the next launch after a crash, Claw shows what step the change reached:
+
+  | Crash during | Notification | Cancel | Continue |
+  | :- | :- | :- | :- |
+  | 1. Backup | "The last change didn't finish." | Drop the backup; nothing changed | Back up, write, verify, finish |
+  | 2. Write | "The last change didn't finish." | Put the old files back | Finish the write, verify, finish |
+  | 3. Verify | "The last change wasn't checked." | Put the old files back | Check again, finish |
+  | 4. Finish | "The last change was done." | OK only | |
+
+  Continue is refused when a file was changed by another program after the crash; only Cancel is offered then.
 
 Open after M2, for the owner to order:
 
-1. FR-F15-4: the scanner should read the hook stash and list its entries as Disabled (app-managed).
+1. ~~FR-F15-4: the scanner should read the hook stash and list its entries as Disabled (app-managed).~~ M2.14.
 2. The app and `claw` still build `ClaudeCLI` without an environment; switch them to `ClaudeCLI(executable:environment:)` (M2.12).
 3. A restore does not undo CLI steps (`plugin uninstall`, `mcp remove`); the manifest does not record them yet.
-4. Start-up recovery: nothing calls `BackupStore.interrupted()` and `rollBack(id:stash:)` at launch yet.
+4. ~~Start-up recovery: nothing calls `BackupStore.interrupted()` and `rollBack(id:stash:)` at launch yet.~~ M2.16.
 5. TECHNICAL-DESIGN 9.5 needs the stash entry fields and the kept original settings file.
 
 ## Open before M2
@@ -109,6 +124,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | M2.11 | CLI `claw plan`, `apply [--dry-run]`, `restore [--accept]`, `history` on `WriteCommands`; the dry run prints what plan prints; diffs are masked JSON or sizes only; a restore with changed files is refused until `--accept` | #34 | 2026-11-10 |
 | M2.12 | Contract tests against real `claude` (2.1.319) in a temp `HOME` and `CLAUDE_CONFIG_DIR`: disable, enable, restore, dry run and remove agree with `plugin list --json`; nightly macOS job `contract.yml`. Fix: `claude` now gets `HOME`, `CLAUDE_CONFIG_DIR` and the plugin cache from the environment Claw reads (`ClaudeCLI(executable:environment:)`), before it inherited the parent process's | #35 | 2026-11-10 |
 | M2.13 | No hard delete: `Disk` is the only `rename`/`unlink` in the write layer; a guard watches apply, restore, failure and crash recovery at every step (also on the pipeline's own threads) and flags any delete or overwrite of a user file; a source check stops calls around `Disk` | #36 | 2026-11-10 |
+| M2.14 | Stashed hooks in the list: the scanner reads Claw's stash and lists each hook Off, "turned off by Claw", Personal, with a switch; turning it on plans the restore (FR-F15-4) | #38 | 2026-11-10 |
 
 ## Known gaps and decisions to revisit
 

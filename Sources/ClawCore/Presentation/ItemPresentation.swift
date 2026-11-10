@@ -158,6 +158,12 @@ public enum ItemPresentation {
         public let id: Int
     }
 
+    /// "On", "Off (set by project)", or "Off (turned off by Claw)" for a hook in Claw's stash.
+    public static func stateText(_ item: Item) -> String {
+        if !item.enabled, item.enabledBy == HookStash.turnedOffBy { return "Off (turned off by Claw)" }
+        return (item.enabled ? "On" : "Off") + (item.enabledBy.map { " (set by \($0))" } ?? "")
+    }
+
     public static func meta(_ item: Item, home: String) -> [MetaRow] {
         var pairs: [(String, String)] = [
             ("Owner", "\(bucketTitle(item.bucket)) (rule \(item.classification.rule))"),
@@ -166,7 +172,7 @@ public enum ItemPresentation {
         ]
         if let plugin = item.providedBy { pairs.append(("Provided by", plugin)) }
         if let project = item.projectPath { pairs.append(("Project", abbreviate(project, home: home))) }
-        pairs.append(("State", (item.enabled ? "On" : "Off") + (item.enabledBy.map { " (set by \($0))" } ?? "")))
+        pairs.append(("State", stateText(item)))
         for (index, evidence) in item.classification.evidence.enumerated() {
             pairs.append((index == 0 ? "Why" : "", evidence.replacingOccurrences(of: home + "/", with: "~/")))
         }
