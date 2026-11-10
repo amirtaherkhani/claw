@@ -112,7 +112,12 @@ public struct Planner: Sendable {
     /// Puts a stashed hook back: in its place when it can, in a group with its matcher otherwise, or in a new group.
     /// An identical handler already there means nothing to write, and the stash is still taken.
     public func restore(_ entry: HookStashEntry) throws -> PlannedChange {
-        let base = try read(entry.sourceFile)
+        var pending: [String: Data] = [:]
+        return try restore(entry, pending: &pending)
+    }
+
+    private func restore(_ entry: HookStashEntry, pending: inout [String: Data]) throws -> PlannedChange {
+        let base = try pending[entry.sourceFile] ?? read(entry.sourceFile)
         let text = base ?? Data("{}\n".utf8)
         let after: Data
         do {
@@ -120,6 +125,7 @@ public struct Planner: Sendable {
         } catch let error as JSONEditError {
             throw PlanError(reason: "\(entry.sourceFile): \(error.reason)")
         }
+        if after != text { pending[entry.sourceFile] = after }
         let edits =
             after == text
             ? [] : [FileEdit(file: entry.sourceFile, before: base, after: after, reason: "Restore a \(entry.event) hook")]
@@ -146,6 +152,65 @@ public struct Planner: Sendable {
         return try JSONEdit.insert(
             data, arrayAt: event, index: groups.isEmpty ? nil : min(wanted, groups.count), value: .object(group),
             raw: entry.groupText.map { Data($0.utf8) })
+    }
+
+    /// One queued change, as the Review sheet hands it over.
+    public enum Request: Sendable {
+        case setEnabled(Item, Bool)
+        case remove(Item, keepData: Bool)
+
+        var item: Item {
+            switch self {
+            case .setEnabled(let item, _), .remove(let item, _): item
+            }
+        }
+    }
+
+    /// Plans a whole queue as one Apply, each change on top of the ones before it (M4.2). Key edits go first in
+    /// queue order; hook entries that leave a file go next, last-first, so one cannot shift another's index;
+    /// hooks put back from the stash go last. Results keep the queue's order; a change that cannot be planned
+    /// gets its reason and leaves the others as they are.
+    public func plan(
+        _ requests: [Request], writeScope: WriteScope?, activeProject: String?, date: Date = Date()
+    ) -> [Result<PlannedChange, PlanError>] {
+        func leavesFile(_ request: Request) -> Bool {
+            switch request {
+            case .remove(let item, _): item.concept == .hooks
+            case .setEnabled(let item, let enabled): item.control.mechanism == .hookStash && !enabled && item.enabled
+            }
+        }
+        func returns(_ request: Request) -> Bool {
+            if case .setEnabled(let item, true) = request { return item.control.mechanism == .hookStash }
+            return false
+        }
+        let indices = Array(requests.indices)
+        let keys = indices.filter { !leavesFile(requests[$0]) && !returns(requests[$0]) }
+        let leaving = indices.filter { leavesFile(requests[$0]) }.sorted {
+            (Self.hookPosition(requests[$0].item)?.order ?? [])
+                .lexicographicallyPrecedes(Self.hookPosition(requests[$1].item)?.order ?? [])
+        }
+        let back = indices.filter { returns(requests[$0]) }
+
+        var pending: [String: Data] = [:]
+        var results: [Int: Result<PlannedChange, PlanError>] = [:]
+        for index in keys + leaving.reversed() + back {
+            do {
+                switch requests[index] {
+                case .setEnabled(let item, let enabled):
+                    results[index] = .success(
+                        try plan(
+                            item, enabled: enabled, writeScope: writeScope, activeProject: activeProject, date: date,
+                            pending: &pending))
+                case .remove(let item, let keepData):
+                    results[index] = .success(try planRemoval(item, keepData: keepData, pending: &pending))
+                }
+            } catch let error as PlanError {
+                results[index] = .failure(error)
+            } catch {
+                results[index] = .failure(PlanError(reason: "\(requests[index].item.name) could not be planned"))
+            }
+        }
+        return indices.map { results[$0] ?? .failure(PlanError(reason: "Not planned")) }
     }
 
     /// Plans one removal. `keepData` decides what uninstalling does to a plugin's data folder.
@@ -317,7 +382,7 @@ public struct Planner: Sendable {
             throw PlanError(reason: "The control for \(item.name) is not verified")
         }
         if item.control.mechanism == .hookStash {
-            guard !enabled else { return try restore(try stashEntry(at: item.location)) }
+            guard !enabled else { return try restore(try stashEntry(at: item.location), pending: &pending) }
             return try stashHook(item, date: date, pending: &pending)
         }
         var step = try self.step(for: item, enabled: enabled, writeScope: writeScope, activeProject: activeProject)

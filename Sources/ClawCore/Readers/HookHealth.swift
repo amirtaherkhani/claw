@@ -70,6 +70,21 @@ public enum HookHealth {
         return problems
     }
 
+    /// What a command line may show: the program, or an interpreter and its script, then `…` for anything after.
+    /// Arguments can hold a secret, so they are never shown (Review sheet, `claw plan`).
+    public static func shownCommand(_ command: String) -> String {
+        let words = CommandWords.split(command)
+        guard let first = words.first else { return command.isEmpty ? command : "…" }
+        var shown = [first]
+        if interpreters.contains((first as NSString).lastPathComponent),
+            let script = words.dropFirst().first(where: { !$0.hasPrefix("-") })
+        {
+            shown.append(script)
+        }
+        let text = shown.joined(separator: " ")
+        return text == command.trimmingCharacters(in: .whitespaces) ? text : text + " …"
+    }
+
     /// The program, or the script an interpreter is given. Bare names are found through `PATH` at run time, and
     /// paths with variables Claw cannot resolve are left alone: neither is reported.
     private static func script(in command: String, context: Context) -> [Problem] {

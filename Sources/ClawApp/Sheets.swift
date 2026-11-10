@@ -125,14 +125,21 @@ struct ItemDetailSheet: View {
     }
 }
 
-/// Review changes (PRD F11). Nothing is written until Apply; Apply arrives with the write pipeline (M2).
+/// Review changes (PRD F11, ROADMAP M4.2): the real diff of every queued change, planned off the main actor, with
+/// secrets masked, the backup folder and a checklist. Nothing is written until Apply (M4.3).
 struct ReviewSheet: View {
     @Bindable var model: AppModel
     @Environment(\.dismiss) private var dismiss
 
+    private struct Inputs: Equatable {
+        let queue: ChangeQueue
+        let scope: WriteScope?
+        let project: String?
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack {
+            HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Review \(ItemPresentation.counted(model.queue.count, "change"))")
                         .font(.title2.weight(.semibold))
@@ -150,43 +157,16 @@ struct ReviewSheet: View {
                     description: Text("Turn items on or off, or remove them, and they appear here for review.")
                 )
                 .centeredEmptyState()
-            } else {
+            } else if let review = model.review {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 14) {
-                        ForEach(model.queue.changes) { change in
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack {
-                                    Text(ItemPresentation.conceptSingular(change.concept))
-                                        .font(.caption.weight(.semibold))
-                                        .padding(.horizontal, 8).padding(.vertical, 3)
-                                        .overlay { Capsule().strokeBorder(Theme.border) }
-                                    Text(change.title).font(.headline)
-                                    Spacer()
-                                    Button("Discard", systemImage: "xmark") { model.queue.discard(change) }
-                                        .labelStyle(.iconOnly)
-                                        .buttonStyle(.plain)
-                                        .foregroundStyle(Theme.muted)
-                                        .accessibilityLabel("Discard \(change.title)")
-                                }
-                                Text(change.target).font(.callout.monospaced()).foregroundStyle(Theme.muted)
-                                DiffView(lines: change.preview)
-                                ForEach(change.notes, id: \.self) { note in
-                                    Text(note).font(.caption).foregroundStyle(Theme.muted)
-                                }
-                            }
-                            .panel(padding: 14)
-                        }
-                        VStack(alignment: .leading, spacing: 6) {
-                            Label("A backup is created first in ~/.claude.bak/‹timestamp›/", systemImage: "checkmark.shield")
-                            Label(
-                                "Files are written atomically; keys Claw does not manage are kept.",
-                                systemImage: "lock.doc")
-                        }
-                        .font(.callout)
-                        .foregroundStyle(Theme.muted)
+                        ForEach(review.entries) { entry in ReviewEntryCard(model: model, entry: entry) }
+                        ReviewChecklist(review: review)
                     }
                     .padding(20)
                 }
+            } else {
+                ProgressView("Planning the changes…").frame(maxWidth: .infinity, maxHeight: .infinity)
             }
 
             Divider()
@@ -195,7 +175,7 @@ struct ReviewSheet: View {
                     .tint(Theme.danger)
                     .disabled(model.queue.isEmpty)
                 Spacer()
-                Text("Applying arrives with the safe write pipeline (M2).")
+                Text("Apply is connected in the next step (M4.3).")
                     .font(.caption).foregroundStyle(Theme.muted)
                 Button("Cancel") { dismiss() }
                 Button("Apply \(ItemPresentation.counted(model.queue.count, "change"))") {}
@@ -205,8 +185,80 @@ struct ReviewSheet: View {
             }
             .padding(16)
         }
-        .frame(width: 680, height: 640)
+        .frame(width: 700, height: 720)
         .tint(Theme.text)
+        .task(id: Inputs(queue: model.queue, scope: model.writeScope, project: model.activeProject)) {
+            await model.refreshReview()
+        }
+    }
+}
+
+/// One change: what it is, each file with its diff, moves, CLI steps, the hook stash and notes.
+private struct ReviewEntryCard: View {
+    let model: AppModel
+    let entry: ReviewEntry
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(ItemPresentation.conceptSingular(entry.concept))
+                    .font(.caption.weight(.semibold))
+                    .padding(.horizontal, 8).padding(.vertical, 3)
+                    .overlay { Capsule().strokeBorder(Theme.border) }
+                Text(entry.title).font(.headline)
+                Spacer()
+                if let change = model.queue.changes.first(where: { $0.id == entry.id }) {
+                    Button("Discard", systemImage: "xmark") { model.queue.discard(change) }
+                        .labelStyle(.iconOnly)
+                        .buttonStyle(.plain)
+                        .foregroundStyle(Theme.muted)
+                        .accessibilityLabel("Discard \(entry.title)")
+                }
+            }
+            if let error = entry.error {
+                Label(error, systemImage: "exclamationmark.triangle.fill")
+                    .foregroundStyle(Theme.danger)
+                    .font(.callout)
+            }
+            ForEach(entry.files) { file in
+                Text(file.path).font(.callout.monospaced()).foregroundStyle(Theme.muted)
+                DiffView(lines: file.lines)
+            }
+            ForEach(entry.moves, id: \.self) { path in
+                Label("Moves to the backup: \(path)", systemImage: "archivebox")
+                    .font(.callout)
+            }
+            ForEach(entry.commands, id: \.self) { command in
+                Label(command, systemImage: "terminal").font(.callout.monospaced())
+            }
+            if let stash = entry.stash {
+                Label(stash, systemImage: "tray.and.arrow.down").font(.callout)
+            }
+            ForEach(entry.notes, id: \.self) { note in
+                Text(note).font(.caption).foregroundStyle(Theme.muted)
+            }
+        }
+        .panel(padding: 14)
+    }
+}
+
+/// Backup, atomic write and the other promises Apply keeps, plus the reload note for plugin changes.
+private struct ReviewChecklist: View {
+    let review: Review
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            ForEach(review.checklist, id: \.self) { line in
+                Label(line, systemImage: "checkmark.shield")
+            }
+            if review.needsReloadPlugins {
+                Label(
+                    "Open sessions need /reload-plugins or a restart to pick up the plugin change.",
+                    systemImage: "arrow.clockwise")
+            }
+        }
+        .font(.callout)
+        .foregroundStyle(Theme.muted)
     }
 }
 

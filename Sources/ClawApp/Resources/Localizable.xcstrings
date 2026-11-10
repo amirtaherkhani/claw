@@ -122,9 +122,6 @@
     "0 records" : {
 
     },
-    "A backup is created first in ~/.claude.bak/‹timestamp›/" : {
-
-    },
     "A project folder is any folder with .claude/, .mcp.json or CLAUDE.md. Claw only reads it until you change something." : {
 
     },
@@ -179,7 +176,7 @@
     "Apply %@" : {
 
     },
-    "Applying arrives with the safe write pipeline (M2)." : {
+    "Apply is connected in the next step (M4.3)." : {
 
     },
     "Applying changes arrives with the safe write pipeline (M2)." : {
@@ -305,9 +302,6 @@
     "Every change is backed up first. Files are moved to the backup folder, never hard-deleted." : {
 
     },
-    "Files are written atomically; keys Claw does not manage are kept." : {
-
-    },
     "Filter %@" : {
 
     },
@@ -372,6 +366,9 @@
     "Modified" : {
 
     },
+    "Moves to the backup: %@" : {
+
+    },
     "Name" : {
 
     },
@@ -420,6 +417,9 @@
     "Open" : {
 
     },
+    "Open sessions need /reload-plugins or a restart to pick up the plugin change." : {
+
+    },
     "Overview" : {
 
     },
@@ -427,6 +427,9 @@
 
     },
     "Pages" : {
+
+    },
+    "Planning the changes…" : {
 
     },
     "Plugins in this marketplace" : {
