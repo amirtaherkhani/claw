@@ -1,0 +1,40 @@
+name: Contract
+
+# Contract tests against the real `claude` CLI (ROADMAP M2.12). They run in a temporary folder that is both HOME
+# and the parent of CLAUDE_CONFIG_DIR, and need no sign-in. Nightly on the latest Claude Code, so a change in its
+# config formats or flags shows up here first (ROADMAP risk R1). Also on pull requests that touch the contract.
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/contract.yml"
+      - "Tests/ClawCoreTests/ContractTests.swift"
+      - "Sources/ClawCore/Readers/ClaudeCLI.swift"
+      - "Sources/ClawCore/Write/**"
+      - "Sources/ClawCore/Plan/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: contract-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    name: Contract tests (macOS, real claude)
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Claude Code
+        run: |
+          npm install --global @anthropic-ai/claude-code
+          claude --version
+      - name: Contract tests
+        env:
+          CLAW_CONTRACT: "1"
+        run: swift test --filter ContractTests

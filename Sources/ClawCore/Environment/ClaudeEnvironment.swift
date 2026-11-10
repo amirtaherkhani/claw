@@ -12,7 +12,7 @@ public struct ClaudeEnvironment: Sendable, Equatable {
     /// Registered project folders.
     public private(set) var projects: [String]
     /// Whether `CLAUDE_CONFIG_DIR` chose the folder. Even when it names `~/.claude`, `.claude.json` moves [V S8].
-    private let configDirWasSet: Bool
+    let configDirWasSet: Bool
 
     public init(
         home: String,
