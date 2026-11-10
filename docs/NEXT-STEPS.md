@@ -86,7 +86,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | M2.8 | Override detection: a higher scope that defeats a change warns in Claude Code's words; a list in another file keeps an item off; managed settings refuse | #30 | 2026-11-05 |
 | M2.9 | Apply: stale check, backup, moves, writes, CLI, verify, rollback; a fault or a crash at each of 7 steps leaves the old files; `.claude.json` is planned again up to three times | #31 | 2026-11-05 |
 | M2.10 | Restore: `Restorer.plan` returns the changes that put a backup back, with conflicts for anything changed since; apply then restore is byte-identical, modes included | #33 | 2026-11-09 |
-| M2.11 | CLI `claw plan`, `apply [--dry-run]`, `restore [--accept]`, `history` on `WriteCommands`; the dry run prints what plan prints; diffs are masked JSON or sizes only; a restore with changed files is refused until `--accept` | (this PR) | 2026-11-10 |
+| M2.11 | CLI `claw plan`, `apply [--dry-run]`, `restore [--accept]`, `history` on `WriteCommands`; the dry run prints what plan prints; diffs are masked JSON or sizes only; a restore with changed files is refused until `--accept` | #34 | 2026-11-10 |
 
 ## Known gaps and decisions to revisit
 
