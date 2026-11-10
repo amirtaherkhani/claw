@@ -14,10 +14,13 @@ public protocol ReadonlyFileSystem: Sendable {
     func resolvingSymlinks(_ path: String) -> String
     /// Last modification time, or `nil` when unknown.
     func modificationDate(_ path: String) -> Date?
+    /// Whether the current user may run the file. Asks the OS only; nothing is run.
+    func isExecutable(_ path: String) -> Bool
 }
 
 extension ReadonlyFileSystem {
     public func modificationDate(_ path: String) -> Date? { nil }
+    public func isExecutable(_ path: String) -> Bool { fileExists(path) }
 }
 
 public struct LocalFileSystem: ReadonlyFileSystem {
@@ -41,6 +44,10 @@ public struct LocalFileSystem: ReadonlyFileSystem {
 
     public func fileExists(_ path: String) -> Bool {
         FileManager.default.fileExists(atPath: path)
+    }
+
+    public func isExecutable(_ path: String) -> Bool {
+        !isDirectory(path) && access(path, X_OK) == 0
     }
 
     /// `realpath` of the deepest part that exists, with the rest added back. Foundation's resolver drops

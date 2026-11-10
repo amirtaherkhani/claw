@@ -75,4 +75,8 @@ final class StoppableFileSystem: ReadonlyFileSystem, @unchecked Sendable {
     func modificationDate(_ path: String) -> Date? {
         isStopped ? nil : timed(path) { base.modificationDate(path) }
     }
+
+    func isExecutable(_ path: String) -> Bool {
+        !isStopped && timed(path) { base.isExecutable(path) }
+    }
 }

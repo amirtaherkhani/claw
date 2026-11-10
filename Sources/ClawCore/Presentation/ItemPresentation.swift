@@ -158,6 +158,19 @@ public enum ItemPresentation {
         public let id: Int
     }
 
+    /// The hook health check as one mark (M2.15): the first error, else the first warning, else OK.
+    public enum Health: Sendable, Equatable {
+        case ok
+        case warning(String)
+        case error(String)
+    }
+
+    public static func health(_ item: Item) -> Health {
+        if let error = item.problems.first(where: { $0.severity == .error }) { return .error(error.message) }
+        if let warning = item.problems.first(where: { $0.severity == .warning }) { return .warning(warning.message) }
+        return .ok
+    }
+
     /// "On", "Off (set by project)", or "Off (turned off by Claw)" for a hook in Claw's stash.
     public static func stateText(_ item: Item) -> String {
         if !item.enabled, item.enabledBy == HookStash.turnedOffBy { return "Off (turned off by Claw)" }
