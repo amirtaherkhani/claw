@@ -8,11 +8,31 @@ Status on 2026-11-05. Start here when you continue in Claude Code on the Mac. Re
 | :- | :- |
 | M0 Foundations | Done. S1 to S4 and S6 to S9 verified and reviewed. S5 and S10 partial: they need a Mac with a managed profile and a fresh user account |
 | M1 Core read-only | Done: all seven concepts, ownership rules, effective state, projects, progress and Stop, CLI. Exit criteria reported in the M1 close-out |
-| M2 Safe write pipeline | **In progress.** M2.1 to M2.13 done; waiting for owner review of the milestone |
+| M2 Safe write pipeline | **Done, waiting for owner review.** M2.1 to M2.13 merged (#22 to #36). Exit criteria in the M2 close-out below; one is partial (FR-F15-4) |
 | M3 GUI read-only | Screens done and compared with `docs/design/` on the Mac; text in a String Catalog, XCUITest smoke tests and accessibility audit added. Open: your review of the M3 exit criteria |
 | M4 to M7 | Not started |
 
 Code: `amirtaherkhani/claw`, `main`, CI green on Linux and macOS.
+
+## M2 close-out (2026-11-10)
+
+| Exit criterion | Shown by | State |
+| :- | :- | :- |
+| NFR-SAFE-1: a failed or interrupted Apply leaves each file fully old or fully new | `ApplyTests` crash and fault at every step, `AtomicWriteTests` | Met |
+| NFR-SAFE-2: unknown keys, order, indentation and trailing newline kept | `JSONEditTests` (600 seeds), plan goldens | Met |
+| NFR-SAFE-3: no hard delete | `NoHardDeleteTests` (M2.13) | Met |
+| NFR-SAFE-4: backup before every write, verify after | `ApplyTests` | Met |
+| Contract tests green | `ContractTests` on the owner's Mac (Claude Code 2.1.319) and on CI (`contract.yml`, nightly) | Met |
+| `FR-F15-*` round trip | `HookStashTests`, `RestoreTests`, `NoHardDeleteTests` | **Partial**: stash and restore work; FR-F15-4 (stashed hooks listed as Disabled after a restart) and FR-F15-6 (detect the reload) are not built |
+| Dry-run output equals the real diff | `WriteCommandsTests` (one renderer) | Met |
+
+Open after M2, for the owner to order:
+
+1. FR-F15-4: the scanner should read the hook stash and list its entries as Disabled (app-managed).
+2. The app and `claw` still build `ClaudeCLI` without an environment; switch them to `ClaudeCLI(executable:environment:)` (M2.12).
+3. A restore does not undo CLI steps (`plugin uninstall`, `mcp remove`); the manifest does not record them yet.
+4. Start-up recovery: nothing calls `BackupStore.interrupted()` and `rollBack(id:stash:)` at launch yet.
+5. TECHNICAL-DESIGN 9.5 needs the stash entry fields and the kept original settings file.
 
 ## Open before M2
 
