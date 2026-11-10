@@ -64,6 +64,8 @@ public struct ClaudeEnvironment: Sendable, Equatable {
     }
 
     public var userSettingsFile: String { joinPath(configDir, "settings.json") }
+    /// Claw's own copy of the hooks it turned off (TECHNICAL-DESIGN section 9.5).
+    public var hookStashDir: String { joinPath(home, "Library/Application Support/Claw/stash") }
     public var userSkillsDir: String { joinPath(configDir, "skills") }
     /// Skills synced from the claude.ai account [V `skills`].
     public var syncedSkillsDir: String { joinPath(userSkillsDir, "synced") }

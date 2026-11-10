@@ -122,6 +122,9 @@ These follow your standing rules.
 | M2.11 | CLI: `claw plan`, `apply`, `restore`, `history`; `--dry-run` prints the diff only | Manual run on a temp config dir |
 | M2.12 | **Contract tests** against the real `claude` CLI in a temp config directory (macOS): after each operation `plugin list --json` agrees; run in CI nightly | Green on a macOS runner or your Mac |
 | M2.13 | No-hard-delete test: the apply layer gets a file system that fails the suite on any delete of a user file | Test passes |
+| M2.14 | Stashed hooks in the list (FR-F15-4): the scanner reads Claw's stash; each entry is a Personal hook shown "Off (turned off by Claw)" whose switch plans the restore | Turn off, scan again, turn on: settings mean the same |
+| M2.15 | Hook health check: each hook is checked without running it (event, type, matcher, script found and runnable, timeout) and shows OK, a warning or an error with the reason | Each check has a failing and a passing case; nothing is executed |
+| M2.16 | Recovery with Cancel and Continue: at start-up an interrupted change is reported by the step it reached; Cancel undoes it, Continue finishes it (back up, write, verify again); a crash while finishing shows only OK; Continue is refused when a file was changed elsewhere | A real `kill -9` at each step, then Cancel and Continue, leaves every file fully old or fully new |
 
 **Exit criteria:** `NFR-SAFE-1` to `NFR-SAFE-4` demonstrated by tests; contract tests green; `FR-F15-*` round trip green; dry-run output equals the real diff.
 **Risks:** R2, R3, R4, R7, R8.

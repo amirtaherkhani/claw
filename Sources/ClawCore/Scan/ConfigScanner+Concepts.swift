@@ -21,6 +21,7 @@ extension ConfigScanner {
         ruleItems(layers: layers, includeUser: includeUser, into: &scan)
         mcpItems(layers: layers, installed: installed, includeUser: includeUser, into: &scan)
         hookItems(layers: layers, installed: installed, includeUser: includeUser, into: &scan)
+        stashedHookItems(layers: layers, includeUser: includeUser, into: &scan)
         return scan
     }
 
@@ -397,6 +398,39 @@ extension ConfigScanner {
                             ? "allowManagedHooksOnly" : (disableAll ? "disableAllHooks" : plugin.item.enabledBy),
                         providedBy: plugin.record.id))
             }
+        }
+    }
+    /// Hooks Claw turned off: they are no longer in any settings file, only in Claw's stash (FR-F15-4). Listed
+    /// Off, Personal, with a switch that plans the restore. `taken/` holds entries already put back.
+    func stashedHookItems(layers: [SettingsLayer], includeUser: Bool, into scan: inout ConceptScan) {
+        let root = environment.hookStashDir
+        guard let names = try? fs.contentsOfDirectory(root) else { return }
+        for name in names.sorted() where name.hasSuffix(".json") {
+            let file = joinPath(root, name)
+            guard let data = try? fs.readFile(file), (try? StrictJSON.validate(data)) != nil,
+                let entry = try? JSONDecoder().decode(HookStashEntry.self, from: data)
+            else {
+                scan.problems.append(Problem(.warning, "A hook in Claw's stash could not be read", file: file))
+                continue
+            }
+            let layer = layers.first { $0.file == entry.sourceFile }
+            let project = layer?.projectPath
+            guard includeUser || project != nil else { continue }
+            let scope = layer.flatMap { ItemScope(rawValue: $0.scope.rawValue) } ?? .user
+            let (records, _) = HookReader.parse(
+                .object([entry.event: .array([.object(["hooks": .array([entry.handler])])])]), file: entry.sourceFile)
+            guard let record = records.first else { continue }
+            let matcher = entry.matcher.map { $0.isEmpty ? "" : " [\($0)]" } ?? ""
+            scan.items.append(
+                Item(
+                    concept: .hooks, key: "stash:\(entry.id)", name: "\(entry.event)\(matcher) · \(record.summary)",
+                    description: "\(record.handlerType) hook", scope: scope, projectPath: project,
+                    classification: personal(scope == .user ? "L1" : "L2", entry.sourceFile), location: file,
+                    enabled: false, enabledBy: HookStash.turnedOffBy,
+                    control: ControlRef(mechanism: .hookStash, key: "restore from Claw's stash", status: .verified),
+                    capabilities: Capabilities(
+                        edit: false, toggle: true, remove: false, removeLabel: nil,
+                        reason: "Turned off by Claw: turn it on to put it back")))
         }
     }
 }

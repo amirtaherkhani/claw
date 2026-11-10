@@ -29,8 +29,11 @@ public struct HookStash: Sendable {
     init(root: String) { self.root = root }
 
     public init(environment: ClaudeEnvironment) {
-        root = joinPath(environment.home, "Library/Application Support/Claw/stash")
+        root = environment.hookStashDir
     }
+
+    /// `enabledBy` of a hook listed from the stash: "Off (turned off by Claw)" (FR-F15-4).
+    public static let turnedOffBy = "Claw"
 
     public func put(_ entry: HookStashEntry) throws {
         try PrivateFiles.makeFolder(root)
