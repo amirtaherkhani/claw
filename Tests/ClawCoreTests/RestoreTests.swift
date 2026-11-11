@@ -132,6 +132,21 @@ struct RestoreTests {
         #expect(FileManager.default.fileExists(atPath: joinPath(home.store.root, last, "removed" + fresh)))
     }
 
+    @Test("The original values in another layout, as claude writes them, count as already restored")
+    func sameValuesOtherLayout() async throws {
+        let home = try Home()
+        let applied = try await home.applyEverything()
+        let original = try JSONValue.parse(Data(Home.settingsText.utf8))
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        try encoder.encode(original).write(to: URL(fileURLWithPath: home.settings))
+
+        let plan = try home.restorer.plan(id: applied.backupId)
+        #expect(plan.conflicts.isEmpty)
+        #expect(plan.alreadyRestored.contains(home.settings))
+        #expect(!plan.files.contains(home.settings))
+    }
+
     @Test("A file changed after the backup is a conflict, left alone until accepted")
     func changedAfter() async throws {
         let home = try Home()

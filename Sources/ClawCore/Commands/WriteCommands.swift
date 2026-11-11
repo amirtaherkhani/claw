@@ -42,7 +42,7 @@ public struct WriteCommands: Sendable {
         scan: @escaping @Sendable () async -> ScanResult
     ) {
         self.environment = environment
-        self.planner = Planner(environment: environment, fileSystem: fileSystem)
+        self.planner = Planner(environment: environment, fileSystem: fileSystem, commands: cli == nil ? .none : .standard)
         self.store = store
         self.stash = stash
         self.pipeline = ApplyPipeline(
@@ -266,23 +266,19 @@ public struct WriteCommands: Sendable {
                 lines.append("--- \(edit.file)  (\(edit.reason))")
                 lines += ChangeView.lines(file: edit.file, before: edit.before, after: edit.after)
             }
+            for edit in change.preview {
+                lines.append("--- \(edit.file)  (\(edit.reason), written by claude)")
+                lines += ChangeView.lines(file: edit.file, before: edit.before, after: edit.after)
+            }
             for path in change.moves { lines.append("move to backup: \(path)") }
             for step in change.cli {
-                lines.append("run: claude \(step.argv.joined(separator: " "))  (a restore does not undo this)")
+                let note = step.argv.starts(with: ["plugin", "uninstall"]) ? "  (a restore does not undo this)" : ""
+                lines.append("run: claude \(step.argv.joined(separator: " "))\(note)")
             }
             if let stash = change.stash { lines.append("hook stash: \(stash)") }
-            lines.append(effectText(change.effect))
+            lines.append(change.effect.guidance)
         }
         return lines.joined(separator: "\n") + "\n"
-    }
-
-    private static func effectText(_ effect: PlanEffect) -> String {
-        switch effect {
-        case .live: return "Takes effect right away."
-        case .reloadPlugins: return "Run /reload-plugins in Claude Code to see it."
-        case .afterClear: return "Takes effect after /clear in Claude Code."
-        case .newSession: return "Takes effect in a new Claude Code session."
-        }
     }
 
     private static func finish(text: String, result: ApplyResult) -> WriteCommandResult {

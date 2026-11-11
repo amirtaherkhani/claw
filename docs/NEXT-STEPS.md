@@ -8,9 +8,10 @@ Status on 2026-11-05. Start here when you continue in Claude Code on the Mac. Re
 | :- | :- |
 | M0 Foundations | Done. S1 to S4 and S6 to S9 verified and reviewed. S5 and S10 partial: they need a Mac with a managed profile and a fresh user account |
 | M1 Core read-only | Done: all seven concepts, ownership rules, effective state, projects, progress and Stop, CLI. Exit criteria reported in the M1 close-out |
-| M2 Safe write pipeline | **In progress.** M2.1 to M2.13 merged (#22 to #36); the owner added M2.14 to M2.16 (decisions in the M2 close-out below) |
+| M2 Safe write pipeline | **Done, waiting for owner review.** M2.1 to M2.16 merged (#22 to #42). The app's start-up recovery notification (#41) waits for your visual review. Exit criteria in the M2 close-out below |
 | M3 GUI read-only | Screens done and compared with `docs/design/` on the Mac; text in a String Catalog, XCUITest smoke tests and accessibility audit added. Open: your review of the M3 exit criteria |
-| M4 to M7 | Not started |
+| M4 GUI write flows | In progress: M4.1 and M4.2 merged; M4.3 (Apply) waits for your visual review |
+| M5 to M7 | Not started |
 
 Code: `amirtaherkhani/claw`, `main`, CI green on Linux and macOS.
 
@@ -26,7 +27,7 @@ Code: `amirtaherkhani/claw`, `main`, CI green on Linux and macOS.
 | `FR-F15-*` round trip | `HookStashTests`, `RestoreTests`, `NoHardDeleteTests`, `StashedHookListTests` | **Partial**: FR-F15-4 done in M2.14; FR-F15-6 (detect the reload) is not built |
 | Dry-run output equals the real diff | `WriteCommandsTests` (one renderer) | Met |
 
-Owner decisions (2026-11-10): M2 stays open for three more tasks, in this order.
+Owner decisions (2026-11-10): M2 stayed open for three more tasks, now merged: M2.14 (#38), M2.15 (#39), M2.16 (#42; app notification in #41).
 
 - **M2.14, stashed hooks:** a hook Claw turned off stays in the Hooks list as "Off (turned off by Claw)", with a switch to turn it back on.
 - **M2.15, hook health check:** each hook is checked without running it (event name, type, matcher, script found, script runnable, timeout) and shows OK, ⚠️ or ❌ with a short reason. Hooks turned off by Claw are checked too. Whether the Claude desktop app shows a hook status, and how, is [U]: a spike compares the two.
@@ -48,6 +49,10 @@ Open after M2, for the owner to order:
 3. A restore does not undo CLI steps (`plugin uninstall`, `mcp remove`); the manifest does not record them yet.
 4. ~~Start-up recovery: nothing calls `BackupStore.interrupted()` and `rollBack(id:stash:)` at launch yet.~~ M2.16.
 5. TECHNICAL-DESIGN 9.5 needs the stash entry fields and the kept original settings file.
+6. FR-F15-6 (SHOULD): detect that Claude Code reloaded settings and mark the change live. Not built.
+7. Hook health in the app list: a green, yellow or red mark per hook. Today the messages show in the detail sheet only; the mark is a visual change for M4.
+8. Spike S15: does the Claude desktop app show a hook status, and do its rules match `HookHealth`?
+9. Review #41 (start-up recovery notification), then merge it.
 
 ## Open before M2
 
@@ -127,6 +132,10 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | M2.14 | Stashed hooks in the list: the scanner reads Claw's stash and lists each hook Off, "turned off by Claw", Personal, with a switch; turning it on plans the restore (FR-F15-4) | #38 | 2026-11-10 |
 | M2.15 | Hook health check: each hook is checked without running it (event, type and its field, matcher pattern, script found, script runnable unless given to an interpreter, timeout); errors and warnings name the script, never its arguments; the app's detail shows them. Spike S15 (desktop app) open | #39 | 2026-11-10 |
 | M2.16 | Recovery with Cancel and Continue: an interrupted change is reported by the step it reached (backup, write, verify, finish); Cancel rolls back, Continue checks again (verify) or undoes and repeats the request saved as `intent` (backup, write), OK records a finished one; Continue is refused for files changed elsewhere; `claw recover`; the real `claw` binary is killed with SIGKILL at each step in tests. `claw` and the app pass the environment to `claude` | #42 | 2026-11-10 |
+| M4.1 | Change queue: switches, removals and the bulk bar only add to the queue, which feeds "Review N changes" (built in M3). New test on a real temporary HOME: toggling, removal, bulk, previews and a rescan leave every byte, modification time and folder as they were, and create no backup or stash; a write injected into `toggle` is caught | #44 | 2026-11-10 |
+| M4.2 | Review sheet with real diffs: `Review` plans the whole queue through the new `Planner.plan(_:)` (key edits in queue order, hook entries leaving a file last-first, stash restores last, each on top of the others), off the main actor; JSON diffs mask secrets and now hide `command` arguments (also in `claw plan`); per change: files, moves, CLI steps, stash note, warnings, when it takes effect, or why it cannot be planned; checklist with the backup folder; Esc closes. Apply stays off until M4.3 | #45 | 2026-11-10 |
+| M4.3 | Apply from the Review sheet: `ApplyOutcome.run` sends the reviewed plans through `ApplyPipeline` (backup first, rollback on failure, `.claude.json` planned again when Claude Code rewrites it) and reports applied, applied then rolled back (with the reason and any files left alone), or nothing written because a file changed since the scan (Scan Again plans the review again); each change shows its state and when it takes effect, plus the backup id. A progress bar follows the pipeline steps (new optional `progress` on `ApplyPipeline`). An applied queue is cleared and the app scans again. Tested on a real temporary HOME, with an injected fault | #46 | 2026-11-11 |
+| Claude commands | Changes go through Claude Code's own `claude` command when it has one: one editable table, `CommandCatalog` (`Plan/ClaudeCommands.swift`), maps each action to an argument template; everything else stays Claw's own edit, and all of it when `claude` is not found. Plugin on/off now runs `claude plugin enable/disable`, and a project `.mcp.json` server is removed by `claude mcp remove --scope project`. Claw still plans what the command should write, shows it in the review ("written by claude"), backs the file up and checks the values afterwards; a file both write is checked on values. Restore accepts the same values in claude's layout. The item detail shows how each change is made, and why. ADR-0004 revised; contract tests pass on claude 2.1.319 | #47 | 2026-11-11 |
 
 ## Known gaps and decisions to revisit
 

@@ -78,7 +78,27 @@ public enum ChangeView {
     private static func render(_ value: JSONValue) -> String {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
-        let data = (try? encoder.encode(Redactor.redact(value))) ?? Data()
+        let data = (try? encoder.encode(hidingArguments(Redactor.redact(value)))) ?? Data()
         return String(decoding: data, as: UTF8.self) + "\n"
+    }
+
+    /// A `command` string keeps its program and script; its arguments, which may hold a secret, become `…`.
+    private static func hidingArguments(_ value: JSONValue) -> JSONValue {
+        switch value {
+        case .array(let items):
+            return .array(items.map(hidingArguments))
+        case .object(let object):
+            var out: [String: JSONValue] = [:]
+            for (key, child) in object {
+                if key == "command", case .string(let text) = child {
+                    out[key] = .string(HookHealth.shownCommand(text))
+                } else {
+                    out[key] = hidingArguments(child)
+                }
+            }
+            return .object(out)
+        default:
+            return value
+        }
     }
 }

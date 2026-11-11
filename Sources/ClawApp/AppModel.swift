@@ -38,6 +38,15 @@ final class AppModel {
 
     // Changes
     var queue = ChangeQueue()
+    /// What Apply would write for the queue, planned off the main actor. `nil` while planning.
+    private(set) var review: Review?
+    /// Counts finished scans, so a review planned on older items is planned again.
+    private(set) var scanGeneration = 0
+    private(set) var isApplying = false
+    /// The last step Apply reached, while it runs.
+    private(set) var applyStep: ApplyStep?
+    /// What the last Apply did, until the Review sheet closes.
+    private(set) var applyOutcome: ApplyOutcome?
 
     let environment: ClaudeEnvironment
     let fileSystem = LocalFileSystem()
@@ -51,6 +60,8 @@ final class AppModel {
         if let saved = UserDefaults.standard.string(forKey: Self.activeProjectKey), allProjects.contains(saved) {
             activeProject = saved
         }
+        claudeFound =
+            ClaudeCLI.locate(environment: ProcessInfo.processInfo.environment, home: home, fileSystem: fileSystem) != nil
         checkInterrupted()
     }
 
@@ -97,6 +108,11 @@ final class AppModel {
 
     var home: String { environment.home }
 
+    /// Whether Claude Code's `claude` command was found. With it, changes it has a command for go through it
+    /// (`CommandCatalog.standard`); without it, Claw makes every change it can itself.
+    private(set) var claudeFound = false
+    var commands: CommandCatalog { claudeFound ? .standard : .none }
+
     // MARK: Derived values
 
     var items: [Item] { result?.items ?? [] }
@@ -134,6 +150,7 @@ final class AppModel {
         let cli = ClaudeCLI.locate(
             environment: ProcessInfo.processInfo.environment, home: environment.home, fileSystem: fileSystem
         ).map { ClaudeCLI(executable: $0, environment: env) }
+        claudeFound = cli != nil
         let scanner = ConfigScanner(environment: env, target: target, fileSystem: fileSystem, cli: cli)
 
         progress = ScanProgress(step: .settings, itemCount: 0)
@@ -147,6 +164,7 @@ final class AppModel {
             if outcome.replacesResult {
                 self.result = result
                 self.modified = modified
+                self.scanGeneration += 1
             }
             self.progress = nil
             self.scanTask = nil
@@ -168,6 +186,65 @@ final class AppModel {
 
     func toggle(_ item: Item) {
         if let message = queue.toggle(item, writeScope: writeScope, home: home) { show(message) }
+    }
+
+    /// Plans the queue for the Review sheet. Planning reads files and writes nothing; a newer queue wins.
+    func refreshReview() async {
+        let queue = self.queue
+        let scope = writeScope
+        let project = activeProject
+        review = nil
+        let planned = await Review.build(
+            queue: queue, items: items, environment: environment, writeScope: scope, activeProject: project,
+            commands: commands)
+        guard !Task.isCancelled, queue == self.queue, scope == writeScope, project == activeProject else { return }
+        review = planned
+    }
+
+    /// Applies the reviewed queue through the write pipeline (backup first, rollback on any failure). An applied
+    /// queue is cleared; anything else keeps it, so it can be reviewed and applied again. A scan follows any write.
+    func apply() async {
+        guard let review, review.canApply, !isApplying else { return }
+        isApplying = true
+        applyStep = nil
+        applyOutcome = nil
+        let environment = environment.with(projects: allProjects)
+        let (queue, items, scope, project, home, commands) = (queue, items, writeScope, activeProject, home, commands)
+        let cli = ClaudeCLI.locate(
+            environment: ProcessInfo.processInfo.environment, home: home, fileSystem: fileSystem
+        ).map { ClaudeCLI(executable: $0, environment: environment) }
+        let outcome: ApplyOutcome
+        do {
+            let pipeline = ApplyPipeline(
+                environment: environment, store: try BackupStore(environment: environment),
+                stash: HookStash(environment: environment), cli: cli, appVersion: ClawVersion.string,
+                claudeVersion: nil,
+                progress: { step in Task { @MainActor in self.applyStep = step } })
+            outcome = await ApplyOutcome.run(
+                review, pipeline: pipeline, home: home,
+                replan: {
+                    try Review.plans(
+                        queue: queue, items: items,
+                        planner: Planner(environment: environment, fileSystem: LocalFileSystem(), commands: commands),
+                        writeScope: scope, activeProject: project, home: home)
+                })
+        } catch {
+            outcome = ApplyOutcome.cannotStart(review, reason: "Cannot open the backup folder: \(error)")
+        }
+        applyOutcome = outcome
+        applyStep = nil
+        isApplying = false
+        if outcome.kind == .applied { self.queue.clear() }
+        if !outcome.wroteNothing { startScan(target: scanTarget) }
+    }
+
+    /// Closes the Apply result; the review shows again.
+    func dismissApplyOutcome() { applyOutcome = nil }
+
+    /// A file changed since the scan: scan again, so the review is planned on what is there now.
+    func rescanAfterStale() {
+        applyOutcome = nil
+        startScan(target: scanTarget)
     }
 
     func toggleRemoval(_ item: Item) {

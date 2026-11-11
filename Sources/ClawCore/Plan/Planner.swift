@@ -41,12 +41,23 @@ public struct PluginCheck: Sendable, Equatable {
     public let scope: String?
 }
 
+/// A value a `claude` step must leave in a file: `nil` means the key is gone.
+public struct ExpectedValue: Sendable, Equatable {
+    public let file: String
+    public let path: [String]
+    public let value: JSONValue?
+}
+
 public struct PlannedChange: Sendable, Equatable {
     public let itemId: String
     /// `nil` for a removal.
     public var enabled: Bool?
     /// Empty when the file already says what was asked.
     public let edits: [FileEdit]
+    /// What the `claude` step is expected to write, for the review only: Claw does not write these.
+    public var preview: [FileEdit] = []
+    /// Values the `claude` step must leave behind; checked after it runs.
+    public var expected: [ExpectedValue] = []
     /// Files and folders that move to the backup.
     public var moves: [String] = []
     public var cli: [CliStep] = []
@@ -69,10 +80,14 @@ public struct PlanError: Error, Equatable, CustomStringConvertible {
 public struct Planner: Sendable {
     private let environment: ClaudeEnvironment
     private let fileSystem: any ReadonlyFileSystem
+    /// Changes Claude Code's own `claude` command makes. Pass `.standard` when `claude` was found, `.none` when it
+    /// was not: Claw then makes every change it can itself.
+    public let commands: CommandCatalog
 
-    public init(environment: ClaudeEnvironment, fileSystem: any ReadonlyFileSystem) {
+    public init(environment: ClaudeEnvironment, fileSystem: any ReadonlyFileSystem, commands: CommandCatalog = .none) {
         self.environment = environment
         self.fileSystem = fileSystem
+        self.commands = commands
     }
 
     public func setEnabled(
@@ -112,7 +127,12 @@ public struct Planner: Sendable {
     /// Puts a stashed hook back: in its place when it can, in a group with its matcher otherwise, or in a new group.
     /// An identical handler already there means nothing to write, and the stash is still taken.
     public func restore(_ entry: HookStashEntry) throws -> PlannedChange {
-        let base = try read(entry.sourceFile)
+        var pending: [String: Data] = [:]
+        return try restore(entry, pending: &pending)
+    }
+
+    private func restore(_ entry: HookStashEntry, pending: inout [String: Data]) throws -> PlannedChange {
+        let base = try pending[entry.sourceFile] ?? read(entry.sourceFile)
         let text = base ?? Data("{}\n".utf8)
         let after: Data
         do {
@@ -120,6 +140,7 @@ public struct Planner: Sendable {
         } catch let error as JSONEditError {
             throw PlanError(reason: "\(entry.sourceFile): \(error.reason)")
         }
+        if after != text { pending[entry.sourceFile] = after }
         let edits =
             after == text
             ? [] : [FileEdit(file: entry.sourceFile, before: base, after: after, reason: "Restore a \(entry.event) hook")]
@@ -146,6 +167,65 @@ public struct Planner: Sendable {
         return try JSONEdit.insert(
             data, arrayAt: event, index: groups.isEmpty ? nil : min(wanted, groups.count), value: .object(group),
             raw: entry.groupText.map { Data($0.utf8) })
+    }
+
+    /// One queued change, as the Review sheet hands it over.
+    public enum Request: Sendable {
+        case setEnabled(Item, Bool)
+        case remove(Item, keepData: Bool)
+
+        var item: Item {
+            switch self {
+            case .setEnabled(let item, _), .remove(let item, _): item
+            }
+        }
+    }
+
+    /// Plans a whole queue as one Apply, each change on top of the ones before it (M4.2). Key edits go first in
+    /// queue order; hook entries that leave a file go next, last-first, so one cannot shift another's index;
+    /// hooks put back from the stash go last. Results keep the queue's order; a change that cannot be planned
+    /// gets its reason and leaves the others as they are.
+    public func plan(
+        _ requests: [Request], writeScope: WriteScope?, activeProject: String?, date: Date = Date()
+    ) -> [Result<PlannedChange, PlanError>] {
+        func leavesFile(_ request: Request) -> Bool {
+            switch request {
+            case .remove(let item, _): item.concept == .hooks
+            case .setEnabled(let item, let enabled): item.control.mechanism == .hookStash && !enabled && item.enabled
+            }
+        }
+        func returns(_ request: Request) -> Bool {
+            if case .setEnabled(let item, true) = request { return item.control.mechanism == .hookStash }
+            return false
+        }
+        let indices = Array(requests.indices)
+        let keys = indices.filter { !leavesFile(requests[$0]) && !returns(requests[$0]) }
+        let leaving = indices.filter { leavesFile(requests[$0]) }.sorted {
+            (Self.hookPosition(requests[$0].item)?.order ?? [])
+                .lexicographicallyPrecedes(Self.hookPosition(requests[$1].item)?.order ?? [])
+        }
+        let back = indices.filter { returns(requests[$0]) }
+
+        var pending: [String: Data] = [:]
+        var results: [Int: Result<PlannedChange, PlanError>] = [:]
+        for index in keys + leaving.reversed() + back {
+            do {
+                switch requests[index] {
+                case .setEnabled(let item, let enabled):
+                    results[index] = .success(
+                        try plan(
+                            item, enabled: enabled, writeScope: writeScope, activeProject: activeProject, date: date,
+                            pending: &pending))
+                case .remove(let item, let keepData):
+                    results[index] = .success(try planRemoval(item, keepData: keepData, pending: &pending))
+                }
+            } catch let error as PlanError {
+                results[index] = .failure(error)
+            } catch {
+                results[index] = .failure(PlanError(reason: "\(requests[index].item.name) could not be planned"))
+            }
+        }
+        return indices.map { results[$0] ?? .failure(PlanError(reason: "Not planned")) }
     }
 
     /// Plans one removal. `keepData` decides what uninstalling does to a plugin's data folder.
@@ -196,11 +276,15 @@ public struct Planner: Sendable {
             settings =
                 item.scope == .local ? environment.localSettingsFile(project) : environment.projectSettingsFile(project)
         }
+        let written = inProject ? SettingsScope(rawValue: item.scope.rawValue) ?? .user : .user
+        guard let command = commands.command(ControlAction(.plugins, .remove), scope: written) else {
+            throw PlanError(reason: "Removing \(id) needs the claude CLI, which was not found")
+        }
         return PlannedChange(
             itemId: item.id, enabled: nil, edits: [],
             cli: [
                 CliStep(
-                    argv: ["plugin", "uninstall", id, "--scope", scope] + (keepData ? ["--keep-data"] : []),
+                    argv: command.argv(id: id, name: item.name, scope: written, keepData: keepData),
                     workingDirectory: inProject ? item.projectPath : nil)
             ],
             cliTouches: [settings, environment.installedPluginsFile], effect: .reloadPlugins,
@@ -211,23 +295,69 @@ public struct Planner: Sendable {
     private func removeServer(_ item: Item, pending: inout [String: Data]) throws -> PlannedChange {
         let remote = item.description.hasPrefix("http") || item.description.hasPrefix("sse")
         let warnings = remote ? ["Removing a remote server also deletes its stored sign-in."] : []
+        let serverScope = SettingsScope(rawValue: item.scope.rawValue)
+        let command = serverScope.flatMap { commands.command(ControlAction(.mcp, .remove), scope: $0) }
+        let validName = NameValidator.isValidName(item.name) && !item.name.contains(".")
         if item.scope == .project {
-            let edit = try edit(item.location, reason: "Remove \(item.name)", pending: &pending) {
+            let project = item.projectPath ?? (item.location as NSString).deletingLastPathComponent
+            guard let command, validName else {
+                let edit = try edit(item.location, reason: "Remove \(item.name)", pending: &pending) {
+                    try Self.removing(["mcpServers", .key(item.name)], from: $0, keeping: 1)
+                }
+                return PlannedChange(itemId: item.id, enabled: nil, edits: edit, effect: .newSession, warnings: warnings)
+            }
+            // `claude mcp remove --scope project` edits the project's `.mcp.json`; what it should write is shown and
+            // checked, not written by Claw.
+            var scratch = pending
+            let preview = try edit(item.location, reason: "Remove \(item.name)", pending: &scratch) {
                 try Self.removing(["mcpServers", .key(item.name)], from: $0, keeping: 1)
             }
-            return PlannedChange(itemId: item.id, enabled: nil, edits: edit, effect: .newSession, warnings: warnings)
+            return PlannedChange(
+                itemId: item.id, enabled: nil, edits: [], preview: preview, expected: try preview.flatMap(Self.expected),
+                cli: [
+                    CliStep(
+                        argv: command.argv(id: item.name, name: item.name, scope: .project), workingDirectory: project)
+                ],
+                cliTouches: [item.location], effect: .newSession, warnings: warnings)
         }
-        guard NameValidator.isValidName(item.name), !item.name.contains(".") else {
-            throw PlanError(reason: "Not a valid server name: \(item.name)")
+        guard validName else { throw PlanError(reason: "Not a valid server name: \(item.name)") }
+        guard let command else {
+            throw PlanError(reason: "Removing \(item.name) needs the claude CLI, which was not found")
         }
         return PlannedChange(
             itemId: item.id, enabled: nil, edits: [],
             cli: [
                 CliStep(
-                    argv: ["mcp", "remove", item.name, "--scope", item.scope.rawValue],
+                    argv: command.argv(id: item.name, name: item.name, scope: serverScope ?? .user),
                     workingDirectory: item.scope == .local ? item.projectPath : nil)
             ],
             cliTouches: [environment.claudeJsonFile], effect: .newSession, warnings: warnings)
+    }
+
+    /// The values a `claude` step must leave, from what Claw worked out it would write: every key whose value
+    /// differs, down through objects. Arrays and other values count as one value.
+    static func expected(_ preview: FileEdit) throws -> [ExpectedValue] {
+        let before = try preview.before.map { try JSONValue.parse($0) } ?? .object([:])
+        let after = try JSONValue.parse(preview.after)
+        return differences(before, after, path: []).map {
+            ExpectedValue(file: preview.file, path: $0.path, value: $0.value)
+        }
+    }
+
+    private static func differences(
+        _ old: JSONValue?, _ new: JSONValue?, path: [String]
+    ) -> [(path: [String], value: JSONValue?)] {
+        guard old != new else { return [] }
+        // A missing object counts as an empty one, so an object Claw creates or prunes is checked key by key: the
+        // CLI may keep an empty object where Claw would prune it.
+        let oldObject = old == nil ? [:] : old?.objectValue
+        let newObject = new == nil ? [:] : new?.objectValue
+        if let oldObject, let newObject {
+            return Set(oldObject.keys).union(newObject.keys).sorted().flatMap {
+                differences(oldObject[$0], newObject[$0], path: path + [$0])
+            }
+        }
+        return [(path, new)]
     }
 
     private func removeHook(_ item: Item, pending: inout [String: Data]) throws -> PlannedChange {
@@ -317,7 +447,7 @@ public struct Planner: Sendable {
             throw PlanError(reason: "The control for \(item.name) is not verified")
         }
         if item.control.mechanism == .hookStash {
-            guard !enabled else { return try restore(try stashEntry(at: item.location)) }
+            guard !enabled else { return try restore(try stashEntry(at: item.location), pending: &pending) }
             return try stashHook(item, date: date, pending: &pending)
         }
         var step = try self.step(for: item, enabled: enabled, writeScope: writeScope, activeProject: activeProject)
@@ -334,12 +464,30 @@ public struct Planner: Sendable {
         guard after != text else {
             return PlannedChange(itemId: item.id, enabled: enabled, edits: [], effect: step.effect, warnings: step.warnings)
         }
-        pending[step.file] = after
         let reason = "\(enabled ? "Enable" : "Disable") \(item.name)"
         // With a warning, another scope decides, so the CLI is expected to disagree.
         let check =
             item.control.mechanism == .enabledPlugins && step.warnings.isEmpty
             ? PluginCheck(id: ChangeQueue.idOf(item), enabled: enabled, scope: nil) : nil
+        let action = ControlAction(item.concept, enabled ? .enable : .disable)
+        if let writeScope, item.classification.ownership != .orphan,
+            let command = commands.command(action, scope: writeScope.scope)
+        {
+            // Claude Code makes this change. What it should write is shown and checked, never written by Claw, and
+            // not added to `pending`: Claw's own edits to the same file stay valid against the file on disk.
+            let preview = FileEdit(file: step.file, before: base, after: after, reason: reason)
+            let inProject = writeScope.scope != .user
+            return PlannedChange(
+                itemId: item.id, enabled: enabled, edits: [], preview: [preview],
+                expected: try Self.expected(preview),
+                cli: [
+                    CliStep(
+                        argv: command.argv(id: ChangeQueue.idOf(item), name: item.name, scope: writeScope.scope),
+                        workingDirectory: inProject ? activeProject ?? item.projectPath : nil)
+                ],
+                cliTouches: [step.file], effect: step.effect, warnings: step.warnings, pluginCheck: check)
+        }
+        pending[step.file] = after
         return PlannedChange(
             itemId: item.id, enabled: enabled,
             edits: [FileEdit(file: step.file, before: base, after: after, reason: reason)], effect: step.effect,

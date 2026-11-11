@@ -60,7 +60,7 @@ To read a board without the canvas, strip the inline styles: the structure, copy
 | List: owner groups, chips, table, bulk actions, select all | `ConceptView.swift` (`ItemListView`) | Done |
 | Detail | `Sheets.swift` (`ItemDetailSheet`) | Done; Edit opens the file in the default editor |
 | History | `Sheets.swift` (`HistoryView`) | Shell only; records arrive with M2 |
-| Review board | `Sheets.swift` (`ReviewSheet`) | Previews done; Apply disabled until M2 |
+| Review board | `Sheets.swift` (`ReviewSheet`, `ReviewEntryCard`, `ReviewChecklist`) | Real diffs from the Planner (M4.2); Apply with progress and result (M4.3) |
 | Add plugin board | `Sheets.swift` (`AddPluginSheet`) | Inspection done; install disabled until M5 |
 | Toast | `Components.swift` (`ToastView`) | Done |
 

@@ -45,7 +45,10 @@ public struct Restorer: Sendable {
 
         for file in manifest.files {
             let current = try AtomicWrite.sha256(ofFile: file.path)
-            if current == file.sha256Before {
+            let original = file.existed ? try session.original(of: file.path) : nil
+            if current == file.sha256Before || Self.sameJSON(file.path, original) {
+                // Byte for byte, or the same settings in another layout: `claude` rewrites a whole file in its own
+                // format, so a later change it undid leaves the same values, not the same bytes.
                 already.append(file.path)
                 continue
             }
@@ -143,6 +146,14 @@ public struct Restorer: Sendable {
     private static func exists(_ path: String) -> Bool {
         var info = stat()
         return lstat(path, &info) == 0
+    }
+
+    /// Both are JSON and hold the same values, in any key order or layout.
+    private static func sameJSON(_ path: String, _ original: Data?) -> Bool {
+        guard path.hasSuffix(".json"), let original, let now = try? bytes(path),
+            let a = try? JSONValue.parse(now), let b = try? JSONValue.parse(original)
+        else { return false }
+        return a == b
     }
 
     private static func bytes(_ path: String) throws -> Data? {

@@ -7,6 +7,9 @@
     " (partial)" : {
 
     },
+    "%@ with Claude Code's command" : {
+
+    },
     "%@ · %@" : {
       "localizations" : {
         "en" : {
@@ -43,6 +46,16 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$@, %2$@"
+          }
+        }
+      }
+    },
+    "%@: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@: %2$@"
           }
         }
       }
@@ -122,9 +135,6 @@
     "0 records" : {
 
     },
-    "A backup is created first in ~/.claude.bak/‹timestamp›/" : {
-
-    },
     "A project folder is any folder with .claude/, .mcp.json or CLAUDE.md. Claw only reads it until you change something." : {
 
     },
@@ -176,16 +186,31 @@
     "Always on" : {
 
     },
+    "Applied" : {
+
+    },
     "Apply %@" : {
 
     },
-    "Applying arrives with the safe write pipeline (M2)." : {
+    "Apply result" : {
 
     },
     "Applying changes arrives with the safe write pipeline (M2)." : {
 
     },
+    "Applying: %@" : {
+
+    },
+    "Applying…" : {
+
+    },
     "BACKUP" : {
+
+    },
+    "Back to Review" : {
+
+    },
+    "Backup %@ in ~/.claude.bak" : {
 
     },
     "Backup before every apply" : {
@@ -243,6 +268,9 @@
 
     },
     "Close" : {
+
+    },
+    "Close is back when it is done." : {
 
     },
     "Configuration types" : {
@@ -329,9 +357,6 @@
     "Every change is backed up first. Files are moved to the backup folder, never hard-deleted." : {
 
     },
-    "Files are written atomically; keys Claw does not manage are kept." : {
-
-    },
     "Filter %@" : {
 
     },
@@ -345,6 +370,12 @@
 
     },
     "History" : {
+
+    },
+    "History keeps every Apply with its backup." : {
+
+    },
+    "How Claw changes it" : {
 
     },
     "Installing arrives in milestone M5." : {
@@ -375,6 +406,9 @@
         }
       }
     },
+    "Left alone, because another program changed them:" : {
+
+    },
     "Local" : {
 
     },
@@ -394,6 +428,9 @@
 
     },
     "Modified" : {
+
+    },
+    "Moves to the backup: %@" : {
 
     },
     "Name" : {
@@ -429,6 +466,9 @@
     "Not scanned yet" : {
 
     },
+    "Not written" : {
+
+    },
     "Nothing is written until you click Apply." : {
 
     },
@@ -447,6 +487,9 @@
     "Open" : {
 
     },
+    "Open sessions need /reload-plugins or a restart to pick up the plugin change." : {
+
+    },
     "Overview" : {
 
     },
@@ -454,6 +497,9 @@
 
     },
     "Pages" : {
+
+    },
+    "Planning the changes…" : {
 
     },
     "Plugins in this marketplace" : {
@@ -508,6 +554,9 @@
 
     },
     "Scan" : {
+
+    },
+    "Scan Again" : {
 
     },
     "Scan This Mac" : {
@@ -603,7 +652,16 @@
     "Turn items on or off, or remove them, and they appear here for review." : {
 
     },
+    "Turn off" : {
+
+    },
+    "Turn on" : {
+
+    },
     "Undo %@" : {
+
+    },
+    "Undone" : {
 
     },
     "User" : {
@@ -619,6 +677,9 @@
 
     },
     "Writes to" : {
+
+    },
+    "Your files are as they were." : {
 
     },
     "changes applied · 7 days" : {
@@ -643,6 +704,9 @@
 
     },
     "writes %@" : {
+
+    },
+    "written by claude" : {
 
     },
     "· %@ scope" : {

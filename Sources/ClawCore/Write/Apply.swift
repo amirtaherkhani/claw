@@ -53,14 +53,19 @@ public struct ApplyPipeline: Sendable {
     private let claudeVersion: String?
     private let fault: @Sendable (ApplyStep) throws -> Void
 
-    /// `killAt` is for crash tests only: the process kills itself there.
+    /// `progress` hears each step as it is reached, on the pipeline's own thread. `killAt` is for crash tests only:
+    /// the process kills itself there.
     public init(
         environment: ClaudeEnvironment, store: BackupStore, stash: HookStash, cli: ClaudeCLI?, appVersion: String,
-        claudeVersion: String?, killAt: CrashPoint? = nil
+        claudeVersion: String?, killAt: CrashPoint? = nil, progress: (@Sendable (ApplyStep) -> Void)? = nil
     ) {
         self.init(
             environment: environment, store: store, stash: stash, cli: cli, appVersion: appVersion,
-            claudeVersion: claudeVersion, fault: { step in if let killAt, killAt.step == step { killAt.kill() } })
+            claudeVersion: claudeVersion,
+            fault: { step in
+                progress?(step)
+                if let killAt, killAt.step == step { killAt.kill() }
+            })
         self.killAtFinish = killAt == .finish
     }
 
@@ -208,9 +213,19 @@ public struct ApplyPipeline: Sendable {
     /// Reads back what was written, and records what the CLI changed so a later failure can undo it.
     private func checkFiles(_ run: Run, _ changes: [PlannedChange], _ targets: [Target]) throws {
         try recordCliResults(run, changes)
+        let expected = changes.flatMap(\.expected)
         for target in targets {
-            guard try AtomicWrite.sha256(ofFile: target.file) == SHA256.hex(target.after) else {
-                throw StaleFileError(file: target.file)
+            let promised = expected.filter { $0.file == target.file }
+            if promised.isEmpty {
+                guard try AtomicWrite.sha256(ofFile: target.file) == SHA256.hex(target.after) else {
+                    throw StaleFileError(file: target.file)
+                }
+            } else {
+                // `claude` rewrote a file Claw also wrote: it keeps Claw's values and adds its own, in its own format.
+                guard let data = try? Data(contentsOf: URL(fileURLWithPath: target.file)),
+                    let now = try? JSONValue.parse(data), let written = try? JSONValue.parse(target.after),
+                    Self.applying(promised, to: now) == Self.applying(promised, to: written)
+                else { throw PlanError(reason: "\(target.file) does not hold Claw's change after the claude step") }
             }
             guard target.file.hasSuffix(".json") else { continue }
             do {
@@ -219,10 +234,25 @@ public struct ApplyPipeline: Sendable {
                 throw PlanError(reason: "\(target.file) is not valid JSON after the change")
             }
         }
+        for value in expected {
+            let data = try? Data(contentsOf: URL(fileURLWithPath: value.file))
+            let now = data.flatMap { try? JSONValue.parse($0) }
+            let found = value.path.reduce(now) { $0?[$1] }
+            guard found == value.value else {
+                let key = value.path.joined(separator: ".")
+                throw PlanError(reason: "The claude step did not leave \(key) as planned in \(value.file)")
+            }
+        }
     }
 
+    /// `value` with each promised key set to its promised value, so two files compare on everything else.
+    private static func applying(_ promised: [ExpectedValue], to value: JSONValue) -> JSONValue {
+        promised.reduce(value) { $0.setting($1.path, to: $1.value) }
+    }
+
+    /// What the CLI left, so a later failure or a Restore puts back what was there before it ran.
     private func recordCliResults(_ run: Run, _ changes: [PlannedChange]) throws {
-        for file in Set(changes.flatMap(\.cliTouches)) where !run.written.contains(file) {
+        for file in Set(changes.flatMap(\.cliTouches)) {
             if let hash = try AtomicWrite.sha256(ofFile: file) { try run.session.recordResult(of: file, sha256After: hash) }
         }
     }
