@@ -168,16 +168,9 @@ final class AppModel {
         applyOutcome = nil
         let environment = environment.with(projects: allProjects)
         let (queue, items, scope, project, home, commands) = (queue, items, writeScope, activeProject, home, commands)
-        let cli = ClaudeCLI.locate(
-            environment: ProcessInfo.processInfo.environment, home: home, fileSystem: fileSystem
-        ).map { ClaudeCLI(executable: $0, environment: environment) }
         let outcome: ApplyOutcome
         do {
-            let pipeline = ApplyPipeline(
-                environment: environment, store: try BackupStore(environment: environment),
-                stash: HookStash(environment: environment), cli: cli, appVersion: ClawVersion.string,
-                claudeVersion: nil,
-                progress: { step in Task { @MainActor in self.applyStep = step } })
+            let pipeline = try makePipeline(environment)
             outcome = await ApplyOutcome.run(
                 review, pipeline: pipeline, home: home,
                 replan: {
@@ -194,6 +187,77 @@ final class AppModel {
         isApplying = false
         if outcome.kind == .applied { self.queue.clear() }
         if !outcome.wroteNothing { startScan(target: scanTarget) }
+    }
+
+    /// The write pipeline with the backup store, Claw's stash and `claude` when found. Its steps feed `applyStep`.
+    private func makePipeline(_ environment: ClaudeEnvironment) throws -> ApplyPipeline {
+        let cli = ClaudeCLI.locate(
+            environment: ProcessInfo.processInfo.environment, home: home, fileSystem: fileSystem
+        ).map { ClaudeCLI(executable: $0, environment: environment) }
+        return ApplyPipeline(
+            environment: environment, store: try BackupStore(environment: environment),
+            stash: HookStash(environment: environment), cli: cli, appVersion: ClawVersion.string, claudeVersion: nil,
+            progress: { step in Task { @MainActor in self.applyStep = step } })
+    }
+
+    // MARK: History and Restore (M4.4)
+
+    private(set) var history: [HistoryRow] = []
+    private(set) var historyProblems: [String] = []
+    /// The Apply whose backup the Restore sheet shows.
+    var restoring: HistoryRow?
+    private(set) var restorePreview: RestorePreview?
+    private(set) var restoreError: String?
+    private(set) var restoreOutcome: ApplyOutcome?
+    private(set) var isRestoring = false
+
+    /// Reads `history.jsonl`; it holds one short line per Apply.
+    func loadHistory() {
+        do {
+            (history, historyProblems) = HistoryList.rows(store: try BackupStore(environment: environment), home: home)
+        } catch {
+            (history, historyProblems) = ([], [String(localized: "Claw could not open its backup folder.")])
+        }
+    }
+
+    /// Plans the restore of `restoring`, reading files only. `accept` names files to restore over later changes.
+    func prepareRestore(accept: Set<String> = []) {
+        guard let row = restoring else { return }
+        restoreOutcome = nil
+        do {
+            restorePreview = try RestorePreview.make(
+                id: row.id, accept: accept, store: try BackupStore(environment: environment),
+                stash: HookStash(environment: environment), home: home)
+            restoreError = nil
+        } catch {
+            restorePreview = nil
+            restoreError = String(describing: error)
+        }
+    }
+
+    /// Puts the backup back through the pipeline: a new backup first, then a History line of its own.
+    func runRestore() async {
+        guard let preview = restorePreview, preview.canRestore, !isRestoring else { return }
+        isRestoring = true
+        applyStep = nil
+        let outcome: ApplyOutcome
+        do {
+            outcome = await RestorePreview.run(preview, pipeline: try makePipeline(environment), home: home)
+        } catch {
+            outcome = RestorePreview.cannotStart(preview, reason: "Cannot open the backup folder: \(error)")
+        }
+        restoreOutcome = outcome
+        applyStep = nil
+        isRestoring = false
+        loadHistory()
+        if !outcome.wroteNothing { startScan(target: scanTarget) }
+    }
+
+    func closeRestore() {
+        restoring = nil
+        restorePreview = nil
+        restoreOutcome = nil
+        restoreError = nil
     }
 
     /// Closes the Apply result; the review shows again.

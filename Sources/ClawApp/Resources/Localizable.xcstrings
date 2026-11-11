@@ -7,6 +7,9 @@
     " (partial)" : {
 
     },
+    "%@ taken back out of Claw's stash" : {
+
+    },
     "%@ with Claude Code's command" : {
 
     },
@@ -26,6 +29,16 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$@ · %2$@ so far"
+          }
+        }
+      }
+    },
+    "%@ · %@ · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@ · %3$@"
           }
         }
       }
@@ -132,9 +145,6 @@
     "0" : {
 
     },
-    "0 records" : {
-
-    },
     "A project folder is any folder with .claude/, .mcp.json or CLAUDE.md. Claw only reads it until you change something." : {
 
     },
@@ -180,10 +190,16 @@
     "All" : {
 
     },
+    "Already as the backup has them: %@" : {
+
+    },
     "Already managed" : {
 
     },
     "Always on" : {
+
+    },
+    "Another change or program wrote these since. Restore over each one only if you mean to." : {
 
     },
     "Applied" : {
@@ -225,6 +241,9 @@
     "Cancel" : {
 
     },
+    "Changed after the backup" : {
+
+    },
     "Choose an active project first" : {
 
     },
@@ -238,6 +257,9 @@
 
     },
     "Claw" : {
+
+    },
+    "Claw could not open its backup folder." : {
 
     },
     "Claw reads the folder first. Nothing is added until you confirm." : {
@@ -268,6 +290,9 @@
 
     },
     "Could not save the project list: %@" : {
+
+    },
+    "Created by this change; moves aside into the new backup: %@" : {
 
     },
     "Details" : {
@@ -306,7 +331,7 @@
     "ENABLED" : {
 
     },
-    "Each apply will appear here with a Restore button. Applying arrives with the safe write pipeline (M2)." : {
+    "Each apply appears here with its backup and a Restore button." : {
 
     },
     "Edit Source…" : {
@@ -333,6 +358,9 @@
     "Every change is backed up first. Files are moved to the backup folder, never hard-deleted." : {
 
     },
+    "Everything is already as the backup has it." : {
+
+    },
     "Filter %@" : {
 
     },
@@ -355,6 +383,9 @@
 
     },
     "Installing arrives in milestone M5." : {
+
+    },
+    "Interrupted" : {
 
     },
     "It needs .claude-plugin/marketplace.json at its root." : {
@@ -448,6 +479,9 @@
     "Nothing is written until you click Apply." : {
 
     },
+    "Nothing to restore: this change did not finish" : {
+
+    },
     "On" : {
 
     },
@@ -487,7 +521,16 @@
     "Projects" : {
 
     },
+    "Put these files back as they were before this change" : {
+
+    },
+    "Puts the files back as they were before this change. A new backup is made first." : {
+
+    },
     "Queue a change for review" : {
+
+    },
+    "Reading the backup…" : {
 
     },
     "Reads all seven kinds of configuration and sorts every item into Yours, Read-only or Needs attention. Nothing is changed." : {
@@ -503,6 +546,24 @@
 
     },
     "Remove %lld" : {
+
+    },
+    "Restore" : {
+
+    },
+    "Restore %@" : {
+
+    },
+    "Restore over %@" : {
+
+    },
+    "Restore: %@" : {
+
+    },
+    "Restores" : {
+
+    },
+    "Restore…" : {
 
     },
     "Reveal in Finder" : {
@@ -521,6 +582,12 @@
 
     },
     "Review queued changes before anything is written" : {
+
+    },
+    "Rollback did not finish" : {
+
+    },
+    "Rolled back" : {
 
     },
     "Run a scan to see your %@." : {
