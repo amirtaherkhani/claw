@@ -271,18 +271,9 @@ public struct WriteCommands: Sendable {
                 lines.append("run: claude \(step.argv.joined(separator: " "))  (a restore does not undo this)")
             }
             if let stash = change.stash { lines.append("hook stash: \(stash)") }
-            lines.append(effectText(change.effect))
+            lines.append(change.effect.guidance)
         }
         return lines.joined(separator: "\n") + "\n"
-    }
-
-    private static func effectText(_ effect: PlanEffect) -> String {
-        switch effect {
-        case .live: return "Takes effect right away."
-        case .reloadPlugins: return "Run /reload-plugins in Claude Code to see it."
-        case .afterClear: return "Takes effect after /clear in Claude Code."
-        case .newSession: return "Takes effect in a new Claude Code session."
-        }
     }
 
     private static func finish(text: String, result: ApplyResult) -> WriteCommandResult {

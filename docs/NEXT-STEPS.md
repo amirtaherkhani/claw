@@ -10,7 +10,7 @@ Status on 2026-11-05. Start here when you continue in Claude Code on the Mac. Re
 | M1 Core read-only | Done: all seven concepts, ownership rules, effective state, projects, progress and Stop, CLI. Exit criteria reported in the M1 close-out |
 | M2 Safe write pipeline | **Done, waiting for owner review.** M2.1 to M2.16 merged (#22 to #42). The app's start-up recovery notification (#41) waits for your visual review. Exit criteria in the M2 close-out below |
 | M3 GUI read-only | Screens done and compared with `docs/design/` on the Mac; text in a String Catalog, XCUITest smoke tests and accessibility audit added. Open: your review of the M3 exit criteria |
-| M4 GUI write flows | In progress: M4.1 |
+| M4 GUI write flows | In progress: M4.1 merged; M4.2 (Review sheet) waits for your visual review |
 | M5 to M7 | Not started |
 
 Code: `amirtaherkhani/claw`, `main`, CI green on Linux and macOS.
@@ -133,6 +133,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | M2.15 | Hook health check: each hook is checked without running it (event, type and its field, matcher pattern, script found, script runnable unless given to an interpreter, timeout); errors and warnings name the script, never its arguments; the app's detail shows them. Spike S15 (desktop app) open | #39 | 2026-11-10 |
 | M2.16 | Recovery with Cancel and Continue: an interrupted change is reported by the step it reached (backup, write, verify, finish); Cancel rolls back, Continue checks again (verify) or undoes and repeats the request saved as `intent` (backup, write), OK records a finished one; Continue is refused for files changed elsewhere; `claw recover`; the real `claw` binary is killed with SIGKILL at each step in tests. `claw` and the app pass the environment to `claude` | #42 | 2026-11-10 |
 | M4.1 | Change queue: switches, removals and the bulk bar only add to the queue, which feeds "Review N changes" (built in M3). New test on a real temporary HOME: toggling, removal, bulk, previews and a rescan leave every byte, modification time and folder as they were, and create no backup or stash; a write injected into `toggle` is caught | #44 | 2026-11-10 |
+| M4.2 | Review sheet with real diffs: `Review` plans the whole queue through the new `Planner.plan(_:)` (key edits in queue order, hook entries leaving a file last-first, stash restores last, each on top of the others), off the main actor; JSON diffs mask secrets and now hide `command` arguments (also in `claw plan`); per change: files, moves, CLI steps, stash note, warnings, when it takes effect, or why it cannot be planned; checklist with the backup folder; Esc closes. Apply stays off until M4.3 | #45 | 2026-11-10 |
 
 ## Known gaps and decisions to revisit
 

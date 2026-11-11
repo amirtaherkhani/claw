@@ -38,6 +38,8 @@ final class AppModel {
 
     // Changes
     var queue = ChangeQueue()
+    /// What Apply would write for the queue, planned off the main actor. `nil` while planning.
+    private(set) var review: Review?
 
     let environment: ClaudeEnvironment
     let fileSystem = LocalFileSystem()
@@ -126,6 +128,18 @@ final class AppModel {
 
     func toggle(_ item: Item) {
         if let message = queue.toggle(item, writeScope: writeScope, home: home) { show(message) }
+    }
+
+    /// Plans the queue for the Review sheet. Planning reads files and writes nothing; a newer queue wins.
+    func refreshReview() async {
+        let queue = self.queue
+        let scope = writeScope
+        let project = activeProject
+        review = nil
+        let planned = await Review.build(
+            queue: queue, items: items, environment: environment, writeScope: scope, activeProject: project)
+        guard !Task.isCancelled, queue == self.queue, scope == writeScope, project == activeProject else { return }
+        review = planned
     }
 
     func toggleRemoval(_ item: Item) {
