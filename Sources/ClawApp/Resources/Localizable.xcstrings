@@ -173,16 +173,31 @@
     "Always on" : {
 
     },
+    "Applied" : {
+
+    },
     "Apply %@" : {
 
     },
-    "Apply is connected in the next step (M4.3)." : {
+    "Apply result" : {
 
     },
     "Applying changes arrives with the safe write pipeline (M2)." : {
 
     },
+    "Applying: %@" : {
+
+    },
+    "Applying…" : {
+
+    },
     "BACKUP" : {
+
+    },
+    "Back to Review" : {
+
+    },
+    "Backup %@ in ~/.claude.bak" : {
 
     },
     "Backup before every apply" : {
@@ -228,6 +243,9 @@
 
     },
     "Close" : {
+
+    },
+    "Close is back when it is done." : {
 
     },
     "Configuration types" : {
@@ -317,6 +335,9 @@
     "History" : {
 
     },
+    "History keeps every Apply with its backup." : {
+
+    },
     "Installing arrives in milestone M5." : {
 
     },
@@ -344,6 +365,9 @@
           }
         }
       }
+    },
+    "Left alone, because another program changed them:" : {
+
     },
     "Local" : {
 
@@ -400,6 +424,9 @@
 
     },
     "Not scanned yet" : {
+
+    },
+    "Not written" : {
 
     },
     "Nothing is written until you click Apply." : {
@@ -486,6 +513,9 @@
     "Scan" : {
 
     },
+    "Scan Again" : {
+
+    },
     "Scan This Mac" : {
 
     },
@@ -570,6 +600,9 @@
     "Undo %@" : {
 
     },
+    "Undone" : {
+
+    },
     "User" : {
 
     },
@@ -583,6 +616,9 @@
 
     },
     "Writes to" : {
+
+    },
+    "Your files are as they were." : {
 
     },
     "changes applied · 7 days" : {

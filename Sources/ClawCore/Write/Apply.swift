@@ -53,14 +53,19 @@ public struct ApplyPipeline: Sendable {
     private let claudeVersion: String?
     private let fault: @Sendable (ApplyStep) throws -> Void
 
-    /// `killAt` is for crash tests only: the process kills itself there.
+    /// `progress` hears each step as it is reached, on the pipeline's own thread. `killAt` is for crash tests only:
+    /// the process kills itself there.
     public init(
         environment: ClaudeEnvironment, store: BackupStore, stash: HookStash, cli: ClaudeCLI?, appVersion: String,
-        claudeVersion: String?, killAt: CrashPoint? = nil
+        claudeVersion: String?, killAt: CrashPoint? = nil, progress: (@Sendable (ApplyStep) -> Void)? = nil
     ) {
         self.init(
             environment: environment, store: store, stash: stash, cli: cli, appVersion: appVersion,
-            claudeVersion: claudeVersion, fault: { step in if let killAt, killAt.step == step { killAt.kill() } })
+            claudeVersion: claudeVersion,
+            fault: { step in
+                progress?(step)
+                if let killAt, killAt.step == step { killAt.kill() }
+            })
         self.killAtFinish = killAt == .finish
     }
 
