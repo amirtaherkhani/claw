@@ -60,9 +60,16 @@ final class AppModel {
         if let saved = UserDefaults.standard.string(forKey: Self.activeProjectKey), allProjects.contains(saved) {
             activeProject = saved
         }
+        claudeFound =
+            ClaudeCLI.locate(environment: ProcessInfo.processInfo.environment, home: home, fileSystem: fileSystem) != nil
     }
 
     var home: String { environment.home }
+
+    /// Whether Claude Code's `claude` command was found. With it, changes it has a command for go through it
+    /// (`CommandCatalog.standard`); without it, Claw makes every change it can itself.
+    private(set) var claudeFound = false
+    var commands: CommandCatalog { claudeFound ? .standard : .none }
 
     // MARK: Derived values
 
@@ -101,6 +108,7 @@ final class AppModel {
         let cli = ClaudeCLI.locate(
             environment: ProcessInfo.processInfo.environment, home: environment.home, fileSystem: fileSystem
         ).map { ClaudeCLI(executable: $0, environment: env) }
+        claudeFound = cli != nil
         let scanner = ConfigScanner(environment: env, target: target, fileSystem: fileSystem, cli: cli)
 
         progress = ScanProgress(step: .settings, itemCount: 0)
@@ -145,7 +153,8 @@ final class AppModel {
         let project = activeProject
         review = nil
         let planned = await Review.build(
-            queue: queue, items: items, environment: environment, writeScope: scope, activeProject: project)
+            queue: queue, items: items, environment: environment, writeScope: scope, activeProject: project,
+            commands: commands)
         guard !Task.isCancelled, queue == self.queue, scope == writeScope, project == activeProject else { return }
         review = planned
     }
@@ -158,7 +167,7 @@ final class AppModel {
         applyStep = nil
         applyOutcome = nil
         let environment = environment.with(projects: allProjects)
-        let (queue, items, scope, project, home) = (queue, items, writeScope, activeProject, home)
+        let (queue, items, scope, project, home, commands) = (queue, items, writeScope, activeProject, home, commands)
         let cli = ClaudeCLI.locate(
             environment: ProcessInfo.processInfo.environment, home: home, fileSystem: fileSystem
         ).map { ClaudeCLI(executable: $0, environment: environment) }
@@ -173,7 +182,8 @@ final class AppModel {
                 review, pipeline: pipeline, home: home,
                 replan: {
                     try Review.plans(
-                        queue: queue, items: items, planner: Planner(environment: environment, fileSystem: LocalFileSystem()),
+                        queue: queue, items: items,
+                        planner: Planner(environment: environment, fileSystem: LocalFileSystem(), commands: commands),
                         writeScope: scope, activeProject: project, home: home)
                 })
         } catch {

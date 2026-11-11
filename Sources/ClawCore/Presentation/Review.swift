@@ -8,6 +8,8 @@ public struct ReviewFile: Sendable, Equatable, Identifiable {
     public let path: String
     public let reason: String
     public let lines: [DiffLine]
+    /// Written by Claude Code's `claude` command, not by Claw: the diff is what the command is expected to write.
+    public var byClaude: Bool = false
 }
 
 /// One queued change as Apply would make it (PRD F11, ROADMAP M4.2).
@@ -46,11 +48,12 @@ public struct Review: Sendable, Equatable {
     /// `make` on its own thread, reading the disk, so a slow file never blocks the caller (the app's main actor).
     public static func build(
         queue: ChangeQueue, items: [Item], environment: ClaudeEnvironment, writeScope: WriteScope?,
-        activeProject: String?
+        activeProject: String?, commands: CommandCatalog
     ) async -> Review {
         let work: @Sendable () -> Review = {
             make(
-                queue: queue, items: items, planner: Planner(environment: environment, fileSystem: LocalFileSystem()),
+                queue: queue, items: items,
+                planner: Planner(environment: environment, fileSystem: LocalFileSystem(), commands: commands),
                 writeScope: writeScope, activeProject: activeProject, home: environment.home)
         }
         return (try? await onDedicatedThread(work)) ?? work()
@@ -99,7 +102,10 @@ public struct Review: Sendable, Equatable {
             checklist.append("Removed files and folders move to the backup; nothing is deleted.")
         }
         if plans.contains(where: { !$0.cli.isEmpty }) {
-            checklist.append("Some steps run the claude CLI; restoring the backup does not undo them.")
+            checklist.append("Some changes run Claude Code's own claude command; Claw checks what it wrote.")
+        }
+        if plans.flatMap(\.cli).contains(where: { $0.argv.starts(with: ["plugin", "uninstall"]) }) {
+            checklist.append("Restoring the backup does not reinstall an uninstalled plugin.")
         }
         return Review(
             entries: entries, plans: canApply ? plans : [], backupFolder: backupFolder, checklist: checklist,
@@ -107,12 +113,9 @@ public struct Review: Sendable, Equatable {
     }
 
     private static func entry(_ change: PendingChange, plan: PlannedChange, home: String) -> ReviewEntry {
-        let files = plan.edits.map { edit in
-            ReviewFile(
-                id: "\(change.id)|\(edit.file)", path: ItemPresentation.abbreviate(edit.file, home: home),
-                reason: edit.reason,
-                lines: diffLines(ChangeView.lines(file: edit.file, before: edit.before, after: edit.after)))
-        }
+        let files =
+            plan.edits.map { file(change, $0, home: home, byClaude: false) }
+            + plan.preview.map { file(change, $0, home: home, byClaude: true) }
         var stash: String?
         var notes = plan.warnings
         switch plan.stash {
@@ -129,6 +132,13 @@ public struct Review: Sendable, Equatable {
             moves: plan.moves.map { ItemPresentation.abbreviate($0, home: home) },
             commands: plan.cli.map { "claude " + $0.argv.joined(separator: " ") }, stash: stash, notes: notes,
             effect: plan.effect, error: nil)
+    }
+
+    private static func file(_ change: PendingChange, _ edit: FileEdit, home: String, byClaude: Bool) -> ReviewFile {
+        ReviewFile(
+            id: "\(change.id)|\(edit.file)|\(byClaude)", path: ItemPresentation.abbreviate(edit.file, home: home),
+            reason: edit.reason,
+            lines: diffLines(ChangeView.lines(file: edit.file, before: edit.before, after: edit.after)), byClaude: byClaude)
     }
 
     private static func failed(_ change: PendingChange, _ reason: String) -> ReviewEntry {

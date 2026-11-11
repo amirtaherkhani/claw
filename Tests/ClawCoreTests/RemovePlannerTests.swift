@@ -38,7 +38,7 @@ private func text(_ edit: FileEdit?) -> String { String(decoding: edit?.after ??
 
 @Suite("Planner: remove")
 struct RemovePlannerTests {
-    private let empty = Planner(environment: env, fileSystem: MemoryFileSystem([:]))
+    private let empty = Planner(environment: env, fileSystem: MemoryFileSystem([:]), commands: .standard)
 
     @Test("Uninstalling a plugin is a CLI step that keeps data by default")
     func pluginKeepsData() throws {
@@ -93,7 +93,7 @@ struct RemovePlannerTests {
         #expect(change.cli.isEmpty)
     }
 
-    @Test("A .mcp.json server is cut from the file; others stay")
+    @Test("Without claude, a .mcp.json server is cut from the file by Claw; others stay")
     func mcpJson() throws {
         let file = "/p/.mcp.json"
         let before =
@@ -112,6 +112,19 @@ struct RemovePlannerTests {
         let planner = Planner(environment: env, fileSystem: MemoryFileSystem([file: "{\"mcpServers\":{\"db\":{}}}"]))
         let change = try planner.remove(item(.mcp, "db", location: file))
         #expect(text(change.edits.first) == "{\"mcpServers\":{}}")
+    }
+
+    @Test("With claude, a .mcp.json server is removed by claude mcp remove in its project; Claw shows and checks the result")
+    func mcpJsonByClaude() throws {
+        let file = "/p/.mcp.json"
+        let before = "{\n  \"mcpServers\": {\n    \"db\": {\n      \"command\": \"x\"\n    }\n  }\n}\n"
+        let planner = Planner(environment: env, fileSystem: MemoryFileSystem([file: before]), commands: .standard)
+        let change = try planner.remove(item(.mcp, "db", location: file, description: "stdio · x"))
+        #expect(change.edits.isEmpty, "Claw writes nothing itself")
+        #expect(change.cli == [CliStep(argv: ["mcp", "remove", "db", "--scope", "project"], workingDirectory: "/p")])
+        #expect(change.cliTouches == [file])
+        #expect(change.preview.first?.file == file)
+        #expect(change.expected == [ExpectedValue(file: file, path: ["mcpServers", "db", "command"], value: nil)])
     }
 
     @Test("User and local servers go through the CLI, and .claude.json is backed up")
