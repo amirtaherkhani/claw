@@ -30,19 +30,25 @@ struct PageHeader<Trailing: View>: View {
 }
 
 extension PageHeader where Trailing == WritesToBox {
-    init(title: String, subtitle: String, writesTo: String) {
-        self.init(title: title, subtitle: subtitle) { WritesToBox(file: writesTo) }
+    init(title: String, subtitle: String, writesTo: String, note: String? = nil) {
+        self.init(title: title, subtitle: subtitle) { WritesToBox(file: writesTo, note: note) }
     }
 }
 
+/// The file the switch writes to (FR-F13-4), what that file means (FR-F13-5), and the backup promise.
 struct WritesToBox: View {
     let file: String
+    var note: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 4) {
                 Text("Writes to").foregroundStyle(Theme.muted)
                 Text(file).font(.callout.monospaced()).lineLimit(1).truncationMode(.middle)
+            }
+            if let note {
+                // No vertical fixedSize: see PageHeader. Two lines hold every note.
+                Label(note, systemImage: "person.2").font(.caption).foregroundStyle(Theme.attention).lineLimit(2)
             }
             Label("Backup before every apply", systemImage: "checkmark.shield")
                 .foregroundStyle(Theme.muted)

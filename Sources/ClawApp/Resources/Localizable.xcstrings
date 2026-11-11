@@ -163,6 +163,12 @@
     "Add" : {
 
     },
+    "Add Project…" : {
+
+    },
+    "Add a project folder first. Claw lists what it holds before adding it." : {
+
+    },
     "Add folder" : {
 
     },
@@ -244,7 +250,7 @@
     "Changed after the backup" : {
 
     },
-    "Choose an active project first" : {
+    "Choose a project for %@ scope" : {
 
     },
     "Choose folder…" : {
@@ -382,6 +388,9 @@
     "How Claw changes it" : {
 
     },
+    "How MCP scopes work" : {
+
+    },
     "Installing arrives in milestone M5." : {
 
     },
@@ -395,6 +404,9 @@
 
     },
     "Keep" : {
+
+    },
+    "Keep User Scope" : {
 
     },
     "Kind" : {
@@ -420,6 +432,12 @@
 
     },
     "Local folder" : {
+
+    },
+    "Local scope writes to the project's .claude/settings.local.json, which only you use." : {
+
+    },
+    "MCP servers have their own scopes, separate from the settings scopes." : {
 
     },
     "Make active" : {
@@ -462,6 +480,9 @@
 
     },
     "No project" : {
+
+    },
+    "No projects yet" : {
 
     },
     "No scan yet" : {
@@ -516,6 +537,9 @@
 
     },
     "Project" : {
+
+    },
+    "Project scope writes to the project's .claude/settings.json, which is usually shared with the team." : {
 
     },
     "Projects" : {
@@ -690,6 +714,9 @@
 
     },
     "Undone" : {
+
+    },
+    "Use This Project" : {
 
     },
     "User" : {
