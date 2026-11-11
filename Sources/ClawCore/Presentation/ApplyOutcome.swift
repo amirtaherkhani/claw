@@ -25,6 +25,8 @@ public struct ApplyOutcome: Sendable, Equatable {
         public let state: State
         /// When a running Claude Code sees it; only for an applied change.
         public let guidance: String?
+        /// When it takes effect, as planned; the after-apply panel groups by it (M4.7).
+        public var effect: PlanEffect?
     }
 
     public let kind: Kind
@@ -48,7 +50,7 @@ public struct ApplyOutcome: Sendable, Equatable {
         _ review: Review, pipeline: ApplyPipeline, home: String, confirmed: Set<String> = [],
         replan: (@Sendable () throws -> [PlannedChange])? = nil, date: Date = Date()
     ) async -> ApplyOutcome {
-        let subjects = review.entries.map { Subject(id: $0.id, title: $0.title, guidance: $0.effect?.guidance) }
+        let subjects = review.entries.map { Subject(id: $0.id, title: $0.title, effect: $0.effect) }
         guard review.canApply, review.plans.count == review.entries.count else {
             return notWritten(
                 subjects, kind: .refused, detail: "Some changes cannot be applied. Look at them in the review.")
@@ -66,14 +68,15 @@ public struct ApplyOutcome: Sendable, Equatable {
     /// Apply could not start, for example because the backup folder cannot be opened; nothing was written.
     public static func cannotStart(_ review: Review, reason: String) -> ApplyOutcome {
         notWritten(
-            review.entries.map { Subject(id: $0.id, title: $0.title, guidance: nil) }, kind: .refused, detail: reason)
+            review.entries.map { Subject(id: $0.id, title: $0.title, effect: $0.effect) }, kind: .refused,
+            detail: reason)
     }
 
     /// One line of the result: what was asked, and when it takes effect once applied.
     struct Subject {
         let id: String
         let title: String
-        let guidance: String?
+        let effect: PlanEffect?
     }
 
     /// Runs planned changes through the pipeline and says what happened to each subject.
@@ -109,7 +112,8 @@ public struct ApplyOutcome: Sendable, Equatable {
         }
         let changes = subjects.map { subject in
             Change(
-                id: subject.id, title: subject.title, state: state, guidance: state == .applied ? subject.guidance : nil)
+                id: subject.id, title: subject.title, state: state,
+                guidance: state == .applied ? subject.effect?.guidance : nil, effect: subject.effect)
         }
         let headline =
             kind == .applied ? appliedHeadline ?? headline(kind, count: changes.count) : headline(kind, count: changes.count)
@@ -123,7 +127,9 @@ public struct ApplyOutcome: Sendable, Equatable {
     ) -> ApplyOutcome {
         ApplyOutcome(
             kind: kind, headline: headline(kind, count: subjects.count), detail: detail, backupId: nil,
-            changes: subjects.map { Change(id: $0.id, title: $0.title, state: .notWritten, guidance: nil) },
+            changes: subjects.map {
+                Change(id: $0.id, title: $0.title, state: .notWritten, guidance: nil, effect: $0.effect)
+            },
             kept: [], notes: [], staleFile: staleFile)
     }
 

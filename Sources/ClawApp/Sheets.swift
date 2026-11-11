@@ -346,6 +346,9 @@ private struct ApplyOutcomePanel: View {
                 }
             }
             .panel(padding: 14)
+            if outcome.kind == .applied {
+                AfterApplyPanel(guidance: AfterApplyGuidance.make(outcome))
+            }
             if !outcome.kept.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Left alone, because another program changed them:").font(.callout.weight(.semibold))
@@ -586,6 +589,50 @@ private struct HistoryRowView: View {
                 .accessibilityLabel("Restore: \(row.title)")
         }
         .panel(padding: 12)
+    }
+}
+
+/// What to do in Claude Code now (FR-F17): changes grouped by when they take effect, with the command to copy.
+/// Claw never types into a running session.
+private struct AfterApplyPanel: View {
+    let guidance: AfterApplyGuidance
+    @State private var copied: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(guidance.needsAction ? "In Claude Code" : "In Claude Code: nothing to do")
+                .font(.headline)
+            ForEach(guidance.groups) { group in
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Label(group.title, systemImage: symbol(group.effect)).font(.callout.weight(.semibold))
+                        Spacer()
+                        if let command = group.copy {
+                            Button(copied == command ? "Copied" : "Copy \(command)", systemImage: "doc.on.doc") {
+                                NSPasteboard.general.clearContents()
+                                NSPasteboard.general.setString(command, forType: .string)
+                                copied = command
+                            }
+                            .help("Copy \(command), then paste it into a running Claude Code session")
+                        }
+                    }
+                    Text(group.detail).font(.caption).foregroundStyle(Theme.muted)
+                    Text(group.changes.joined(separator: " · ")).font(.caption).foregroundStyle(Theme.muted)
+                        .lineLimit(2)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .panel(padding: 14)
+    }
+
+    private func symbol(_ effect: PlanEffect) -> String {
+        switch effect {
+        case .live: "bolt.fill"
+        case .reloadPlugins: "arrow.clockwise"
+        case .afterClear: "eraser"
+        case .newSession: "plus.bubble"
+        }
     }
 }
 

@@ -112,7 +112,7 @@ public struct RestorePreview: Sendable, Equatable {
     /// The restore could not start; nothing was written.
     public static func cannotStart(_ preview: RestorePreview, reason: String) -> ApplyOutcome {
         ApplyOutcome.notWritten(
-            [ApplyOutcome.Subject(id: preview.backupId, title: "Restore \(preview.backupId)", guidance: nil)],
+            [ApplyOutcome.Subject(id: preview.backupId, title: "Restore \(preview.backupId)", effect: .newSession)],
             kind: .refused, detail: reason)
     }
 
@@ -122,8 +122,7 @@ public struct RestorePreview: Sendable, Equatable {
         _ preview: RestorePreview, pipeline: ApplyPipeline, home: String, date: Date = Date()
     ) async -> ApplyOutcome {
         let title = "Restore \(preview.backupId)"
-        let subject = ApplyOutcome.Subject(
-            id: preview.backupId, title: title, guidance: PlanEffect.newSession.guidance)
+        let subject = ApplyOutcome.Subject(id: preview.backupId, title: title, effect: .newSession)
         guard preview.plan.isComplete else {
             return ApplyOutcome.notWritten(
                 [subject], kind: .refused,
