@@ -62,6 +62,48 @@ final class AppModel {
         }
         claudeFound =
             ClaudeCLI.locate(environment: ProcessInfo.processInfo.environment, home: home, fileSystem: fileSystem) != nil
+        checkInterrupted()
+    }
+
+    // MARK: Recovery after a crash (M2.16)
+
+    /// Changes a crash left behind; the first one is shown at start-up with Cancel and Continue, or OK.
+    private(set) var interrupted: [InterruptedChange] = []
+    var recoveryShown: Bool {
+        get { !interrupted.isEmpty && !recovering }
+        set { if !newValue, !recovering { interrupted.removeFirst(min(1, interrupted.count)) } }
+    }
+    private var recovering = false
+
+    func checkInterrupted() {
+        do {
+            interrupted = try recoveryCommands().interrupted()
+        } catch {
+            show(String(localized: "Claw could not read its backups to check for an unfinished change."))
+        }
+    }
+
+    func recover(_ change: InterruptedChange, _ choice: WriteCommands.RecoveryChoice) {
+        recovering = true
+        Task {
+            let result = await (try? recoveryCommands())?.recover(id: change.id, choice: choice)
+            recovering = false
+            show(result.map { $0.output.split(separator: "\n").first.map(String.init) ?? "" } ?? "")
+            checkInterrupted()
+            startScan(target: scanTarget)
+        }
+    }
+
+    private func recoveryCommands() throws -> WriteCommands {
+        let env = environment
+        let fileSystem = fileSystem
+        let cli = ClaudeCLI.locate(
+            environment: ProcessInfo.processInfo.environment, home: env.home, fileSystem: fileSystem
+        ).map { ClaudeCLI(executable: $0, environment: env) }
+        return WriteCommands(
+            environment: env, fileSystem: fileSystem, store: try BackupStore(environment: env),
+            stash: HookStash(environment: env), cli: cli, appVersion: ClawVersion.string, claudeVersion: nil,
+            scan: { await ConfigScanner(environment: env, fileSystem: fileSystem, cli: cli).scan() })
     }
 
     var home: String { environment.home }

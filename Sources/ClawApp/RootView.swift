@@ -23,10 +23,49 @@ struct RootView: View {
         .sheet(isPresented: $model.showAddPlugin) { AddPluginSheet(model: model) }
         .sheet(isPresented: choosingProject) { ProjectPickerSheet(model: model) }
         .sheet(item: folderChoice) { choice in AddProjectSheet(model: model, path: choice.path) }
+        .alert(recoveryTitle, isPresented: $model.recoveryShown, presenting: model.interrupted.first) { change in
+            if change.step == .finish {
+                Button("OK") { model.recover(change, .ok) }
+            } else {
+                Button("Cancel", role: .cancel) { model.recover(change, .cancel) }
+                if change.canContinue {
+                    Button("Continue") { model.recover(change, .continue) }
+                }
+            }
+        } message: { change in
+            Text(recoveryMessage(change))
+        }
         .overlay(alignment: .bottom) {
             if let toast = model.toast { ToastView(text: toast) }
         }
         .animation(.easeOut(duration: 0.2), value: model.toast)
+    }
+
+    private var recoveryTitle: String {
+        model.interrupted.first?.step == .finish
+            ? String(localized: "Claw stopped after a change")
+            : String(localized: "Claw stopped during a change")
+    }
+
+    private func recoveryMessage(_ change: InterruptedChange) -> String {
+        var text: String
+        switch change.step {
+        case .backup: text = String(localized: "The last change didn't finish. Nothing was changed yet.")
+        case .write: text = String(localized: "The last change didn't finish. Some files may already be changed.")
+        case .verify: text = String(localized: "The last change wasn't checked.")
+        case .finish: text = String(localized: "The last change was done.")
+        }
+        if change.step != .finish {
+            text += " " + String(localized: "Cancel puts the files back as they were.")
+            if change.canContinue {
+                text += " " + String(localized: "Continue finishes the change.")
+            } else if !change.changedElsewhere.isEmpty {
+                text += " " + String(localized: "Continue isn't possible: another program changed the files since.")
+            } else {
+                text += " " + String(localized: "Continue isn't possible for this older backup.")
+            }
+        }
+        return text
     }
 
     /// Open while a Project or Local switch waits for a project.
