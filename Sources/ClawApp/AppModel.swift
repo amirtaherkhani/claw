@@ -203,7 +203,8 @@ final class AppModel {
 
     /// Applies the reviewed queue through the write pipeline (backup first, rollback on any failure). An applied
     /// queue is cleared; anything else keeps it, so it can be reviewed and applied again. A scan follows any write.
-    func apply() async {
+    /// `confirmed` holds the risky changes the person ticked (FR-F08-1); Apply refuses without them.
+    func apply(confirmed: Set<String> = []) async {
         guard let review, review.canApply, !isApplying else { return }
         isApplying = true
         applyStep = nil
@@ -214,7 +215,7 @@ final class AppModel {
         do {
             let pipeline = try makePipeline(environment)
             outcome = await ApplyOutcome.run(
-                review, pipeline: pipeline, home: home,
+                review, pipeline: pipeline, home: home, confirmed: confirmed,
                 replan: {
                     try Review.plans(
                         queue: queue, items: items,

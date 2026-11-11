@@ -217,6 +217,9 @@
     "Apply result" : {
 
     },
+    "Apply the reviewed changes" : {
+
+    },
     "Applying changes arrives with the safe write pipeline (M2)." : {
 
     },
@@ -265,6 +268,9 @@
     "Choose…" : {
 
     },
+    "Claude Code deletes a plugin's data folder when it leaves its last scope, unless this is on" : {
+
+    },
     "Claw" : {
 
     },
@@ -302,6 +308,12 @@
 
     },
     "Configuration types" : {
+
+    },
+    "Confirm %@" : {
+
+    },
+    "Confirm each change marked with a warning first" : {
 
     },
     "Continue" : {
@@ -415,6 +427,9 @@
     "How MCP scopes work" : {
 
     },
+    "I understand; make this change" : {
+
+    },
     "Installing arrives in milestone M5." : {
 
     },
@@ -431,6 +446,9 @@
 
     },
     "Keep User Scope" : {
+
+    },
+    "Keep the plugin's data" : {
 
     },
     "Kind" : {

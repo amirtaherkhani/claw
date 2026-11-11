@@ -41,6 +41,26 @@ public struct PluginCheck: Sendable, Equatable {
     public let scope: String?
 }
 
+/// Something a change does that cannot be fully taken back, or that touches safety (FR-F08-1 to 4). The person
+/// confirms each one before Apply.
+public enum ChangeRisk: String, Sendable, Equatable, CaseIterable {
+    /// Uninstalling without Keep data deletes the plugin's data folder.
+    case deletesData
+    /// Removing a remote MCP server deletes its stored sign-in.
+    case deletesSignIn
+    /// A `PreToolUse` or `PermissionRequest` hook may enforce safety or security rules.
+    case guardHook
+
+    /// What the person ticks to go ahead.
+    public var confirmation: String {
+        switch self {
+        case .deletesData: "Delete this plugin's data folder. A backup cannot bring it back."
+        case .deletesSignIn: "Delete this server's stored sign-in. You will need to sign in again to add it back."
+        case .guardHook: "Change a guard hook. It may enforce safety or security rules."
+        }
+    }
+}
+
 /// A value a `claude` step must leave in a file: `nil` means the key is gone.
 public struct ExpectedValue: Sendable, Equatable {
     public let file: String
@@ -65,6 +85,8 @@ public struct PlannedChange: Sendable, Equatable {
     public var cliTouches: [String] = []
     public let effect: PlanEffect
     public let warnings: [String]
+    /// What the person must confirm before Apply.
+    public var risks: [ChangeRisk] = []
     public var stash: StashAction?
     public var pluginCheck: PluginCheck?
     public var folders: [FolderSpec] = []
@@ -289,6 +311,7 @@ public struct Planner: Sendable {
             ],
             cliTouches: [settings, environment.installedPluginsFile], effect: .reloadPlugins,
             warnings: keepData ? [] : ["Claude Code deletes this plugin's data folder when it leaves its last scope."],
+            risks: keepData ? [] : [.deletesData],
             pluginCheck: PluginCheck(id: id, enabled: nil, scope: scope))
     }
 
@@ -304,7 +327,9 @@ public struct Planner: Sendable {
                 let edit = try edit(item.location, reason: "Remove \(item.name)", pending: &pending) {
                     try Self.removing(["mcpServers", .key(item.name)], from: $0, keeping: 1)
                 }
-                return PlannedChange(itemId: item.id, enabled: nil, edits: edit, effect: .newSession, warnings: warnings)
+                return PlannedChange(
+                    itemId: item.id, enabled: nil, edits: edit, effect: .newSession, warnings: warnings,
+                    risks: remote ? [.deletesSignIn] : [])
             }
             // `claude mcp remove --scope project` edits the project's `.mcp.json`; what it should write is shown and
             // checked, not written by Claw.
@@ -318,7 +343,8 @@ public struct Planner: Sendable {
                     CliStep(
                         argv: command.argv(id: item.name, name: item.name, scope: .project), workingDirectory: project)
                 ],
-                cliTouches: [item.location], effect: .newSession, warnings: warnings)
+                cliTouches: [item.location], effect: .newSession, warnings: warnings,
+                risks: remote ? [.deletesSignIn] : [])
         }
         guard validName else { throw PlanError(reason: "Not a valid server name: \(item.name)") }
         guard let command else {
@@ -331,7 +357,8 @@ public struct Planner: Sendable {
                     argv: command.argv(id: item.name, name: item.name, scope: serverScope ?? .user),
                     workingDirectory: item.scope == .local ? item.projectPath : nil)
             ],
-            cliTouches: [environment.claudeJsonFile], effect: .newSession, warnings: warnings)
+            cliTouches: [environment.claudeJsonFile], effect: .newSession, warnings: warnings,
+            risks: remote ? [.deletesSignIn] : [])
     }
 
     /// The values a `claude` step must leave, from what Claw worked out it would write: every key whose value
@@ -362,9 +389,9 @@ public struct Planner: Sendable {
 
     private func removeHook(_ item: Item, pending: inout [String: Data]) throws -> PlannedChange {
         guard let position = Self.hookPosition(item) else { throw PlanError(reason: "Cannot locate \(item.name)") }
+        let guarded = ["PreToolUse", "PermissionRequest"].contains(position.event)
         let warnings =
-            ["PreToolUse", "PermissionRequest"].contains(position.event)
-            ? ["Guard hook: it can block or approve tool use, so removing it changes safety behaviour."] : []
+            guarded ? ["Guard hook: it can block or approve tool use, so removing it changes safety behaviour."] : []
         let edit = try edit(position.file, reason: "Remove \(item.name)", pending: &pending) { data in
             let settings = try JSONValue.parse(data)
             let records = HookReader.parse(settings["hooks"], file: position.file).0
@@ -379,7 +406,9 @@ public struct Planner: Sendable {
             guard try Self.value(at: handlers, in: output)?.arrayValue?.isEmpty == true else { return output }
             return try Self.removing(group, from: output, keeping: 0)
         }
-        return PlannedChange(itemId: item.id, enabled: nil, edits: edit, effect: .live, warnings: warnings)
+        return PlannedChange(
+            itemId: item.id, enabled: nil, edits: edit, effect: .live, warnings: warnings,
+            risks: guarded ? [.guardHook] : [])
     }
 
     private func stashHook(_ item: Item, date: Date, pending: inout [String: Data]) throws -> PlannedChange {
@@ -545,7 +574,8 @@ public struct Planner: Sendable {
         }
         func defeated(by layer: Layer) throws -> [String] {
             guard layer.scope != .managed else {
-                throw PlanError(reason: "Your organisation's managed settings decide \(item.name)")
+                throw PlanError(
+                    reason: "Your organisation's managed settings decide \(item.name): ask your administrator to change it")
             }
             let scope = writeScope.scope.rawValue
             return [

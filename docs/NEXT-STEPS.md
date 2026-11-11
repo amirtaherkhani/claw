@@ -10,7 +10,7 @@ Status on 2026-11-05. Start here when you continue in Claude Code on the Mac. Re
 | M1 Core read-only | Done: all seven concepts, ownership rules, effective state, projects, progress and Stop, CLI. Exit criteria reported in the M1 close-out |
 | M2 Safe write pipeline | **Done, waiting for owner review.** M2.1 to M2.16 merged (#22 to #42). The app's start-up recovery notification (#41) waits for your visual review. Exit criteria in the M2 close-out below |
 | M3 GUI read-only | Screens done and compared with `docs/design/` on the Mac; text in a String Catalog, XCUITest smoke tests and accessibility audit added. Open: your review of the M3 exit criteria |
-| M4 GUI write flows | In progress: M4.1 to M4.4 merged; M4.5 (scope rules) waits for your visual review |
+| M4 GUI write flows | In progress: M4.1 to M4.5 merged; M4.6 (confirmations) waits for your visual review |
 | M5 to M7 | Not started |
 
 Code: `amirtaherkhani/claw`, `main`, CI green on Linux and macOS.
@@ -52,7 +52,7 @@ Open after M2, for the owner to order:
 6. FR-F15-6 (SHOULD): detect that Claude Code reloaded settings and mark the change live. Not built.
 7. Hook health in the app list: a green, yellow or red mark per hook. Today the messages show in the detail sheet only; the mark is a visual change for M4.
 8. Spike S15: does the Claude desktop app show a hook status, and do its rules match `HookHealth`?
-9. Review #41 (start-up recovery notification), then merge it.
+9. ~~Review #41 (start-up recovery notification), then merge it.~~ Merged 2026-11-11.
 
 ## Open before M2
 
@@ -138,6 +138,7 @@ The `roadmap-loop` skill reads this to pick the next task and appends one row pe
 | Claude commands | Changes go through Claude Code's own `claude` command when it has one: one editable table, `CommandCatalog` (`Plan/ClaudeCommands.swift`), maps each action to an argument template; everything else stays Claw's own edit, and all of it when `claude` is not found. Plugin on/off now runs `claude plugin enable/disable`, and a project `.mcp.json` server is removed by `claude mcp remove --scope project`. Claw still plans what the command should write, shows it in the review ("written by claude"), backs the file up and checks the values afterwards; a file both write is checked on values. Restore accepts the same values in claude's layout. The item detail shows how each change is made, and why. ADR-0004 revised; contract tests pass on claude 2.1.319 | #47 | 2026-11-11 |
 | M4.4 | History and Restore: `HistoryList` reads `history.jsonl` (newest first; search; All, Applied, Restores, Undone) and History shows each Apply with its files, time and result, and Restore only for one that finished. `RestorePreview` shows what the backup puts back (diffs, files the Apply created that move aside, hooks taken from the stash) and each file changed after the backup, which stays out until ticked; Restore runs through the Apply pipeline (its own backup, progress, result, a History line) with the restore saved as intent for recovery. Tested on a real temporary HOME: restore returns the backed-up bytes; a conflict writes nothing until accepted | #48 | 2026-11-11 |
 | M4.5 | Scope switch rules (FR-F13-*): `ScopeRules` decides whether a switch needs a project, names each scope's file and what it means, and explains MCP scopes. Choosing Project or Local without an active project opens a picker (Use This Project, Add Project…, Keep User Scope) instead of a toast. "Writes to" warns that Project settings are usually committed and shared and that Local settings stay with you. The MCP page says MCP servers have their own scopes, with the mapping in a popover: user and local servers in `~/.claude.json`, project servers in `.mcp.json`; turning off your own servers writes `disabledMcpServers` per project, a `.mcp.json` server `disabledMcpjsonServers` in the chosen file | #49 | 2026-11-11 |
+| M4.6 | Confirmations and warnings (FR-F08-1 to 6, FR-F07-3): a planned change carries `ChangeRisk` (data deletion when uninstalling without Keep data, a remote MCP server's stored sign-in, a guard hook removed or turned off); the Review shows each risk with an "I understand" tick and Apply stays off until every risky change is ticked (`Review.canApply(confirmed:)`, also enforced in `ApplyOutcome.run`). A plugin uninstall has a "Keep the plugin's data" checkbox (on by default) carried by the queue into the plan. Managed and organisation-required refusals now say to ask the administrator (goldens updated for that text). Each warning has a test | #50 | 2026-11-11 |
 
 ## Known gaps and decisions to revisit
 
