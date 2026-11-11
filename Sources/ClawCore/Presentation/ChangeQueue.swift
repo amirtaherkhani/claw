@@ -28,6 +28,8 @@ public struct PendingChange: Sendable, Equatable, Identifiable {
     public let target: String
     public let preview: [DiffLine]
     public let notes: [String]
+    /// For a plugin uninstall: keep the plugin's data folder (FR-F08-2). On unless the person turns it off.
+    public internal(set) var keepData = true
 
     public var id: String { "\(itemId)#\(action.rawValue)" }
 }
@@ -61,6 +63,12 @@ public struct ChangeQueue: Sendable, Equatable {
     public var count: Int { changes.count }
 
     public func pending(for itemId: String) -> PendingChange? { changes.first { $0.itemId == itemId } }
+
+    /// Keep or delete a plugin's data folder when the queued uninstall runs.
+    public mutating func setKeepData(_ change: PendingChange, _ keep: Bool) {
+        guard let index = changes.firstIndex(where: { $0.id == change.id }) else { return }
+        changes[index].keepData = keep
+    }
 
     /// The state the UI should show for an item, counting queued changes.
     public func effectiveEnabled(_ item: Item) -> Bool {

@@ -292,7 +292,7 @@
       "bucket" : "readonly",
       "capabilities" : {
         "edit" : false,
-        "reason" : "Set by your organization's managed policy",
+        "reason" : "Set by your organization's managed policy: ask your administrator to change it",
         "remove" : false,
         "toggle" : false
       },
@@ -674,7 +674,7 @@
       "bucket" : "readonly",
       "capabilities" : {
         "edit" : false,
-        "reason" : "Set by your organization's managed policy",
+        "reason" : "Set by your organization's managed policy: ask your administrator to change it",
         "remove" : false,
         "toggle" : false
       },

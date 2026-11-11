@@ -64,7 +64,7 @@ public struct Capabilities: Codable, Sendable, Equatable {
         case .managed:
             Capabilities(
                 edit: false, toggle: false, remove: false, removeLabel: nil,
-                reason: "Set by your organization's managed policy")
+                reason: "Set by your organization's managed policy: ask your administrator to change it")
         case .orphan:
             Capabilities(
                 edit: false, toggle: false, remove: true, removeLabel: "Remove entry",

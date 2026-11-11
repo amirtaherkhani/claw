@@ -168,6 +168,8 @@ private struct RouteRow: View {
 struct ReviewSheet: View {
     @Bindable var model: AppModel
     @Environment(\.dismiss) private var dismiss
+    /// Risky changes the person ticked; a change that is no longer queued drops out.
+    @State private var confirmed: Set<String> = []
 
     private struct Inputs: Equatable {
         let queue: ChangeQueue
@@ -219,7 +221,9 @@ struct ReviewSheet: View {
             } else if let review = model.review {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 14) {
-                        ForEach(review.entries) { entry in ReviewEntryCard(model: model, entry: entry) }
+                        ForEach(review.entries) { entry in
+                            ReviewEntryCard(model: model, entry: entry, confirmed: $confirmed)
+                        }
                         ReviewChecklist(review: review)
                     }
                     .padding(20)
@@ -272,11 +276,16 @@ struct ReviewSheet: View {
                 Spacer()
                 Button("Cancel") { dismiss() }.disabled(model.isApplying)
                 Button("Apply \(ItemPresentation.counted(model.queue.count, "change"))") {
-                    Task { await model.apply() }
+                    Task { await model.apply(confirmed: confirmed) }
                 }
                 .buttonStyle(.glassProminent)
                 .tint(Theme.accent)
-                .disabled(model.review?.canApply != true || model.isApplying || model.isScanning)
+                .disabled(
+                    model.review?.canApply(confirmed: confirmed) != true || model.isApplying || model.isScanning
+                )
+                .help(
+                    model.review.map { !$0.needsConfirmation.allSatisfy(confirmed.contains) } == true
+                        ? "Confirm each change marked with a warning first" : "Apply the reviewed changes")
             }
         }
     }
@@ -369,6 +378,9 @@ private struct ApplyOutcomePanel: View {
 private struct ReviewEntryCard: View {
     let model: AppModel
     let entry: ReviewEntry
+    @Binding var confirmed: Set<String>
+
+    private var change: PendingChange? { model.queue.changes.first { $0.id == entry.id } }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -386,6 +398,25 @@ private struct ReviewEntryCard: View {
                         .foregroundStyle(Theme.muted)
                         .accessibilityLabel("Discard \(entry.title)")
                 }
+            }
+            if let change, change.action == .remove, change.concept == .plugins {
+                Toggle("Keep the plugin's data", isOn: keepData(change))
+                    .toggleStyle(.checkbox)
+                    .help("Claude Code deletes a plugin's data folder when it leaves its last scope, unless this is on")
+            }
+            if !entry.risks.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    ForEach(entry.risks, id: \.self) { risk in
+                        Label(risk.confirmation, systemImage: "exclamationmark.triangle.fill")
+                            .foregroundStyle(Theme.attention)
+                    }
+                    Toggle("I understand; make this change", isOn: confirmation)
+                        .toggleStyle(.checkbox)
+                        .accessibilityLabel("Confirm \(entry.title)")
+                }
+                .font(.callout)
+                .padding(10)
+                .overlay { RoundedRectangle(cornerRadius: 8).strokeBorder(Theme.attention.opacity(0.6)) }
             }
             if let error = entry.error {
                 Label(error, systemImage: "exclamationmark.triangle.fill")
@@ -418,6 +449,18 @@ private struct ReviewEntryCard: View {
             }
         }
         .panel(padding: 14)
+    }
+
+    private var confirmation: Binding<Bool> {
+        Binding(
+            get: { confirmed.contains(entry.id) },
+            set: { on in
+                if on { confirmed.insert(entry.id) } else { confirmed.remove(entry.id) }
+            })
+    }
+
+    private func keepData(_ change: PendingChange) -> Binding<Bool> {
+        Binding(get: { change.keepData }, set: { model.queue.setKeepData(change, $0) })
     }
 }
 

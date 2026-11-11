@@ -45,13 +45,17 @@ public struct ApplyOutcome: Sendable, Equatable {
     /// Runs `review.plans` through `pipeline`. `replan` builds the plans again from the files as they are now; the
     /// pipeline uses it when Claude Code rewrites `.claude.json` during the Apply.
     public static func run(
-        _ review: Review, pipeline: ApplyPipeline, home: String,
+        _ review: Review, pipeline: ApplyPipeline, home: String, confirmed: Set<String> = [],
         replan: (@Sendable () throws -> [PlannedChange])? = nil, date: Date = Date()
     ) async -> ApplyOutcome {
         let subjects = review.entries.map { Subject(id: $0.id, title: $0.title, guidance: $0.effect?.guidance) }
         guard review.canApply, review.plans.count == review.entries.count else {
             return notWritten(
                 subjects, kind: .refused, detail: "Some changes cannot be applied. Look at them in the review.")
+        }
+        guard review.canApply(confirmed: confirmed) else {
+            return notWritten(
+                subjects, kind: .refused, detail: "Some changes need your confirmation. Tick each one in the review.")
         }
         let title = review.entries.count == 1 ? review.entries[0].title : "Apply \(review.entries.count) changes"
         return await execute(

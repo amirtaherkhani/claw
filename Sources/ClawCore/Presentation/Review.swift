@@ -30,6 +30,8 @@ public struct ReviewEntry: Sendable, Equatable, Identifiable {
     public let effect: PlanEffect?
     /// Why this change cannot be applied. The rest of the review still shows.
     public let error: String?
+    /// What the person must confirm before Apply (FR-F08-1).
+    public var risks: [ChangeRisk] = []
 }
 
 /// What Apply would do with the queue: real diffs, the backup folder and a checklist. Building it reads files and
@@ -44,6 +46,14 @@ public struct Review: Sendable, Equatable {
     public let needsReloadPlugins: Bool
 
     public var canApply: Bool { !entries.isEmpty && entries.allSatisfy { $0.error == nil } }
+
+    /// Entries with a risk, by id: each needs the person's confirmation.
+    public var needsConfirmation: [String] { entries.filter { !$0.risks.isEmpty }.map(\.id) }
+
+    /// Ready, and every risky change confirmed.
+    public func canApply(confirmed: Set<String>) -> Bool {
+        canApply && needsConfirmation.allSatisfy(confirmed.contains)
+    }
 
     /// `make` on its own thread, reading the disk, so a slow file never blocks the caller (the app's main actor).
     public static func build(
@@ -71,7 +81,7 @@ public struct Review: Sendable, Equatable {
             switch change.action {
             case .enable: requests.append(.setEnabled(item, true))
             case .disable: requests.append(.setEnabled(item, false))
-            case .remove: requests.append(.remove(item, keepData: true))
+            case .remove: requests.append(.remove(item, keepData: change.keepData))
             }
             requested.append(index)
         }
@@ -131,7 +141,7 @@ public struct Review: Sendable, Equatable {
             id: change.id, itemId: change.itemId, concept: change.concept, title: change.title, files: files,
             moves: plan.moves.map { ItemPresentation.abbreviate($0, home: home) },
             commands: plan.cli.map { "claude " + $0.argv.joined(separator: " ") }, stash: stash, notes: notes,
-            effect: plan.effect, error: nil)
+            effect: plan.effect, error: nil, risks: plan.risks)
     }
 
     private static func file(_ change: PendingChange, _ edit: FileEdit, home: String, byClaude: Bool) -> ReviewFile {
