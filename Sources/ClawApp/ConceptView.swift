@@ -20,7 +20,8 @@ struct ConceptView: View {
         return VStack(alignment: .leading, spacing: 18) {
             PageHeader(
                 title: ItemPresentation.conceptTitle(concept), subtitle: ItemPresentation.conceptSummary(concept),
-                writesTo: model.writeScopeLabel)
+                writesTo: model.writeScopeLabel, note: model.activeProject == nil ? nil : model.scopeTarget.note)
+            if concept == .mcp { MCPScopeNote(lines: model.mcpExplanation) }
             if items.isEmpty {
                 // The actions sit inside the empty state: a row pinned to the page bottom can end up under the Dock
                 // on a small display, where clicks on it never reach the app.
@@ -282,5 +283,33 @@ struct ItemListView: View {
             .foregroundStyle(Theme.muted)
         }
         .font(.callout)
+    }
+}
+
+/// One line on the MCP page: MCP servers have scopes of their own (FR-F13-3). The full mapping opens in a popover,
+/// so the page keeps its height.
+private struct MCPScopeNote: View {
+    let lines: [String]
+    @State private var open = false
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Text("MCP servers have their own scopes, separate from the settings scopes.")
+                .font(.callout).foregroundStyle(Theme.muted).lineLimit(1)
+            Button("How MCP scopes work", systemImage: "info.circle") { open.toggle() }
+                .labelStyle(.iconOnly)
+                .buttonStyle(.borderless)
+                .help("How MCP scopes work")
+                .popover(isPresented: $open, arrowEdge: .bottom) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(lines, id: \.self) { line in
+                            Text(line).fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .font(.callout)
+                    .padding(16)
+                    .frame(width: 420)
+                }
+        }
     }
 }
