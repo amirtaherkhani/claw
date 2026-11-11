@@ -41,12 +41,23 @@ public struct PluginCheck: Sendable, Equatable {
     public let scope: String?
 }
 
+/// A value a `claude` step must leave in a file: `nil` means the key is gone.
+public struct ExpectedValue: Sendable, Equatable {
+    public let file: String
+    public let path: [String]
+    public let value: JSONValue?
+}
+
 public struct PlannedChange: Sendable, Equatable {
     public let itemId: String
     /// `nil` for a removal.
     public var enabled: Bool?
     /// Empty when the file already says what was asked.
     public let edits: [FileEdit]
+    /// What the `claude` step is expected to write, for the review only: Claw does not write these.
+    public var preview: [FileEdit] = []
+    /// Values the `claude` step must leave behind; checked after it runs.
+    public var expected: [ExpectedValue] = []
     /// Files and folders that move to the backup.
     public var moves: [String] = []
     public var cli: [CliStep] = []
@@ -69,10 +80,14 @@ public struct PlanError: Error, Equatable, CustomStringConvertible {
 public struct Planner: Sendable {
     private let environment: ClaudeEnvironment
     private let fileSystem: any ReadonlyFileSystem
+    /// Changes Claude Code's own `claude` command makes. Pass `.standard` when `claude` was found, `.none` when it
+    /// was not: Claw then makes every change it can itself.
+    public let commands: CommandCatalog
 
-    public init(environment: ClaudeEnvironment, fileSystem: any ReadonlyFileSystem) {
+    public init(environment: ClaudeEnvironment, fileSystem: any ReadonlyFileSystem, commands: CommandCatalog = .none) {
         self.environment = environment
         self.fileSystem = fileSystem
+        self.commands = commands
     }
 
     public func setEnabled(
@@ -261,11 +276,15 @@ public struct Planner: Sendable {
             settings =
                 item.scope == .local ? environment.localSettingsFile(project) : environment.projectSettingsFile(project)
         }
+        let written = inProject ? SettingsScope(rawValue: item.scope.rawValue) ?? .user : .user
+        guard let command = commands.command(ControlAction(.plugins, .remove), scope: written) else {
+            throw PlanError(reason: "Removing \(id) needs the claude CLI, which was not found")
+        }
         return PlannedChange(
             itemId: item.id, enabled: nil, edits: [],
             cli: [
                 CliStep(
-                    argv: ["plugin", "uninstall", id, "--scope", scope] + (keepData ? ["--keep-data"] : []),
+                    argv: command.argv(id: id, name: item.name, scope: written, keepData: keepData),
                     workingDirectory: inProject ? item.projectPath : nil)
             ],
             cliTouches: [settings, environment.installedPluginsFile], effect: .reloadPlugins,
@@ -276,23 +295,69 @@ public struct Planner: Sendable {
     private func removeServer(_ item: Item, pending: inout [String: Data]) throws -> PlannedChange {
         let remote = item.description.hasPrefix("http") || item.description.hasPrefix("sse")
         let warnings = remote ? ["Removing a remote server also deletes its stored sign-in."] : []
+        let serverScope = SettingsScope(rawValue: item.scope.rawValue)
+        let command = serverScope.flatMap { commands.command(ControlAction(.mcp, .remove), scope: $0) }
+        let validName = NameValidator.isValidName(item.name) && !item.name.contains(".")
         if item.scope == .project {
-            let edit = try edit(item.location, reason: "Remove \(item.name)", pending: &pending) {
+            let project = item.projectPath ?? (item.location as NSString).deletingLastPathComponent
+            guard let command, validName else {
+                let edit = try edit(item.location, reason: "Remove \(item.name)", pending: &pending) {
+                    try Self.removing(["mcpServers", .key(item.name)], from: $0, keeping: 1)
+                }
+                return PlannedChange(itemId: item.id, enabled: nil, edits: edit, effect: .newSession, warnings: warnings)
+            }
+            // `claude mcp remove --scope project` edits the project's `.mcp.json`; what it should write is shown and
+            // checked, not written by Claw.
+            var scratch = pending
+            let preview = try edit(item.location, reason: "Remove \(item.name)", pending: &scratch) {
                 try Self.removing(["mcpServers", .key(item.name)], from: $0, keeping: 1)
             }
-            return PlannedChange(itemId: item.id, enabled: nil, edits: edit, effect: .newSession, warnings: warnings)
+            return PlannedChange(
+                itemId: item.id, enabled: nil, edits: [], preview: preview, expected: try preview.flatMap(Self.expected),
+                cli: [
+                    CliStep(
+                        argv: command.argv(id: item.name, name: item.name, scope: .project), workingDirectory: project)
+                ],
+                cliTouches: [item.location], effect: .newSession, warnings: warnings)
         }
-        guard NameValidator.isValidName(item.name), !item.name.contains(".") else {
-            throw PlanError(reason: "Not a valid server name: \(item.name)")
+        guard validName else { throw PlanError(reason: "Not a valid server name: \(item.name)") }
+        guard let command else {
+            throw PlanError(reason: "Removing \(item.name) needs the claude CLI, which was not found")
         }
         return PlannedChange(
             itemId: item.id, enabled: nil, edits: [],
             cli: [
                 CliStep(
-                    argv: ["mcp", "remove", item.name, "--scope", item.scope.rawValue],
+                    argv: command.argv(id: item.name, name: item.name, scope: serverScope ?? .user),
                     workingDirectory: item.scope == .local ? item.projectPath : nil)
             ],
             cliTouches: [environment.claudeJsonFile], effect: .newSession, warnings: warnings)
+    }
+
+    /// The values a `claude` step must leave, from what Claw worked out it would write: every key whose value
+    /// differs, down through objects. Arrays and other values count as one value.
+    static func expected(_ preview: FileEdit) throws -> [ExpectedValue] {
+        let before = try preview.before.map { try JSONValue.parse($0) } ?? .object([:])
+        let after = try JSONValue.parse(preview.after)
+        return differences(before, after, path: []).map {
+            ExpectedValue(file: preview.file, path: $0.path, value: $0.value)
+        }
+    }
+
+    private static func differences(
+        _ old: JSONValue?, _ new: JSONValue?, path: [String]
+    ) -> [(path: [String], value: JSONValue?)] {
+        guard old != new else { return [] }
+        // A missing object counts as an empty one, so an object Claw creates or prunes is checked key by key: the
+        // CLI may keep an empty object where Claw would prune it.
+        let oldObject = old == nil ? [:] : old?.objectValue
+        let newObject = new == nil ? [:] : new?.objectValue
+        if let oldObject, let newObject {
+            return Set(oldObject.keys).union(newObject.keys).sorted().flatMap {
+                differences(oldObject[$0], newObject[$0], path: path + [$0])
+            }
+        }
+        return [(path, new)]
     }
 
     private func removeHook(_ item: Item, pending: inout [String: Data]) throws -> PlannedChange {
@@ -399,12 +464,30 @@ public struct Planner: Sendable {
         guard after != text else {
             return PlannedChange(itemId: item.id, enabled: enabled, edits: [], effect: step.effect, warnings: step.warnings)
         }
-        pending[step.file] = after
         let reason = "\(enabled ? "Enable" : "Disable") \(item.name)"
         // With a warning, another scope decides, so the CLI is expected to disagree.
         let check =
             item.control.mechanism == .enabledPlugins && step.warnings.isEmpty
             ? PluginCheck(id: ChangeQueue.idOf(item), enabled: enabled, scope: nil) : nil
+        let action = ControlAction(item.concept, enabled ? .enable : .disable)
+        if let writeScope, item.classification.ownership != .orphan,
+            let command = commands.command(action, scope: writeScope.scope)
+        {
+            // Claude Code makes this change. What it should write is shown and checked, never written by Claw, and
+            // not added to `pending`: Claw's own edits to the same file stay valid against the file on disk.
+            let preview = FileEdit(file: step.file, before: base, after: after, reason: reason)
+            let inProject = writeScope.scope != .user
+            return PlannedChange(
+                itemId: item.id, enabled: enabled, edits: [], preview: [preview],
+                expected: try Self.expected(preview),
+                cli: [
+                    CliStep(
+                        argv: command.argv(id: ChangeQueue.idOf(item), name: item.name, scope: writeScope.scope),
+                        workingDirectory: inProject ? activeProject ?? item.projectPath : nil)
+                ],
+                cliTouches: [step.file], effect: step.effect, warnings: step.warnings, pluginCheck: check)
+        }
+        pending[step.file] = after
         return PlannedChange(
             itemId: item.id, enabled: enabled,
             edits: [FileEdit(file: step.file, before: base, after: after, reason: reason)], effect: step.effect,

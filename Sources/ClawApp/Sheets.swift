@@ -70,6 +70,15 @@ struct ItemDetailSheet: View {
                             }
                         }
                     }
+                    let routes = model.commands.routes(
+                        for: item, scope: model.writeScope?.scope, claudeAvailable: model.claudeFound)
+                    if !routes.isEmpty {
+                        section("How Claw changes it") {
+                            ForEach(routes, id: \.0) { operation, route in
+                                RouteRow(operation: operation, route: route)
+                            }
+                        }
+                    }
                     Text(ItemPresentation.how(item)).font(.callout).foregroundStyle(Theme.muted)
                 }
                 .padding(20)
@@ -122,6 +131,34 @@ struct ItemDetailSheet: View {
             Text(title).font(.headline)
             content()
         }
+    }
+}
+
+/// One way an item changes: Claude Code's own command, or Claw's file edit when Claude Code has none.
+private struct RouteRow: View {
+    let operation: ControlOperation
+    let route: ControlRoute
+
+    private var verb: String {
+        switch operation {
+        case .enable: String(localized: "Turn on")
+        case .disable: String(localized: "Turn off")
+        case .remove: String(localized: "Remove")
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            switch route {
+            case .claude(let command):
+                Label("\(verb) with Claude Code's command", systemImage: "terminal")
+                Text(command).font(.callout.monospaced()).foregroundStyle(Theme.muted).textSelection(.enabled)
+            case .claw(let how, let reason):
+                Label("\(verb): \(how)", systemImage: "doc.badge.gearshape")
+                Text(reason).font(.caption).foregroundStyle(Theme.muted)
+            }
+        }
+        .font(.callout)
     }
 }
 
@@ -221,7 +258,14 @@ private struct ReviewEntryCard: View {
                     .font(.callout)
             }
             ForEach(entry.files) { file in
-                Text(file.path).font(.callout.monospaced()).foregroundStyle(Theme.muted)
+                HStack {
+                    Text(file.path).font(.callout.monospaced()).foregroundStyle(Theme.muted)
+                    if file.byClaude {
+                        Text("written by claude").font(.caption).foregroundStyle(Theme.muted)
+                            .padding(.horizontal, 6).padding(.vertical, 2)
+                            .overlay { Capsule().strokeBorder(Theme.border) }
+                    }
+                }
                 DiffView(lines: file.lines)
             }
             ForEach(entry.moves, id: \.self) { path in

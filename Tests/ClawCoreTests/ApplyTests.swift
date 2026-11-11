@@ -165,10 +165,11 @@ struct ApplyTests {
         }
         let home = try Home()
         let planner = Planner(environment: home.env, fileSystem: home.fs)
+        let byClaude = Planner(environment: home.env, fileSystem: home.fs, commands: .standard)
         let server = home.item(.mcp, "github", .disabledMcpServers, key: "k")
         let changes = [
             try planner.setEnabled(home.plugin, enabled: false, writeScope: home.user, activeProject: nil),
-            try planner.remove(server),
+            try byClaude.remove(server),
         ]
         let result = try await home.pipeline(runner: Scribble(file: home.claudeJson)).apply(changes, title: "t")
         #expect(result.status == .rolledBack)
@@ -220,7 +221,7 @@ struct ApplyTests {
         let home = try Home()
         let pipeline = ApplyPipeline(
             environment: home.env, store: home.store, stash: home.stash, cli: nil, appVersion: "1", claudeVersion: nil)
-        let change = try Planner(environment: home.env, fileSystem: home.fs)
+        let change = try Planner(environment: home.env, fileSystem: home.fs, commands: .standard)
             .remove(home.item(.mcp, "github", .disabledMcpServers, key: "k"))
         await #expect(throws: PlanError.self) { try await pipeline.apply([change], title: "t") }
         #expect(try home.store.ids().isEmpty)

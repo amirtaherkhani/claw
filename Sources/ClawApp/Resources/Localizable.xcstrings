@@ -7,6 +7,9 @@
     " (partial)" : {
 
     },
+    "%@ with Claude Code's command" : {
+
+    },
     "%@ · %@" : {
       "localizations" : {
         "en" : {
@@ -43,6 +46,16 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$@, %2$@"
+          }
+        }
+      }
+    },
+    "%@: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@: %2$@"
           }
         }
       }
@@ -317,6 +330,9 @@
     "History" : {
 
     },
+    "How Claw changes it" : {
+
+    },
     "Installing arrives in milestone M5." : {
 
     },
@@ -567,6 +583,12 @@
     "Turn items on or off, or remove them, and they appear here for review." : {
 
     },
+    "Turn off" : {
+
+    },
+    "Turn on" : {
+
+    },
     "Undo %@" : {
 
     },
@@ -607,6 +629,9 @@
 
     },
     "writes %@" : {
+
+    },
+    "written by claude" : {
 
     },
     "· %@ scope" : {

@@ -61,8 +61,8 @@ private final class Sandbox: @unchecked Sendable {
         try await cli.pluginList().plugins.first { $0.id == Contract.plugin }
     }
 
-    func commands() throws -> WriteCommands {
-        let env = self.env
+    func commands(projects: [String] = []) throws -> WriteCommands {
+        let env = self.env.with(projects: projects)
         let cli = self.cli
         return WriteCommands(
             environment: env, fileSystem: LocalFileSystem(), store: try BackupStore(environment: env),
@@ -107,6 +107,8 @@ struct ContractTests {
         let id = try await sandbox.pluginItemId()
         #expect(try await sandbox.listed()?.enabled == true)
 
+        let plan = await commands.plan(ChangeRequest(action: .disable, selector: id))
+        #expect(plan.output.contains("run: claude plugin disable \(Contract.plugin) --scope user"), "\(plan.output)")
         let off = await commands.apply(ChangeRequest(action: .disable, selector: id), dryRun: false)
         #expect(off.exitCode == 0, "\(off.output)")
         #expect(try await sandbox.listed()?.enabled == false)
@@ -142,6 +144,29 @@ struct ContractTests {
         let removed = await (try sandbox.commands()).apply(ChangeRequest(action: .remove, selector: id), dryRun: false)
         #expect(removed.exitCode == 0, "\(removed.output)")
         #expect(try await sandbox.listed() == nil)
+        Sandbox.expectRealConfigUntouched()
+    }
+
+    @Test("A project's .mcp.json server is removed by claude mcp remove, and Claw checks the file")
+    func removeProjectServer() async throws {
+        let sandbox = try await Sandbox(claude: try #require(Contract.claude))
+        let project = joinPath(sandbox.path, "proj")
+        let mcpJson = joinPath(project, ".mcp.json")
+        try FileManager.default.createDirectory(atPath: project, withIntermediateDirectories: true)
+        let text = #"{"mcpServers":{"db":{"command":"/bin/echo"},"keep":{"command":"/bin/echo"}}}"#
+        try Data(text.utf8).write(to: URL(fileURLWithPath: mcpJson))
+        let commands = try sandbox.commands(projects: [project])
+        let env = sandbox.env.with(projects: [project])
+        let scan = await ConfigScanner(environment: env, cli: sandbox.cli).scan()
+        let server = try #require(scan.items.first { $0.concept == .mcp && $0.name == "db" && $0.scope == .project })
+        let request = ChangeRequest(action: .remove, selector: server.id, project: project)
+        let plan = await commands.plan(request)
+        #expect(plan.output.contains("run: claude mcp remove db --scope project"), "\(plan.output)")
+        let removed = await commands.apply(request, dryRun: false)
+        #expect(removed.exitCode == 0, "\(removed.output)")
+        let after = try JSONValue.parse(try Data(contentsOf: URL(fileURLWithPath: mcpJson)))
+        #expect(after["mcpServers"]?["db"] == nil)
+        #expect(after["mcpServers"]?["keep"] != nil)
         Sandbox.expectRealConfigUntouched()
     }
 }
