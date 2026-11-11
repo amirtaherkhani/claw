@@ -162,8 +162,9 @@ private struct RouteRow: View {
     }
 }
 
-/// Review changes (PRD F11, ROADMAP M4.2): the real diff of every queued change, planned off the main actor, with
-/// secrets masked, the backup folder and a checklist. Nothing is written until Apply (M4.3).
+/// Review changes (PRD F11, ROADMAP M4.2 and M4.3): the real diff of every queued change, planned off the main actor,
+/// with secrets masked, the backup folder and a checklist. Apply runs the reviewed plans, shows each step, then what
+/// happened to every change.
 struct ReviewSheet: View {
     @Bindable var model: AppModel
     @Environment(\.dismiss) private var dismiss
@@ -172,23 +173,44 @@ struct ReviewSheet: View {
         let queue: ChangeQueue
         let scope: WriteScope?
         let project: String?
+        let scan: Int
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Review \(ItemPresentation.counted(model.queue.count, "change"))")
-                        .font(.title2.weight(.semibold))
-                    Text("Nothing is written until you click Apply.").foregroundStyle(Theme.muted)
+                    if model.isApplying {
+                        Text("Applying…").font(.title2.weight(.semibold))
+                        Text("Close is back when it is done.").foregroundStyle(Theme.muted)
+                    } else if let outcome = model.applyOutcome {
+                        Text("Apply result").font(.title2.weight(.semibold))
+                        Text(
+                            outcome.wroteNothing
+                                ? "Your files are as they were." : "History keeps every Apply with its backup."
+                        )
+                        .foregroundStyle(Theme.muted)
+                    } else {
+                        Text("Review \(ItemPresentation.counted(model.queue.count, "change"))")
+                            .font(.title2.weight(.semibold))
+                        Text("Nothing is written until you click Apply.").foregroundStyle(Theme.muted)
+                    }
                 }
                 Spacer()
-                Button("Close") { dismiss() }.keyboardShortcut(.cancelAction)
+                Button("Close") { dismiss() }
+                    .keyboardShortcut(.cancelAction)
+                    .disabled(model.isApplying)
             }
             .padding(20)
             Divider()
 
-            if model.queue.isEmpty {
+            if model.isApplying {
+                ApplyProgress(step: model.applyStep)
+            } else if let outcome = model.applyOutcome {
+                ScrollView {
+                    ApplyOutcomePanel(outcome: outcome).padding(20)
+                }
+            } else if model.queue.isEmpty {
                 ContentUnavailableView(
                     "No changes queued", systemImage: "checklist",
                     description: Text("Turn items on or off, or remove them, and they appear here for review.")
@@ -207,25 +229,138 @@ struct ReviewSheet: View {
             }
 
             Divider()
-            HStack {
-                Button("Discard All", role: .destructive) { model.queue.clear() }
-                    .tint(Theme.danger)
-                    .disabled(model.queue.isEmpty)
-                Spacer()
-                Text("Apply is connected in the next step (M4.3).")
-                    .font(.caption).foregroundStyle(Theme.muted)
-                Button("Cancel") { dismiss() }
-                Button("Apply \(ItemPresentation.counted(model.queue.count, "change"))") {}
-                    .buttonStyle(.glassProminent)
-                    .tint(Theme.accent)
-                    .disabled(true)
-            }
-            .padding(16)
+            footer.padding(16)
         }
         .frame(width: 700, height: 720)
         .tint(Theme.text)
-        .task(id: Inputs(queue: model.queue, scope: model.writeScope, project: model.activeProject)) {
+        .interactiveDismissDisabled(model.isApplying)
+        .task(
+            id: Inputs(
+                queue: model.queue, scope: model.writeScope, project: model.activeProject, scan: model.scanGeneration)
+        ) {
             await model.refreshReview()
+        }
+        .onDisappear { model.dismissApplyOutcome() }
+    }
+
+    @ViewBuilder private var footer: some View {
+        HStack {
+            if let outcome = model.applyOutcome {
+                Spacer()
+                switch outcome.kind {
+                case .applied:
+                    Button("Done") { dismiss() }
+                        .buttonStyle(.glassProminent)
+                        .tint(Theme.accent)
+                        .keyboardShortcut(.defaultAction)
+                case .stale:
+                    Button("Back to Review") { model.dismissApplyOutcome() }
+                    Button("Scan Again") { model.rescanAfterStale() }
+                        .buttonStyle(.glassProminent)
+                        .tint(Theme.accent)
+                        .keyboardShortcut(.defaultAction)
+                case .rolledBack, .failed, .refused:
+                    Button("Back to Review") { model.dismissApplyOutcome() }
+                        .buttonStyle(.glassProminent)
+                        .tint(Theme.accent)
+                        .keyboardShortcut(.defaultAction)
+                }
+            } else {
+                Button("Discard All", role: .destructive) { model.queue.clear() }
+                    .tint(Theme.danger)
+                    .disabled(model.queue.isEmpty || model.isApplying)
+                Spacer()
+                Button("Cancel") { dismiss() }.disabled(model.isApplying)
+                Button("Apply \(ItemPresentation.counted(model.queue.count, "change"))") {
+                    Task { await model.apply() }
+                }
+                .buttonStyle(.glassProminent)
+                .tint(Theme.accent)
+                .disabled(model.review?.canApply != true || model.isApplying || model.isScanning)
+            }
+        }
+    }
+}
+
+/// Apply at work: the step it reached, as a bar and in words.
+private struct ApplyProgress: View {
+    let step: ApplyStep?
+
+    var body: some View {
+        VStack(spacing: 10) {
+            ProgressView(value: step?.fraction ?? 0)
+                .frame(width: 320)
+            Text(step?.label ?? "Checking the files")
+                .foregroundStyle(Theme.muted)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Applying: \(step?.label ?? "Checking the files")")
+    }
+}
+
+/// What Apply did: the headline, why it was undone or not written, each change, files left alone, and the backup.
+private struct ApplyOutcomePanel: View {
+    let outcome: ApplyOutcome
+
+    private var symbol: (name: String, color: Color) {
+        switch outcome.kind {
+        case .applied: ("checkmark.circle.fill", Theme.added)
+        case .rolledBack: ("arrow.uturn.backward.circle.fill", Theme.attention)
+        case .failed: ("xmark.octagon.fill", Theme.danger)
+        case .stale, .refused: ("exclamationmark.triangle.fill", Theme.attention)
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Label {
+                Text(outcome.headline).font(.title3.weight(.semibold))
+            } icon: {
+                Image(systemName: symbol.name).foregroundStyle(symbol.color)
+            }
+            if let detail = outcome.detail {
+                Text(detail).font(.callout)
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(outcome.changes) { change in
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack {
+                            Text(change.title).font(.headline)
+                            Spacer()
+                            Text(stateText(change.state)).font(.callout).foregroundStyle(Theme.muted)
+                        }
+                        if let guidance = change.guidance {
+                            Text(guidance).font(.caption).foregroundStyle(Theme.muted)
+                        }
+                    }
+                }
+            }
+            .panel(padding: 14)
+            if !outcome.kept.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Left alone, because another program changed them:").font(.callout.weight(.semibold))
+                    ForEach(outcome.kept, id: \.self) { path in
+                        Text(path).font(.callout.monospaced())
+                    }
+                }
+            }
+            ForEach(outcome.notes, id: \.self) { note in
+                Label(note, systemImage: "info.circle").font(.callout).foregroundStyle(Theme.muted)
+            }
+            if let id = outcome.backupId {
+                Label("Backup \(id) in ~/.claude.bak", systemImage: "archivebox")
+                    .font(.callout).foregroundStyle(Theme.muted)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func stateText(_ state: ApplyOutcome.Change.State) -> String {
+        switch state {
+        case .applied: String(localized: "Applied")
+        case .undone: String(localized: "Undone")
+        case .notWritten: String(localized: "Not written")
         }
     }
 }
