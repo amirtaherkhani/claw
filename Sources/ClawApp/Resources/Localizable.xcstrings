@@ -409,6 +409,9 @@
     "Every change is backed up first. Files are moved to the backup folder, never hard-deleted." : {
 
     },
+    "Every project on this Mac" : {
+
+    },
     "Everything is already as the backup has it." : {
 
     },
@@ -506,6 +509,9 @@
     "Manage project folders" : {
 
     },
+    "Managed" : {
+
+    },
     "Marketplace" : {
 
     },
@@ -570,6 +576,9 @@
 
     },
     "One folder: %@" : {
+
+    },
+    "Only you, in this project" : {
 
     },
     "Open" : {
@@ -717,6 +726,12 @@
 
     },
     "Select items" : {
+
+    },
+    "Set by your organisation" : {
+
+    },
+    "Shared with the repository" : {
 
     },
     "Show items that need attention" : {

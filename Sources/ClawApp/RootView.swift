@@ -16,6 +16,8 @@ struct RootView: View {
             }
             .navigationTitle(title)
             .navigationSubtitle(subtitle)
+            // The toolbar floats over the canvas on every page, scrolled or not.
+            .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
         }
         .toolbar { StatusToolbar(model: model) }
         .sheet(item: $model.detailItem) { item in ItemDetailSheet(model: model, item: item) }
@@ -226,14 +228,10 @@ struct StatusToolbar: ToolbarContent {
 
     var body: some ToolbarContent {
         ToolbarItem(placement: .principal) {
-            Picker("Write scope", selection: scopeBinding) {
-                Text("User").tag(SettingsScope.user)
-                Text("Project").tag(SettingsScope.project)
-                Text("Local").tag(SettingsScope.local)
-            }
-            .pickerStyle(.segmented)
-            .help("Where enable and disable changes are written: \(model.writeScopeLabel)")
+            ScopeDial(selection: model.scope) { model.requestScope($0) }
+                .help("Where enable and disable changes are written: \(model.writeScopeLabel)")
         }
+        .sharedBackgroundVisibility(.hidden)
         ToolbarItem {
             Menu {
                 ForEach(model.allProjects, id: \.self) { path in
@@ -275,10 +273,5 @@ struct StatusToolbar: ToolbarContent {
                     .help("Scan this Mac and known projects (read-only)")
             }
         }
-    }
-
-    /// Project and Local need an active project; without one, the switch asks for it (FR-F13-2).
-    private var scopeBinding: Binding<SettingsScope> {
-        Binding(get: { model.scope }, set: { model.requestScope($0) })
     }
 }
