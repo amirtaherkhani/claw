@@ -29,6 +29,7 @@ final class SmokeTests: XCTestCase {
         app = XCUIApplication()
         app.launchEnvironment["HOME"] = home.path
         app.launchEnvironment["CLAUDE_CONFIG_DIR"] = home.appendingPathComponent(".claude").path
+        app.launchEnvironment["CLAW_NO_CLAUDE"] = "1"
         app.launch()
     }
 

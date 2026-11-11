@@ -165,7 +165,7 @@ These follow your standing rules.
 | M4.5 | Scope switch and active project rules (FR-F13-*), MCP scope mapping | Project scope without an active project prompts |
 | M4.6 | Confirmations and warnings: uninstall data deletion, remote MCP OAuth deletion, guard hook, Managed or org-required refusal | Each warning has a test |
 | M4.7 | After-apply guidance panel (FR-F17-*): live / `/reload-plugins` / restart per change; Copy `/reload-plugins` | Table in TD 3.4 drives the text |
-| M4.8 | E2E (Playwright): disable plugin, disable skill, exclude rule, deny subagent, disable MCP, disable and re-enable hook, remove skill and restore | All pass on a temp config directory |
+| M4.8 | E2E (XCUITest, ADR-0006): disable plugin, disable skill, exclude rule, deny subagent, disable MCP, disable and re-enable hook, remove skill and restore | All pass on a temp config directory |
 | M4.9 | **Dogfood** for 3 days on your real config with a backup you made yourself first | No data loss; issues logged |
 
 **Exit criteria (Alpha tag):** all P0 acceptance criteria in `PRD.md` pass; M4.9 clean.
