@@ -104,6 +104,67 @@ private struct ProjectRow: View {
     }
 }
 
+/// Asked when Project or Local is chosen with no active project (FR-F13-2): pick a project, or keep User scope.
+struct ProjectPickerSheet: View {
+    let model: AppModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var selected: String?
+
+    private var scopeName: String { (model.choosingProjectFor ?? .project).rawValue.capitalized }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Choose a project for \(scopeName) scope").font(.title2.weight(.semibold))
+            Text(
+                model.choosingProjectFor == .local
+                    ? "Local scope writes to the project's .claude/settings.local.json, which only you use."
+                    : "Project scope writes to the project's .claude/settings.json, which is usually shared with the team."
+            )
+            .foregroundStyle(Theme.muted)
+            if model.allProjects.isEmpty {
+                ContentUnavailableView(
+                    "No projects yet", systemImage: "folder.badge.plus",
+                    description: Text("Add a project folder first. Claw lists what it holds before adding it."))
+            } else {
+                List(model.allProjects, id: \.self, selection: $selected) { path in
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(URL(fileURLWithPath: path).lastPathComponent).font(.headline)
+                        Text(ItemPresentation.abbreviate(path, home: model.home)).font(.caption.monospaced())
+                            .foregroundStyle(Theme.muted)
+                    }
+                    .tag(path)
+                }
+                .frame(minHeight: 180)
+            }
+            HStack {
+                Button("Add Project…") {
+                    model.choosingProjectFor = nil
+                    model.destination = .projects
+                    dismiss()
+                }
+                Spacer()
+                Button("Keep User Scope") {
+                    model.choosingProjectFor = nil
+                    dismiss()
+                }
+                .keyboardShortcut(.cancelAction)
+                Button("Use This Project") {
+                    if let selected { model.chooseProject(selected) }
+                    dismiss()
+                }
+                .buttonStyle(.glassProminent)
+                .tint(Theme.accent)
+                .keyboardShortcut(.defaultAction)
+                .disabled(selected == nil)
+            }
+        }
+        .padding(24)
+        .frame(width: 520)
+        .tint(Theme.text)
+        .onAppear { selected = model.allProjects.first }
+    }
+}
+
 /// Add project sheet: shows what the folder holds before anything is added.
 struct AddProjectSheet: View {
     let model: AppModel

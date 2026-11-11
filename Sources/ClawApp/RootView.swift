@@ -21,6 +21,7 @@ struct RootView: View {
         .sheet(item: $model.detailItem) { item in ItemDetailSheet(model: model, item: item) }
         .sheet(isPresented: $model.showReview) { ReviewSheet(model: model) }
         .sheet(isPresented: $model.showAddPlugin) { AddPluginSheet(model: model) }
+        .sheet(isPresented: choosingProject) { ProjectPickerSheet(model: model) }
         .sheet(item: folderChoice) { choice in AddProjectSheet(model: model, path: choice.path) }
         .alert(recoveryTitle, isPresented: $model.recoveryShown, presenting: model.interrupted.first) { change in
             if change.step == .finish {
@@ -65,6 +66,13 @@ struct RootView: View {
             }
         }
         return text
+    }
+
+    /// Open while a Project or Local switch waits for a project.
+    private var choosingProject: Binding<Bool> {
+        Binding(
+            get: { model.choosingProjectFor != nil },
+            set: { if !$0 { model.choosingProjectFor = nil } })
     }
 
     private var folderChoice: Binding<FolderChoice?> {
@@ -269,16 +277,8 @@ struct StatusToolbar: ToolbarContent {
         }
     }
 
-    /// Project and Local need an active project; otherwise the picker stays on User.
+    /// Project and Local need an active project; without one, the switch asks for it (FR-F13-2).
     private var scopeBinding: Binding<SettingsScope> {
-        Binding(
-            get: { model.scope },
-            set: { newValue in
-                if newValue != .user && model.activeProject == nil {
-                    model.show(String(localized: "Choose an active project first"))
-                } else {
-                    model.scope = newValue
-                }
-            })
+        Binding(get: { model.scope }, set: { model.requestScope($0) })
     }
 }

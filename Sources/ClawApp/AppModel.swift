@@ -372,6 +372,36 @@ final class AppModel {
         if path == nil && scope != .user { scope = .user }
     }
 
+    // MARK: Scope (M4.5)
+
+    /// The scope waiting for a project: Project and Local write into the active project (FR-F13-2).
+    var choosingProjectFor: SettingsScope?
+
+    /// Where the switch writes now, and what that file means.
+    var scopeTarget: ScopeRules.Target {
+        ScopeRules.target(scope, environment: environment, activeProject: activeProject, home: home)
+    }
+
+    var mcpExplanation: [String] {
+        ScopeRules.mcpExplanation(scope, environment: environment, activeProject: activeProject, home: home)
+    }
+
+    /// The switch was moved: switch, or ask for a project first.
+    func requestScope(_ wanted: SettingsScope) {
+        switch ScopeRules.request(wanted, activeProject: activeProject) {
+        case .switchTo(let next): scope = next
+        case .chooseProject(let next): choosingProjectFor = next
+        }
+    }
+
+    /// A project was picked for the scope that asked for it.
+    func chooseProject(_ path: String) {
+        let wanted = choosingProjectFor
+        setActiveProject(path)
+        if let wanted { scope = wanted }
+        choosingProjectFor = nil
+    }
+
     // MARK: System
 
     func reveal(_ path: String) {
