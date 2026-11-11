@@ -331,6 +331,15 @@
     "Controlled by" : {
 
     },
+    "Copied" : {
+
+    },
+    "Copy %@" : {
+
+    },
+    "Copy %@, then paste it into a running Claude Code session" : {
+
+    },
     "Could not save the project list: %@" : {
 
     },
@@ -428,6 +437,12 @@
 
     },
     "I understand; make this change" : {
+
+    },
+    "In Claude Code" : {
+
+    },
+    "In Claude Code: nothing to do" : {
 
     },
     "Installing arrives in milestone M5." : {
