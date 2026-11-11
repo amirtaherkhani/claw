@@ -48,32 +48,54 @@ public struct ApplyOutcome: Sendable, Equatable {
         _ review: Review, pipeline: ApplyPipeline, home: String,
         replan: (@Sendable () throws -> [PlannedChange])? = nil, date: Date = Date()
     ) async -> ApplyOutcome {
+        let subjects = review.entries.map { Subject(id: $0.id, title: $0.title, guidance: $0.effect?.guidance) }
         guard review.canApply, review.plans.count == review.entries.count else {
             return notWritten(
-                review, kind: .refused, detail: "Some changes cannot be applied. Look at them in the review.")
+                subjects, kind: .refused, detail: "Some changes cannot be applied. Look at them in the review.")
         }
         let title = review.entries.count == 1 ? review.entries[0].title : "Apply \(review.entries.count) changes"
-        do {
-            let result = try await pipeline.apply(review.plans, title: title, date: date, replan: replan)
-            return outcome(review, result: result, home: home)
-        } catch let error as StaleFileError {
-            let file = ItemPresentation.abbreviate(error.file, home: home)
-            return notWritten(
-                review, kind: .stale, detail: "\(file) changed since the scan. Scan again, check the review, then apply.",
-                staleFile: file)
-        } catch let error as PlanError {
-            return notWritten(review, kind: .refused, detail: error.reason)
-        } catch {
-            return notWritten(review, kind: .refused, detail: String(describing: error))
-        }
+        return await execute(
+            review.plans, subjects: subjects, title: title, intent: nil, pipeline: pipeline, home: home,
+            replan: replan, date: date)
     }
 
     /// Apply could not start, for example because the backup folder cannot be opened; nothing was written.
     public static func cannotStart(_ review: Review, reason: String) -> ApplyOutcome {
-        notWritten(review, kind: .refused, detail: reason)
+        notWritten(
+            review.entries.map { Subject(id: $0.id, title: $0.title, guidance: nil) }, kind: .refused, detail: reason)
     }
 
-    private static func outcome(_ review: Review, result: ApplyResult, home: String) -> ApplyOutcome {
+    /// One line of the result: what was asked, and when it takes effect once applied.
+    struct Subject {
+        let id: String
+        let title: String
+        let guidance: String?
+    }
+
+    /// Runs planned changes through the pipeline and says what happened to each subject.
+    static func execute(
+        _ plans: [PlannedChange], subjects: [Subject], title: String, intent: JSONValue?, pipeline: ApplyPipeline,
+        home: String, replan: (@Sendable () throws -> [PlannedChange])? = nil, date: Date = Date(),
+        appliedHeadline: String? = nil
+    ) async -> ApplyOutcome {
+        do {
+            let result = try await pipeline.apply(plans, title: title, date: date, intent: intent, replan: replan)
+            return outcome(subjects, result: result, home: home, appliedHeadline: appliedHeadline)
+        } catch let error as StaleFileError {
+            let file = ItemPresentation.abbreviate(error.file, home: home)
+            return notWritten(
+                subjects, kind: .stale, detail: "\(file) changed since the scan. Scan again, check the review, then apply.",
+                staleFile: file)
+        } catch let error as PlanError {
+            return notWritten(subjects, kind: .refused, detail: error.reason)
+        } catch {
+            return notWritten(subjects, kind: .refused, detail: String(describing: error))
+        }
+    }
+
+    private static func outcome(
+        _ subjects: [Subject], result: ApplyResult, home: String, appliedHeadline: String?
+    ) -> ApplyOutcome {
         let kind: Kind
         let state: Change.State
         switch result.status {
@@ -81,23 +103,23 @@ public struct ApplyOutcome: Sendable, Equatable {
         case .rolledBack: (kind, state) = (.rolledBack, .undone)
         case .failed, .inProgress: (kind, state) = (.failed, .undone)
         }
-        let changes = review.entries.map { entry in
+        let changes = subjects.map { subject in
             Change(
-                id: entry.id, title: entry.title, state: state,
-                guidance: state == .applied ? entry.effect?.guidance : nil)
+                id: subject.id, title: subject.title, state: state, guidance: state == .applied ? subject.guidance : nil)
         }
+        let headline =
+            kind == .applied ? appliedHeadline ?? headline(kind, count: changes.count) : headline(kind, count: changes.count)
         return ApplyOutcome(
-            kind: kind, headline: headline(kind, count: changes.count), detail: result.failure,
-            backupId: result.backupId, changes: changes,
+            kind: kind, headline: headline, detail: result.failure, backupId: result.backupId, changes: changes,
             kept: result.kept.map { ItemPresentation.abbreviate($0, home: home) }, notes: result.notes, staleFile: nil)
     }
 
-    private static func notWritten(
-        _ review: Review, kind: Kind, detail: String, staleFile: String? = nil
+    static func notWritten(
+        _ subjects: [Subject], kind: Kind, detail: String, staleFile: String? = nil
     ) -> ApplyOutcome {
         ApplyOutcome(
-            kind: kind, headline: headline(kind, count: review.entries.count), detail: detail, backupId: nil,
-            changes: review.entries.map { Change(id: $0.id, title: $0.title, state: .notWritten, guidance: nil) },
+            kind: kind, headline: headline(kind, count: subjects.count), detail: detail, backupId: nil,
+            changes: subjects.map { Change(id: $0.id, title: $0.title, state: .notWritten, guidance: nil) },
             kept: [], notes: [], staleFile: staleFile)
     }
 

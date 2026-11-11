@@ -441,11 +441,13 @@ private struct ReviewChecklist: View {
     }
 }
 
-/// History (PRD F12): every apply with Restore. Empty until the write pipeline (M2) records changes.
+/// History (PRD F12, ROADMAP M4.4): every Apply with its backup, newest first, and Restore for a finished one.
 struct HistoryView: View {
-    let model: AppModel
+    @Bindable var model: AppModel
     @State private var query = ""
-    @State private var concept: Concept?
+    @State private var filter: HistoryFilter = .all
+
+    private var rows: [HistoryRow] { HistoryList.filter(model.history, query: query, filter: filter) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -461,23 +463,215 @@ struct HistoryView: View {
             }
             .panel(padding: 10)
             HStack(spacing: 8) {
-                Chip(title: String(localized: "All"), selected: concept == nil) { concept = nil }
-                ForEach(Concept.allCases, id: \.self) { candidate in
-                    Chip(title: ItemPresentation.conceptTitle(candidate), selected: concept == candidate) {
-                        concept = candidate
+                ForEach(HistoryFilter.allCases, id: \.self) { candidate in
+                    Chip(title: Self.title(candidate), selected: filter == candidate) { filter = candidate }
+                }
+            }
+            Text(ItemPresentation.counted(rows.count, "record")).foregroundStyle(Theme.muted)
+            ForEach(model.historyProblems, id: \.self) { problem in
+                Label(problem, systemImage: "exclamationmark.triangle").font(.caption).foregroundStyle(Theme.attention)
+            }
+            if model.history.isEmpty {
+                ContentUnavailableView(
+                    "No changes applied yet", systemImage: "clock.arrow.circlepath",
+                    description: Text("Each apply appears here with its backup and a Restore button.")
+                )
+                .centeredEmptyState()
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 8) {
+                        ForEach(rows) { row in
+                            HistoryRowView(row: row) {
+                                model.restoring = row
+                                model.prepareRestore()
+                            }
+                        }
                     }
                 }
             }
-            Text("0 records").foregroundStyle(Theme.muted)
-            ContentUnavailableView(
-                "No changes applied yet", systemImage: "clock.arrow.circlepath",
-                description: Text(
-                    "Each apply will appear here with a Restore button. Applying arrives with the safe write pipeline (M2)."
-                )
-            )
-            .centeredEmptyState()
         }
         .padding(28)
+        .onAppear { model.loadHistory() }
+        .sheet(item: $model.restoring, onDismiss: model.closeRestore, content: { _ in RestoreSheet(model: model) })
+    }
+
+    static func title(_ filter: HistoryFilter) -> String {
+        switch filter {
+        case .all: String(localized: "All")
+        case .applied: String(localized: "Applied")
+        case .restores: String(localized: "Restores")
+        case .undone: String(localized: "Undone")
+        }
+    }
+}
+
+/// One Apply: what it was, when, how it ended, and Restore when its backup is complete.
+private struct HistoryRowView: View {
+    let row: HistoryRow
+    let restore: () -> Void
+
+    private var result: (text: String, symbol: String, color: Color) {
+        switch row.result {
+        case .applied: (String(localized: "Applied"), "checkmark.circle", Theme.added)
+        case .rolledBack: (String(localized: "Rolled back"), "arrow.uturn.backward.circle", Theme.attention)
+        case .failed: (String(localized: "Rollback did not finish"), "xmark.octagon", Theme.danger)
+        case .inProgress: (String(localized: "Interrupted"), "exclamationmark.circle", Theme.attention)
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: row.isRestore ? "clock.arrow.circlepath" : result.symbol)
+                .foregroundStyle(result.color)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(row.title).font(.headline)
+                Text(
+                    "\(ItemPresentation.counted(row.files.count, "file")) · \(row.date?.formatted(date: .abbreviated, time: .shortened) ?? row.time) · \(result.text)"
+                )
+                .font(.callout).foregroundStyle(Theme.muted)
+                .help(row.files.joined(separator: "\n"))
+            }
+            Spacer()
+            Button("Restore…", systemImage: "arrow.uturn.backward", action: restore)
+                .disabled(!row.canRestore)
+                .help(
+                    row.canRestore
+                        ? "Put these files back as they were before this change"
+                        : "Nothing to restore: this change did not finish"
+                )
+                .accessibilityLabel("Restore: \(row.title)")
+        }
+        .panel(padding: 12)
+    }
+}
+
+/// Restore (FR-F12-3): what the backup puts back, each file changed since then to accept or leave, then the
+/// restore through the same pipeline as Apply, with a backup of its own first.
+private struct RestoreSheet: View {
+    @Bindable var model: AppModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var accepted: Set<String> = []
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Restore \(model.restoring?.title ?? "")").font(.title2.weight(.semibold))
+                    Text("Puts the files back as they were before this change. A new backup is made first.")
+                        .foregroundStyle(Theme.muted)
+                }
+                Spacer()
+                Button("Close") { dismiss() }
+                    .keyboardShortcut(.cancelAction)
+                    .disabled(model.isRestoring)
+            }
+            .padding(20)
+            Divider()
+
+            Group {
+                if model.isRestoring {
+                    ApplyProgress(step: model.applyStep)
+                } else if let outcome = model.restoreOutcome {
+                    ScrollView { ApplyOutcomePanel(outcome: outcome).padding(20) }
+                } else if let error = model.restoreError {
+                    Label(error, systemImage: "exclamationmark.triangle.fill")
+                        .foregroundStyle(Theme.danger)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if let preview = model.restorePreview {
+                    ScrollView { RestorePreviewView(preview: preview, accepted: $accepted).padding(20) }
+                } else {
+                    ProgressView("Reading the backup…").frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            }
+            .frame(maxHeight: .infinity)
+
+            Divider()
+            HStack {
+                Spacer()
+                if model.restoreOutcome != nil {
+                    Button("Done") { dismiss() }
+                        .buttonStyle(.glassProminent)
+                        .tint(Theme.accent)
+                        .keyboardShortcut(.defaultAction)
+                } else {
+                    Button("Cancel") { dismiss() }.disabled(model.isRestoring)
+                    Button("Restore") { Task { await model.runRestore() } }
+                        .buttonStyle(.glassProminent)
+                        .tint(Theme.accent)
+                        .disabled(model.restorePreview?.canRestore != true || model.isRestoring)
+                }
+            }
+            .padding(16)
+        }
+        .frame(width: 700, height: 640)
+        .tint(Theme.text)
+        .interactiveDismissDisabled(model.isRestoring)
+        .onChange(of: accepted) { _, newValue in model.prepareRestore(accept: newValue) }
+    }
+}
+
+/// The restore plan: changes made after the backup first, then each file put back with its diff.
+private struct RestorePreviewView: View {
+    let preview: RestorePreview
+    @Binding var accepted: Set<String>
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            if !preview.conflicts.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Label("Changed after the backup", systemImage: "exclamationmark.triangle.fill")
+                        .font(.headline).foregroundStyle(Theme.attention)
+                    Text("Another change or program wrote these since. Restore over each one only if you mean to.")
+                        .font(.callout).foregroundStyle(Theme.muted)
+                    ForEach(preview.conflicts) { conflict in
+                        Toggle(isOn: binding(conflict.file)) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(conflict.path).font(.callout.monospaced())
+                                Text(conflict.reason).font(.caption).foregroundStyle(Theme.muted)
+                            }
+                        }
+                        .toggleStyle(.checkbox)
+                        .accessibilityLabel("Restore over \(conflict.path)")
+                    }
+                }
+                .panel(padding: 14)
+            }
+            ForEach(preview.files) { file in
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(file.path).font(.callout.monospaced()).foregroundStyle(Theme.muted)
+                    DiffView(lines: file.lines)
+                }
+            }
+            ForEach(preview.movedAside, id: \.self) { path in
+                Label("Created by this change; moves aside into the new backup: \(path)", systemImage: "archivebox")
+                    .font(.callout)
+            }
+            if preview.stashCount > 0 {
+                Label(
+                    "\(ItemPresentation.counted(preview.stashCount, "hook")) taken back out of Claw's stash",
+                    systemImage: "tray.and.arrow.up"
+                )
+                .font(.callout)
+            }
+            if !preview.alreadyRestored.isEmpty {
+                Text("Already as the backup has them: \(preview.alreadyRestored.joined(separator: ", "))")
+                    .font(.caption).foregroundStyle(Theme.muted)
+            }
+            if !preview.canRestore, preview.conflicts.isEmpty {
+                Label("Everything is already as the backup has it.", systemImage: "checkmark.circle")
+                    .foregroundStyle(Theme.muted)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func binding(_ file: String) -> Binding<Bool> {
+        Binding(
+            get: { accepted.contains(file) },
+            set: { on in
+                if on { accepted.insert(file) } else { accepted.remove(file) }
+            })
     }
 }
 

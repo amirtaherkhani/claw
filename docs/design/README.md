@@ -59,7 +59,7 @@ To read a board without the canvas, strip the inline styles: the structure, copy
 | Sources flow per concept | `ConceptView.swift`, `FlowView.swift` | Done |
 | List: owner groups, chips, table, bulk actions, select all | `ConceptView.swift` (`ItemListView`) | Done |
 | Detail | `Sheets.swift` (`ItemDetailSheet`) | Done; Edit opens the file in the default editor |
-| History | `Sheets.swift` (`HistoryView`) | Shell only; records arrive with M2 |
+| History | `Sheets.swift` (`HistoryView`, `HistoryRowView`, `RestoreSheet`) | Records from `history.jsonl` with Restore (M4.4) |
 | Review board | `Sheets.swift` (`ReviewSheet`, `ReviewEntryCard`, `ReviewChecklist`) | Real diffs from the Planner (M4.2); Apply with progress and result (M4.3) |
 | Add plugin board | `Sheets.swift` (`AddPluginSheet`) | Inspection done; install disabled until M5 |
 | Toast | `Components.swift` (`ToastView`) | Done |
