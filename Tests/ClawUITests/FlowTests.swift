@@ -131,9 +131,14 @@ final class FlowTests: XCTestCase {
         app.staticTexts.matching(NSPredicate(format: "value CONTAINS %@", part)).firstMatch
     }
 
+    /// Clicks a rail page. On a short window the rail scrolls, so the button is scrolled into view first.
     private func open(_ page: String) {
         let button = app.buttons["rail.\(page)"]
         XCTAssertTrue(button.waitForExistence(timeout: 5), "no rail button for \(page)")
+        let rail = app.scrollViews.matching(NSPredicate(format: "label == %@", "Pages")).firstMatch
+        for _ in 0..<12 where !button.isHittable && rail.exists {
+            rail.scroll(byDeltaX: 0, deltaY: button.frame.midY < rail.frame.midY ? 120 : -120)
+        }
         button.click()
     }
 

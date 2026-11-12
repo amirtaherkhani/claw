@@ -16,16 +16,77 @@ struct PageHeader<Trailing: View>: View {
     @ViewBuilder var trailing: Trailing
 
     var body: some View {
-        HStack(alignment: .top, spacing: 24) {
+        // Side by side on a wide window; the trailing box moves under the title on a narrow one.
+        AdaptiveRow(spacing: 24, minLead: 300) {
             VStack(alignment: .leading, spacing: 6) {
                 Text(title).font(.system(size: 26, weight: .semibold))
                 // No vertical fixedSize here: at the near-zero width used to measure a window's minimum size,
                 // it reports one character per line and forces the window to grow on pages without a ScrollView.
                 Text(subtitle).foregroundStyle(Theme.muted).lineLimit(3)
             }
-            Spacer(minLength: 16)
             trailing
         }
+    }
+}
+
+/// Two views: side by side when the first gets at least `minLead` next to the second at its ideal width,
+/// otherwise the second goes under the first. Keeps headers readable on any window width.
+struct AdaptiveRow: Layout {
+    var spacing: CGFloat = 24
+    var minLead: CGFloat = 300
+
+    private func trailingSize(_ subviews: Subviews) -> CGSize {
+        subviews.count > 1 ? subviews[1].sizeThatFits(.unspecified) : .zero
+    }
+
+    private func fits(_ width: CGFloat, _ subviews: Subviews) -> Bool {
+        subviews.count < 2 || width >= minLead + spacing + trailingSize(subviews).width
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? minLead + spacing + trailingSize(subviews).width
+        if fits(width, subviews) {
+            let trailing = trailingSize(subviews)
+            let lead = subviews.first?.sizeThatFits(.init(width: width - trailing.width - spacing, height: nil)) ?? .zero
+            return CGSize(width: width, height: max(lead.height, trailing.height))
+        }
+        let heights = subviews.map { $0.sizeThatFits(.init(width: width, height: nil)).height }
+        return CGSize(width: width, height: heights.reduce(0, +) + spacing * CGFloat(max(0, heights.count - 1)))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        if fits(bounds.width, subviews) {
+            let trailing = trailingSize(subviews)
+            subviews.first?.place(
+                at: bounds.origin, proposal: .init(width: bounds.width - trailing.width - spacing, height: nil))
+            if subviews.count > 1 {
+                subviews[1].place(at: CGPoint(x: bounds.maxX - trailing.width, y: bounds.minY), proposal: .init(trailing))
+            }
+            return
+        }
+        var y = bounds.minY
+        for subview in subviews {
+            let proposal = ProposedViewSize(width: bounds.width, height: nil)
+            subview.place(at: CGPoint(x: bounds.minX, y: y), proposal: proposal)
+            y += subview.sizeThatFits(proposal).height + spacing
+        }
+    }
+}
+
+extension View {
+    /// The page as it is when it fits the window's height, otherwise inside a scroll view. A page that does not
+    /// scroll would make a short window grow past the screen.
+    func scrollsWhenShort() -> some View {
+        ViewThatFits(in: .vertical) {
+            self
+            ScrollView { self }
+        }
+    }
+
+    /// A sheet's size, never larger than the screen it opens on, so its buttons stay reachable on any display.
+    func adaptiveSheet(width: CGFloat, height: CGFloat? = nil) -> some View {
+        let screen = NSScreen.main?.visibleFrame.size ?? CGSize(width: 1440, height: 900)
+        return frame(width: min(width, screen.width - 40), height: height.map { min($0, screen.height - 80) })
     }
 }
 

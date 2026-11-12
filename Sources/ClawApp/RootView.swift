@@ -5,6 +5,8 @@ import SwiftUI
 // Pages, panels, tables and badges are the content layer: solid fills only, no glassEffect.
 struct RootView: View {
     @Bindable var model: AppModel
+    /// The window's width; under 1000 points the toolbar uses compact controls.
+    @State private var width: CGFloat = 1360
 
     var body: some View {
         NavigationSplitView {
@@ -19,7 +21,12 @@ struct RootView: View {
             // The toolbar floats over the canvas on every page, scrolled or not.
             .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
         }
-        .toolbar { StatusToolbar(model: model) }
+        .toolbar { StatusToolbar(model: model, compact: width < 1000) }
+        .onGeometryChange(for: CGFloat.self) {
+            $0.size.width
+        } action: {
+            width = $0
+        }
         .sheet(item: $model.detailItem) { item in ItemDetailSheet(model: model, item: item) }
         .sheet(isPresented: $model.showReview) { ReviewSheet(model: model) }
         .sheet(isPresented: $model.showAddPlugin) { AddPluginSheet(model: model) }
@@ -87,9 +94,9 @@ struct RootView: View {
     private var page: some View {
         switch model.destination ?? .overview {
         case .overview: OverviewView(model: model)
-        case .scan: ScanView(model: model)
+        case .scan: ScanView(model: model).scrollsWhenShort()
         case .projects: ProjectsView(model: model)
-        case .history: HistoryView(model: model)
+        case .history: HistoryView(model: model).scrollsWhenShort()
         case .concept(let concept): ConceptView(model: model, concept: concept).id(concept)
         }
     }
@@ -225,11 +232,27 @@ private struct RailButton: View {
 /// Status bar from the prototype: write scope, active project, and one primary action.
 struct StatusToolbar: ToolbarContent {
     @Bindable var model: AppModel
+    /// A narrow window: a segmented picker instead of the dial, and the project as an icon.
+    var compact = false
 
     var body: some ToolbarContent {
         ToolbarItem(placement: .principal) {
-            ScopeDial(selection: model.scope) { model.requestScope($0) }
-                .help("Where enable and disable changes are written: \(model.writeScopeLabel)")
+            // The dial when the window has room; a compact picker on a narrow window.
+            Group {
+                if compact {
+                    Picker("Write scope", selection: Binding(get: { model.scope }, set: { model.requestScope($0) })) {
+                        Text("User").tag(SettingsScope.user)
+                        Text("Project").tag(SettingsScope.project)
+                        Text("Local").tag(SettingsScope.local)
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    .fixedSize()
+                } else {
+                    ScopeDial(selection: model.scope) { model.requestScope($0) }
+                }
+            }
+            .help("Where enable and disable changes are written: \(model.writeScopeLabel)")
         }
         .sharedBackgroundVisibility(.hidden)
         ToolbarItem {

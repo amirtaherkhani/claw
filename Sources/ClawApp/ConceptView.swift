@@ -11,7 +11,7 @@ struct ConceptView: View {
         if let bucket {
             ItemListView(model: model, concept: concept, bucket: bucket) { self.bucket = $0 }
         } else {
-            sources
+            sources.scrollsWhenShort()
         }
     }
 

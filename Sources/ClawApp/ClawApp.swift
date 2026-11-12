@@ -10,7 +10,8 @@ struct ClawApp: App {
     var body: some Scene {
         WindowGroup("Claw") {
             RootView(model: model)
-                .frame(minWidth: 1100, minHeight: 680)
+                // Small enough for any Mac display; pages adapt from here up (see AdaptiveRow).
+                .frame(minWidth: 720, minHeight: 520)
                 .tint(Theme.accent)
                 .preferredColorScheme(.dark)
         }

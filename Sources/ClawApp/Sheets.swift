@@ -84,7 +84,7 @@ struct ItemDetailSheet: View {
                 .padding(20)
             }
         }
-        .frame(width: 600, height: 640)
+        .adaptiveSheet(width: 600, height: 640)
         .tint(Theme.text)
     }
 
@@ -235,7 +235,7 @@ struct ReviewSheet: View {
             Divider()
             footer.padding(16)
         }
-        .frame(width: 700, height: 720)
+        .adaptiveSheet(width: 700, height: 720)
         .tint(Theme.text)
         .interactiveDismissDisabled(model.isApplying)
         .task(
@@ -694,7 +694,7 @@ private struct RestoreSheet: View {
             }
             .padding(16)
         }
-        .frame(width: 700, height: 640)
+        .adaptiveSheet(width: 700, height: 640)
         .tint(Theme.text)
         .interactiveDismissDisabled(model.isRestoring)
         .onChange(of: accepted) { _, newValue in model.prepareRestore(accept: newValue) }
@@ -870,7 +870,7 @@ struct AddPluginSheet: View {
             }
         }
         .padding(24)
-        .frame(width: 720)
+        .adaptiveSheet(width: 720)
         .tint(Theme.text)
         .fileImporter(isPresented: $choosingFolder, allowedContentTypes: [.folder]) { result in
             if case .success(let url) = result { folder = url.path }
