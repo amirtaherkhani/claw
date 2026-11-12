@@ -33,47 +33,60 @@ struct OverviewView: View {
 
     private var stats: OverviewStats { model.stats }
 
+    /// Ring and summary side by side, or the summary under the ring on a narrow window.
     private var hero: some View {
-        HStack(spacing: 40) {
-            ZStack {
-                ParticleRingView(fraction: stats.enabledFraction)
-                VStack(spacing: 4) {
-                    HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text("\(stats.enabled)").font(.system(size: 54, weight: .semibold))
-                        Text("of \(stats.total)").font(.title3).foregroundStyle(Theme.muted)
-                    }
-                    Text("ENABLED").font(.caption.weight(.semibold)).tracking(2).foregroundStyle(Theme.accent)
-                    Text("\(stats.total) items across 7 types").font(.callout).foregroundStyle(Theme.muted)
-                }
-                .accessibilityElement(children: .combine)
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 40) {
+                heroRing
+                heroSummary
             }
-            .frame(width: 320, height: 320)
+            VStack(alignment: .leading, spacing: 20) {
+                heroRing
+                heroSummary
+            }
+        }
+    }
 
-            VStack(alignment: .leading, spacing: 14) {
-                Text(stats.headline(pending: model.queue.count))
-                    .font(.system(size: 30, weight: .semibold))
-                if let result = model.result {
-                    HStack(spacing: 4) {
-                        Text("Last read")
-                        Text(result.finishedAt, format: .relative(presentation: .named))
-                        Text("· \(model.scope.rawValue.capitalized) scope")
-                    }
-                    .foregroundStyle(Theme.muted)
+    private var heroRing: some View {
+        ZStack {
+            ParticleRingView(fraction: stats.enabledFraction)
+            VStack(spacing: 4) {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text("\(stats.enabled)").font(.system(size: 54, weight: .semibold))
+                    Text("of \(stats.total)").font(.title3).foregroundStyle(Theme.muted)
                 }
-                if !model.queue.isEmpty {
-                    Button("Review \(ItemPresentation.counted(model.queue.count, "change")) →") { model.showReview = true }
-                        .buttonStyle(.link)
-                }
-                HStack(spacing: 10) {
-                    Button("Scan all →") { model.startScan() }
-                        .disabled(model.isScanning)
-                    if stats.attention > 0 {
-                        Button("Show items that need attention") { model.destination = .scan }
-                    }
-                }
-                .controlSize(.large)
+                Text("ENABLED").font(.caption.weight(.semibold)).tracking(2).foregroundStyle(Theme.accent)
+                Text("\(stats.total) items across 7 types").font(.callout).foregroundStyle(Theme.muted)
             }
-            Spacer(minLength: 0)
+            .accessibilityElement(children: .combine)
+        }
+        .frame(width: 320, height: 320)
+    }
+
+    private var heroSummary: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text(stats.headline(pending: model.queue.count))
+                .font(.system(size: 30, weight: .semibold))
+            if let result = model.result {
+                HStack(spacing: 4) {
+                    Text("Last read")
+                    Text(result.finishedAt, format: .relative(presentation: .named))
+                    Text("· \(model.scope.rawValue.capitalized) scope")
+                }
+                .foregroundStyle(Theme.muted)
+            }
+            if !model.queue.isEmpty {
+                Button("Review \(ItemPresentation.counted(model.queue.count, "change")) →") { model.showReview = true }
+                    .buttonStyle(.link)
+            }
+            HStack(spacing: 10) {
+                Button("Scan all →") { model.startScan() }
+                    .disabled(model.isScanning)
+                if stats.attention > 0 {
+                    Button("Show items that need attention") { model.destination = .scan }
+                }
+            }
+            .controlSize(.large)
         }
     }
 

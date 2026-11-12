@@ -29,6 +29,10 @@ final class SmokeTests: XCTestCase {
         app = XCUIApplication()
         app.launchEnvironment["HOME"] = home.path
         app.launchEnvironment["CLAUDE_CONFIG_DIR"] = home.appendingPathComponent(".claude").path
+        app.launchEnvironment["CLAW_NO_CLAUDE"] = "1"
+        // Each launch starts from the default window frame: a frame one test saved (a sheet can move a window that
+        // is wider than CI's screen) must not carry over to the next.
+        app.launchArguments += ["-ApplePersistenceIgnoreState", "YES"]
         app.launch()
     }
 
@@ -42,9 +46,14 @@ final class SmokeTests: XCTestCase {
         app.staticTexts.matching(NSPredicate(format: "value CONTAINS %@", part)).firstMatch
     }
 
+    /// Clicks a rail page. On a short window the rail scrolls, so the button is scrolled into view first.
     private func open(_ page: String) {
         let button = app.buttons["rail.\(page)"]
         XCTAssertTrue(button.waitForExistence(timeout: 5), "no rail button for \(page)")
+        let rail = app.scrollViews.matching(NSPredicate(format: "label == %@", "Pages")).firstMatch
+        for _ in 0..<12 where !button.isHittable && rail.exists {
+            rail.scroll(byDeltaX: 0, deltaY: button.frame.midY < rail.frame.midY ? 120 : -120)
+        }
         button.click()
     }
 

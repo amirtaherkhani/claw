@@ -61,7 +61,7 @@ final class AppModel {
             activeProject = saved
         }
         claudeFound =
-            ClaudeCLI.locate(environment: ProcessInfo.processInfo.environment, home: home, fileSystem: fileSystem) != nil
+            claudePath() != nil
         checkInterrupted()
     }
 
@@ -97,9 +97,7 @@ final class AppModel {
     private func recoveryCommands() throws -> WriteCommands {
         let env = environment
         let fileSystem = fileSystem
-        let cli = ClaudeCLI.locate(
-            environment: ProcessInfo.processInfo.environment, home: env.home, fileSystem: fileSystem
-        ).map { ClaudeCLI(executable: $0, environment: env) }
+        let cli = claudePath().map { ClaudeCLI(executable: $0, environment: env) }
         return WriteCommands(
             environment: env, fileSystem: fileSystem, store: try BackupStore(environment: env),
             stash: HookStash(environment: env), cli: cli, appVersion: ClawVersion.string, claudeVersion: nil,
@@ -107,6 +105,13 @@ final class AppModel {
     }
 
     var home: String { environment.home }
+
+    /// Where `claude` is. UI tests set `CLAW_NO_CLAUDE=1`, so the app never runs a real `claude` on their fake home.
+    nonisolated private func claudePath() -> String? {
+        let process = ProcessInfo.processInfo.environment
+        guard process["CLAW_NO_CLAUDE"] != "1" else { return nil }
+        return ClaudeCLI.locate(environment: process, home: environment.home, fileSystem: fileSystem)
+    }
 
     /// Whether Claude Code's `claude` command was found. With it, changes it has a command for go through it
     /// (`CommandCatalog.standard`); without it, Claw makes every change it can itself.
@@ -147,9 +152,7 @@ final class AppModel {
         let projects = target.kind == .folder ? [target.path ?? ""] : allProjects
         let env = environment.with(projects: projects)
         // GUI apps get a minimal PATH; `locate` also checks the usual install folders.
-        let cli = ClaudeCLI.locate(
-            environment: ProcessInfo.processInfo.environment, home: environment.home, fileSystem: fileSystem
-        ).map { ClaudeCLI(executable: $0, environment: env) }
+        let cli = claudePath().map { ClaudeCLI(executable: $0, environment: env) }
         claudeFound = cli != nil
         let scanner = ConfigScanner(environment: env, target: target, fileSystem: fileSystem, cli: cli)
 
@@ -234,9 +237,7 @@ final class AppModel {
 
     /// The write pipeline with the backup store, Claw's stash and `claude` when found. Its steps feed `applyStep`.
     private func makePipeline(_ environment: ClaudeEnvironment) throws -> ApplyPipeline {
-        let cli = ClaudeCLI.locate(
-            environment: ProcessInfo.processInfo.environment, home: home, fileSystem: fileSystem
-        ).map { ClaudeCLI(executable: $0, environment: environment) }
+        let cli = claudePath().map { ClaudeCLI(executable: $0, environment: environment) }
         return ApplyPipeline(
             environment: environment, store: try BackupStore(environment: environment),
             stash: HookStash(environment: environment), cli: cli, appVersion: ClawVersion.string, claudeVersion: nil,

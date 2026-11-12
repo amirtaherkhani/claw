@@ -159,7 +159,7 @@ struct ProjectPickerSheet: View {
             }
         }
         .padding(24)
-        .frame(width: 520)
+        .adaptiveSheet(width: 520)
         .tint(Theme.text)
         .onAppear { selected = model.allProjects.first }
     }
@@ -234,7 +234,7 @@ struct AddProjectSheet: View {
             }
         }
         .padding(24)
-        .frame(width: 560)
+        .adaptiveSheet(width: 560)
         .tint(Theme.text)
         .fileImporter(isPresented: $choosingFolder, allowedContentTypes: [.folder]) { result in
             if case .success(let url) = result { path = url.path }
