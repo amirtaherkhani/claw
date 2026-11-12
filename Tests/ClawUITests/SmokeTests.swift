@@ -30,6 +30,9 @@ final class SmokeTests: XCTestCase {
         app.launchEnvironment["HOME"] = home.path
         app.launchEnvironment["CLAUDE_CONFIG_DIR"] = home.appendingPathComponent(".claude").path
         app.launchEnvironment["CLAW_NO_CLAUDE"] = "1"
+        // Each launch starts from the default window frame: a frame one test saved (a sheet can move a window that
+        // is wider than CI's screen) must not carry over to the next.
+        app.launchArguments += ["-ApplePersistenceIgnoreState", "YES"]
         app.launch()
     }
 

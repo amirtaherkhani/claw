@@ -50,4 +50,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: UI tests
-        run: xcodebuild -project Claw.xcodeproj -scheme Claw -destination 'platform=macOS' test
+        run: >-
+          xcodebuild -project Claw.xcodeproj -scheme Claw -destination 'platform=macOS'
+          -resultBundlePath UITests.xcresult test
+      - name: Keep the UI test results when they fail
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-results
+          path: UITests.xcresult
+          retention-days: 7

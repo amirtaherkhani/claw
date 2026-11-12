@@ -36,6 +36,9 @@ final class FlowTests: XCTestCase {
         app.launchEnvironment["HOME"] = root
         app.launchEnvironment["CLAUDE_CONFIG_DIR"] = home.appendingPathComponent(".claude").path
         app.launchEnvironment["CLAW_NO_CLAUDE"] = "1"
+        // Each launch starts from the default window frame: a frame one test saved (a sheet can move a window that
+        // is wider than CI's screen) must not carry over to the next.
+        app.launchArguments += ["-ApplePersistenceIgnoreState", "YES"]
         app.launch()
         scan()
     }
@@ -184,9 +187,11 @@ final class FlowTests: XCTestCase {
         XCTAssertTrue(text(" enabled").waitForExistence(timeout: 40), "the scan after Apply did not finish")
     }
 
+    /// Enabled, and where a click lands: a sheet that is still moving its window swallows a click.
     private func waitUntilEnabled(_ element: XCUIElement) {
-        let enabled = expectation(for: NSPredicate(format: "isEnabled == true"), evaluatedWith: element)
-        wait(for: [enabled], timeout: 20)
+        let ready = expectation(
+            for: NSPredicate(format: "isEnabled == true AND isHittable == true"), evaluatedWith: element)
+        wait(for: [ready], timeout: 20)
     }
 
     /// The value at a key path in the fake `~/.claude/settings.json`.
