@@ -52,7 +52,7 @@ struct OverviewView: View {
             ParticleRingView(fraction: stats.enabledFraction)
             VStack(spacing: 4) {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text("\(stats.enabled)").font(.system(size: 54, weight: .semibold))
+                    Text("\(stats.enabled)").numberFace(.xl).foregroundStyle(Theme.accent)
                     Text("of \(stats.total)").font(.title3).foregroundStyle(Theme.muted)
                 }
                 Text("ENABLED").font(.caption.weight(.semibold)).tracking(2).foregroundStyle(Theme.accent)
@@ -93,7 +93,7 @@ struct OverviewView: View {
     private var cards: some View {
         HStack(alignment: .top, spacing: 16) {
             VStack(alignment: .leading, spacing: 6) {
-                Text("\(stats.editable)").font(.system(size: 34, weight: .semibold)).foregroundStyle(Theme.yours)
+                Text("\(stats.editable)").numberFace(.l, value: stats.editable).foregroundStyle(Theme.yours)
                 Text("items you own and can edit").foregroundStyle(Theme.muted)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -101,7 +101,7 @@ struct OverviewView: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text("0").font(.system(size: 34, weight: .semibold))
+                    Text("0").numberFace(.l, tone: .quiet)
                     Text("changes applied · 7 days").foregroundStyle(Theme.muted)
                 }
                 WeekBars(values: Array(repeating: 0, count: 7))

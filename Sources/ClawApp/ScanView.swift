@@ -52,7 +52,7 @@ struct ScanView: View {
             if let progress = model.progress {
                 HStack(spacing: 10) {
                     ProgressView(value: progress.step.fraction)
-                    Text("\(Int(progress.step.fraction * 100))%").monospacedDigit().foregroundStyle(Theme.muted)
+                    Text("\(Int(progress.step.fraction * 100))%").numberFace(.s).foregroundStyle(Theme.muted)
                 }
                 if let path = progress.waitingOn {
                     // Line limits matter: an unbroken path would otherwise set the page's minimum height.
