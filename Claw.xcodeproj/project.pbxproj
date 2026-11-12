@@ -16,13 +16,16 @@
 		4735C98615F53BCD0F76EF6B /* ProjectsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A868DA7C9326C19639E13970 /* ProjectsView.swift */; };
 		473CC35CD7C17B314120FD07 /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF17F0C5478522BEA0C06261 /* SmokeTests.swift */; };
 		563DA64D68CADB92225B0EAD /* FlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ADAD7E4AB1A46CC30E45981 /* FlowTests.swift */; };
+		6040688A54B2CEACD7B61AFC /* BigShoulders-OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = CE57C73C8B8A897348E69193 /* BigShoulders-OFL.txt */; };
 		6A9DE99B6D01F70523F0F8E6 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D145F333F7E956017E231F2 /* Theme.swift */; };
 		74D81B46F487EF4D86C98D3F /* ScopeDial.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2F1844AC23FB03F7F7E38E5 /* ScopeDial.swift */; };
+		804E17997FC0149B85E59326 /* NumberFace.swift in Sources */ = {isa = PBXBuildFile; fileRef = F979BEDDB61F4369E0774827 /* NumberFace.swift */; };
 		907C1CEB4DAFCBEA94C39AC8 /* OverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 890448E126AFD48709E1F9D2 /* OverviewView.swift */; };
 		911F5D36B2F35307B58650EA /* ConceptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8154EC5BCCEFD30DCEDFCBB8 /* ConceptView.swift */; };
 		922F825FDBAFD4F5D004C739 /* FlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE91C972F4F5BE5E2679A8D /* FlowView.swift */; };
 		A99BC1059FDF7645CB5DFB62 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD9BDF8F0B0BA0F946431598 /* AppModel.swift */; };
 		BBBC563316681D889CA787EE /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FF0C6EC52B09B1171F73C52 /* Components.swift */; };
+		C1CBD390D6301879C3346024 /* BigShoulders-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B99B28C477DFEE5588F40290 /* BigShoulders-Variable.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,22 +41,25 @@
 /* Begin PBXFileReference section */
 		127F8DDB7F852F0E9887865B /* ClawUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClawUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1D145F333F7E956017E231F2 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
-		283450DC0D3522824070E911 /* claw-first-mac-session-9d379f */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "claw-first-mac-session-9d379f"; path = .; sourceTree = SOURCE_ROOT; };
 		2ADAD7E4AB1A46CC30E45981 /* FlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowTests.swift; sourceTree = "<group>"; };
 		3FF0C6EC52B09B1171F73C52 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		6877BA38713E60DC37E14286 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		8154EC5BCCEFD30DCEDFCBB8 /* ConceptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConceptView.swift; sourceTree = "<group>"; };
 		890448E126AFD48709E1F9D2 /* OverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverviewView.swift; sourceTree = "<group>"; };
+		8B95D1BE98EABBBA74FD606F /* run-app-1e370c */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "run-app-1e370c"; path = .; sourceTree = SOURCE_ROOT; };
 		92EA606835DD86B2034B4E32 /* Sheets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sheets.swift; sourceTree = "<group>"; };
 		A868DA7C9326C19639E13970 /* ProjectsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectsView.swift; sourceTree = "<group>"; };
+		B99B28C477DFEE5588F40290 /* BigShoulders-Variable.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "BigShoulders-Variable.ttf"; sourceTree = "<group>"; };
 		C2F1844AC23FB03F7F7E38E5 /* ScopeDial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScopeDial.swift; sourceTree = "<group>"; };
 		C3AF53B8EF2BAD7C8A411930 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		CD9BDF8F0B0BA0F946431598 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		CDE91C972F4F5BE5E2679A8D /* FlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowView.swift; sourceTree = "<group>"; };
+		CE57C73C8B8A897348E69193 /* BigShoulders-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "BigShoulders-OFL.txt"; sourceTree = "<group>"; };
 		D14B5AA97AE97FEA87B600EA /* ClawApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClawApp.swift; sourceTree = "<group>"; };
 		DF17F0C5478522BEA0C06261 /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
 		ED33466F529635B63C3ECE25 /* Claw.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Claw.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EE9B408744549F56075763C8 /* ScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanView.swift; sourceTree = "<group>"; };
+		F979BEDDB61F4369E0774827 /* NumberFace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberFace.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +77,8 @@
 		063A8F24C3254AAA5655A8F6 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				CE57C73C8B8A897348E69193 /* BigShoulders-OFL.txt */,
+				B99B28C477DFEE5588F40290 /* BigShoulders-Variable.ttf */,
 				C3AF53B8EF2BAD7C8A411930 /* Localizable.xcstrings */,
 			);
 			path = Resources;
@@ -98,7 +106,7 @@
 		6BAF345854D642FC7661C616 /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				283450DC0D3522824070E911 /* claw-first-mac-session-9d379f */,
+				8B95D1BE98EABBBA74FD606F /* run-app-1e370c */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
@@ -127,6 +135,7 @@
 				3FF0C6EC52B09B1171F73C52 /* Components.swift */,
 				8154EC5BCCEFD30DCEDFCBB8 /* ConceptView.swift */,
 				CDE91C972F4F5BE5E2679A8D /* FlowView.swift */,
+				F979BEDDB61F4369E0774827 /* NumberFace.swift */,
 				890448E126AFD48709E1F9D2 /* OverviewView.swift */,
 				A868DA7C9326C19639E13970 /* ProjectsView.swift */,
 				6877BA38713E60DC37E14286 /* RootView.swift */,
@@ -235,6 +244,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6040688A54B2CEACD7B61AFC /* BigShoulders-OFL.txt in Resources */,
+				C1CBD390D6301879C3346024 /* BigShoulders-Variable.ttf in Resources */,
 				0CB113756B36340611E28651 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -251,6 +262,7 @@
 				BBBC563316681D889CA787EE /* Components.swift in Sources */,
 				911F5D36B2F35307B58650EA /* ConceptView.swift in Sources */,
 				922F825FDBAFD4F5D004C739 /* FlowView.swift in Sources */,
+				804E17997FC0149B85E59326 /* NumberFace.swift in Sources */,
 				907C1CEB4DAFCBEA94C39AC8 /* OverviewView.swift in Sources */,
 				4735C98615F53BCD0F76EF6B /* ProjectsView.swift in Sources */,
 				3BD8D84D33FC54AA0C24F7F1 /* RootView.swift in Sources */,

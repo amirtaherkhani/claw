@@ -200,7 +200,7 @@ struct ItemListView: View {
         HStack(spacing: 10) {
             Circle().fill(Theme.color(bucket)).frame(width: 10, height: 10)
             Text(ItemPresentation.bucketTitle(bucket)).font(.title2.weight(.semibold))
-            Text("\(rows.count)").foregroundStyle(Theme.muted)
+            Text("\(rows.count)").numberFace(.m).foregroundStyle(Theme.muted)
             Spacer()
             if selectedItems.isEmpty {
                 Text("Select items").foregroundStyle(Theme.muted)
