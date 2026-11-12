@@ -36,6 +36,8 @@ final class FlowTests: XCTestCase {
         app.launchEnvironment["HOME"] = root
         app.launchEnvironment["CLAUDE_CONFIG_DIR"] = home.appendingPathComponent(".claude").path
         app.launchEnvironment["CLAW_NO_CLAUDE"] = "1"
+        // The size of CI's display, so every Mac runs the flows on a small window.
+        app.launchEnvironment["CLAW_WINDOW_SIZE"] = "1024x740"
         // Each launch starts from the default window frame: a frame one test saved (a sheet can move a window that
         // is wider than CI's screen) must not carry over to the next.
         app.launchArguments += ["-ApplePersistenceIgnoreState", "YES"]

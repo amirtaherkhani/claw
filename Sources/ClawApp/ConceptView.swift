@@ -71,19 +71,29 @@ struct ItemListView: View {
     @State private var selection = Set<Item.ID>()
     @State private var kind: String?
     @State private var query = ""
+    /// The page's width: under 900 points the owner groups become a row above the table.
+    @State private var width: CGFloat = 1200
 
     var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            bucketColumn.frame(width: 230)
-            VStack(alignment: .leading, spacing: 10) {
-                header
-                Text(ItemPresentation.bucketSubtitle(bucket)).font(.callout).foregroundStyle(Theme.muted)
-                chips
-                table
-                footer
+        Group {
+            if width >= 900 {
+                HStack(alignment: .top, spacing: 16) {
+                    bucketColumn.frame(width: 230)
+                    content
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 12) {
+                    compactBuckets
+                    content
+                }
             }
         }
         .padding(20)
+        .onGeometryChange(for: CGFloat.self) {
+            $0.size.width
+        } action: {
+            width = $0
+        }
         .searchable(text: $query, prompt: "Filter \(ItemPresentation.conceptTitle(concept).lowercased())")
         .onChange(of: bucket) { _, _ in selection.removeAll() }
     }
@@ -97,6 +107,37 @@ struct ItemListView: View {
     }
 
     private var selectedItems: [Item] { rows.filter { selection.contains($0.id) } }
+
+    private var content: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            header
+            Text(ItemPresentation.bucketSubtitle(bucket)).font(.callout).foregroundStyle(Theme.muted)
+            chips
+            table
+            footer
+        }
+    }
+
+    /// The owner groups on a narrow page: back to the sources, then one button per group.
+    private var compactBuckets: some View {
+        HStack(spacing: 8) {
+            Button {
+                select(nil)
+            } label: {
+                Label("Sources", systemImage: "chevron.left")
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(Theme.muted)
+            ForEach(Bucket.allCases, id: \.self) { candidate in
+                let count = model.items(concept: concept, bucket: candidate).count
+                Chip(title: "\(ItemPresentation.bucketTitle(candidate)) \(count)", selected: candidate == bucket) {
+                    select(candidate)
+                }
+                .accessibilityLabel(
+                    "\(ItemPresentation.bucketTitle(candidate)), \(ItemPresentation.counted(count, "item"))")
+            }
+        }
+    }
 
     private var bucketColumn: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -204,7 +245,7 @@ struct ItemListView: View {
                 }
                 .help(item.location)
             }
-            .width(min: 200, ideal: 280)
+            .width(min: 140, ideal: 200)
             TableColumn("Modified") { (item: Item) in
                 if let date = model.modifiedDate(item) {
                     Text(date, format: .dateTime.day().month(.abbreviated).year()).foregroundStyle(Theme.muted)
@@ -212,15 +253,15 @@ struct ItemListView: View {
                     Text("—").foregroundStyle(Theme.muted)
                 }
             }
-            .width(min: 110, ideal: 130)
+            .width(min: 80, ideal: 100)
             TableColumn("Scope") { (item: Item) in
                 Text(ItemPresentation.scopeTitle(item.scope)).foregroundStyle(Theme.muted)
             }
-            .width(min: 60, ideal: 80)
+            .width(min: 50, ideal: 64)
             TableColumn("Kind") { (item: Item) in
                 Text(ItemPresentation.kind(item)).foregroundStyle(Theme.muted)
             }
-            .width(min: 60, ideal: 90)
+            .width(min: 50, ideal: 72)
             TableColumn("On") { (item: Item) in
                 Toggle(
                     "Enabled",

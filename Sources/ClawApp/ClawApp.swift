@@ -4,6 +4,15 @@ import SwiftUI
 
 @main
 struct ClawApp: App {
+    /// 1360 × 820, or `CLAW_WINDOW_SIZE` ("1024x740"): UI tests use it to run as on a small display.
+    static var initialSize: CGSize {
+        let parts = (ProcessInfo.processInfo.environment["CLAW_WINDOW_SIZE"] ?? "").split(separator: "x")
+        guard parts.count == 2, let width = Double(parts[0]), let height = Double(parts[1]) else {
+            return CGSize(width: 1360, height: 820)
+        }
+        return CGSize(width: width, height: height)
+    }
+
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var model = AppModel()
 
@@ -15,7 +24,7 @@ struct ClawApp: App {
                 .tint(Theme.accent)
                 .preferredColorScheme(.dark)
         }
-        .defaultSize(width: 1360, height: 820)
+        .defaultSize(Self.initialSize)
         .commands {
             CommandGroup(after: .newItem) {
                 Button("Scan This Mac") { model.startScan() }
